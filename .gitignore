@@ -149,3 +149,9 @@ obj-*/
 dist/
 *.dmg
 .DS_Store
+
+.dotbuild/
+.surfer/
+engine/
+firefox-*/
+node_modules/

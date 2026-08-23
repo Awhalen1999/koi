@@ -1,0 +1,14 @@
+diff --git a/browser/themes/windows/browser.css b/browser/themes/windows/browser.css
+index 7dcb386d38..2d91f1f7b6 100644
+--- a/browser/themes/windows/browser.css
++++ b/browser/themes/windows/browser.css
+@@ -5,6 +5,9 @@
+ @import url("chrome://browser/skin/browser-shared.css");
+ @import url("chrome://browser/skin/contextmenu.css");
+ 
++%include ../custom/windows/windows.inc.css
++
++
+ #menubar-items {
+   flex-direction: column; /* for flex hack */
+   justify-content: normal; /* align the menubar to the top also in customize mode */
