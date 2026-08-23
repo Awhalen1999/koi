@@ -1,0 +1,12 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Reached from browser/base/moz.build via `DIRS += ["../../koi"]`.
+#
+# A feature directory only belongs in DIRS if it has its own moz.build, i.e.
+# it ships JS modules through EXTRA_JS_MODULES. Directories that are purely
+# content (CSS, images) need nothing here — they are registered through
+# jar.inc.mn instead. See src/browser/base/content/koi-assets.jar.inc.mn.
+
+DIRS += []

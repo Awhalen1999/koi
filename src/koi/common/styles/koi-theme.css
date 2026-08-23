@@ -1,0 +1,15 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Koi's design tokens. Loaded into every browser window via
+ * browser/base/content/koi-assets.inc.xhtml.
+ *
+ * This is the root of Koi's chrome styling. Nothing here patches Firefox's own
+ * stylesheets — new stylesheets are added as files under src/koi/, registered
+ * in a jar.inc.mn, and linked from koi-assets.inc.xhtml. */
+
+:root {
+  /* Every control lives in this band at the top; the rest belongs to the page. */
+  --koi-chrome-height: 62px;
+}

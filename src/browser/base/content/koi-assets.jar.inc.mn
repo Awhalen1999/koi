@@ -1,0 +1,11 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Included from browser/base/jar.mn. Paths here are relative to this file's
+# own directory (browser/base/content/), so ../../../ is the top of the tree.
+#
+# One line per feature directory under src/koi/. This is the only file that
+# needs touching to register a new feature's content.
+
+#include ../../../koi/common/jar.inc.mn

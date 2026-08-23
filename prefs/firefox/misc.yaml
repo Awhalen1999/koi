@@ -1,0 +1,21 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Sponsored suggestions in the address bar.
+- name: browser.urlbar.suggest.quicksuggest.sponsored
+  value: false
+
+# Mozilla product upsell pane in Settings.
+- name: browser.preferences.moreFromMozilla
+  value: false
+
+# MOZ_APPUPDATE_HOST is surfer's deliberately non-resolving placeholder until
+# Koi has a real update server. Auto-update must stay off until it does.
+- name: app.update.auto
+  value: false
+
+# Matches --with-unsigned-addon-scopes=app,system; Mozilla's signing does not
+# cover this build.
+- name: xpinstall.signatures.required
+  value: false

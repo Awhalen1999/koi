@@ -1,0 +1,31 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Runtime backstop. Telemetry, healthreport, Normandy and the crash reporter
+# are all compiled out (see configs/common/mozconfig and the moz.configure
+# patches), so none of this should have anything to switch off. It exists so a
+# regression in the build flags cannot quietly turn data collection back on.
+#
+# Prefs whose only readers are compiled out are deliberately NOT listed —
+# see prefs/README.md.
+
+- name: toolkit.telemetry.unified
+  value: false
+
+- name: toolkit.telemetry.archive.enabled
+  value: false
+
+- name: datareporting.policy.dataSubmissionEnabled
+  value: false
+
+- name: datareporting.healthreport.uploadEnabled
+  value: false
+
+# Shield / Normandy studies.
+- name: app.shield.optoutstudies.enabled
+  value: false
+
+# Sends interest data to Mozilla for add-on recommendations.
+- name: browser.discovery.enabled
+  value: false

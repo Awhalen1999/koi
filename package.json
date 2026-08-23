@@ -1,20 +1,36 @@
 {
   "name": "koi",
   "version": "0.1.0",
-  "scripts": {},
+  "description": "A fast, minimal browser built on Firefox (Gecko), macOS only.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "postinstall": "node scripts/patch-surfer.js",
+    "download": "surfer download",
+    "bootstrap": "surfer bootstrap",
+    "prefs": "node scripts/gen-prefs.js",
+    "import": "npm run prefs && surfer import",
+    "export": "surfer export",
+    "build": "surfer build",
+    "build:ui": "surfer build --ui",
+    "start": "cd engine && ./mach run --noprofile",
+    "package": "surfer package",
+    "reset-ff": "surfer reset",
+    "lc": "surfer license-check",
+    "lc:fix": "surfer license-check --fix",
+    "surfer": "surfer"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Awhalen1999/koi.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MPL-2.0",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/Awhalen1999/koi/issues"
   },
-  "homepage": "https://github.com/Awhalen1999/koi#readme",
+  "homepage": "https://koi.surf",
+  "license": "MPL-2.0",
   "devDependencies": {
-    "@zen-browser/surfer": "^1.14.7"
+    "@zen-browser/surfer": "^1.14.7",
+    "yaml": "^2.6.1"
   }
 }

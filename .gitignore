@@ -144,18 +144,14 @@ vite.config.ts.timestamp-*
 
 # Firefox source and build output
 engine/
+firefox-*/
 obj-*/
 .mozbuild/
+.dotbuild/
 dist/
 *.dmg
+
+# Surfer machine-local state (brand, patch count, hashes)
+.surfer/
+
 .DS_Store
-
-.dotbuild/
-.surfer/
-engine/
-firefox-*/
-node_modules/
-.surfer/
-
-# Claude
-CLAUDE.md

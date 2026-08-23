@@ -1,0 +1,22 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Nothing pops up, nothing asks for attention, nothing needs learning on first
+# launch. The branding generator already empties the welcome/whatsnew URLs;
+# these switch off the machinery that would otherwise open them.
+
+- name: browser.aboutwelcome.enabled
+  value: false
+
+- name: browser.shell.checkDefaultBrowser
+  value: false
+
+# Read by BrowserContentHandler to decide whether to show a what's-new page
+# after an update. "ignore" suppresses it permanently.
+- name: browser.startup.homepage_override.mstone
+  value: "ignore"
+
+# Suppresses the first-run rights notification.
+- name: browser.rights.3.shown
+  value: true

@@ -1,18 +1,77 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Merged by `surfer build` into engine/mozconfig, in this order:
+#   configs/common + configs/<os> + optional untracked ./mozconfig + surfer's
+#   internal block (branding, update channel, MAR ids, MOZ_APPUPDATE_HOST).
+# Never edit engine/mozconfig directly — it is generated output.
+#
+# ${binName} and ${changeset} are substituted by surfer from surfer.json.
+
+ac_add_options --enable-application=browser
+
+# Identity ---------------------------------------------------------------
 ac_add_options --with-app-name=${binName}
-export MOZ_USER_DIR="${name}"
-export MOZ_APP_BASENAME=${binName}
-export MOZ_DISTRIBUTION_ID=${appId}
 
-# Uncomment if builds are too resource hungry
-# mk_add_options MOZ_MAKE_FLAGS="-j4"
-# ac_add_options --enable-linker=gold
+# Capitalised: this becomes application.ini's Name and the macOS profile
+# directory (~/Library/Application Support/Koi).
+export MOZ_APP_BASENAME=Koi
+export MOZ_USER_DIR="Koi"
 
-# Misc
-export MOZ_STUB_INSTALLER=1
+# The macOS bundle id is composed by toolkit/moz.configure as
+#   {distribution-id}.{surfer.json appId}
+# giving surf.koi.browser. This must be the configure option; exporting
+# MOZ_DISTRIBUTION_ID is ignored.
+ac_add_options --with-distribution-id=surf.koi
+
+# MOZ_APP_VENDOR and MOZ_APP_UA_NAME are implied-only configure options
+# (possible_origins=("implied",)) and are a hard configure error if exported
+# here. They live in src/browser/moz-configure.patch and
+# src/toolkit/moz-configure.patch instead.
+
+# Source info, surfaced in about:buildconfig
 export MOZ_INCLUDE_SOURCE_INFO=1
-# Change the below repository to your GitHub repository.
 export MOZ_SOURCE_REPO=https://github.com/Awhalen1999/koi
 export MOZ_SOURCE_CHANGESET=${changeset}
 
-# Bootstrap
+# Privacy ----------------------------------------------------------------
+# Firefox defaults phone home; a fork has to switch each off explicitly.
+
+# Both forms are required. mk_add_options only reaches make, so configure
+# would otherwise keep Firefox's default.
+mk_add_options MOZ_TELEMETRY_REPORTING=
+ac_add_options MOZ_TELEMETRY_REPORTING=
+
+# MOZ_DATA_REPORTING is NOT settable here. toolkit/moz.configure derives it as
+# (telemetry or healthreport or crashreporter or normandy). Telemetry and the
+# crash reporter are off here; healthreport and normandy are force-implied by
+# browser/moz.configure and are removed in src/browser/moz-configure.patch.
+# With all four off, MOZ_DATA_REPORTING disappears on its own.
+
+# Koi has no crash-reporting service. Left enabled, Firefox submits reports to
+# crash-reports.mozilla.com under Firefox's own app GUID.
+ac_add_options --disable-crashreporter
+
+# Mozilla's add-on signing does not cover this build.
+export MOZ_REQUIRE_SIGNING=
+mk_add_options MOZ_REQUIRE_SIGNING=
+ac_add_options --with-unsigned-addon-scopes=app,system
+
+# Build ------------------------------------------------------------------
 ac_add_options --enable-bootstrap
+
+# Configure changes can leave stale generated bindings behind that fail to
+# compile on the next incremental build. Let mach clobber itself.
+mk_add_options AUTOCLOBBER=1
+
+# sccache is bootstrapped into ~/.mozbuild and is not on PATH at configure
+# time, so probe for it rather than assuming the bare name resolves.
+if test -x "$(command -v sccache)"; then
+  ac_add_options --with-ccache=sccache
+elif test -f "$HOME/.mozbuild/sccache/sccache"; then
+  ac_add_options --with-ccache="$HOME"/.mozbuild/sccache/sccache
+fi
+
+# MOZ_MAKE_FLAGS is intentionally unset so mach uses every core. Add
+# mk_add_options MOZ_MAKE_FLAGS="-jN" to an untracked ./mozconfig to throttle.

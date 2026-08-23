@@ -1,0 +1,12 @@
+diff --git a/browser/base/content/browser.xhtml b/browser/base/content/browser.xhtml
+index b450a27a755ccdaadab53028eea99cd5df1042d6..cff655745312e211f34430bb05b85c63ab2e42ca 100644
+--- a/browser/base/content/browser.xhtml
++++ b/browser/base/content/browser.xhtml
+@@ -108,6 +108,7 @@
+ 
+   <script src="chrome://browser/content/global-scripts.js"></script>
+   <script src="chrome://browser/content/browser-main.js"></script>
++#include koi-assets.inc.xhtml
+ </head>
+ <html:body xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+ # All sets except for popupsets (commands, keys, and stringbundles)

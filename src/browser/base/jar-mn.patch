@@ -1,0 +1,10 @@
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+index 0212828fbe89b90a935e8771cf7da844f7ed1a5e..9716ce9a5732f36056d99748073e988b79215c3a 100644
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -103,3 +103,5 @@ browser.jar:
+ 
+ # L10n resources and overrides.
+ % override chrome://global/locale/appstrings.properties chrome://browser/locale/appstrings.properties
++
++#include content/koi-assets.jar.inc.mn

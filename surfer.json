@@ -1,17 +1,24 @@
 {
-  "name": "koi",
-  "vendor": "koi",
-  "appId": "surf.koi.browser",
+  "name": "Koi",
+  "vendor": "Koi",
+  "appId": "browser",
   "binaryName": "koi",
   "version": {
     "product": "firefox",
     "version": "154.0"
   },
-  "buildOptions": {
-    "windowsUseSymbolicLinks": false
-  },
   "addons": {},
-  "brands": {},
+  "brands": {
+    "release": {
+      "backgroundColor": "#131417",
+      "brandShorterName": "Koi",
+      "brandShortName": "Koi",
+      "brandFullName": "Koi Browser",
+      "release": {
+        "displayVersion": "0.1.0"
+      }
+    }
+  },
   "license": {
     "ignoredFiles": [
       ".*\\.json"

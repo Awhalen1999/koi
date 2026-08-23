@@ -1,0 +1,10 @@
+diff --git a/browser/base/moz.build b/browser/base/moz.build
+index b68fc79dc742e596ed4700a130bc8b9f102bf0fb..fb36462fab1413e9c32802f67ff4a957c473b1e9 100644
+--- a/browser/base/moz.build
++++ b/browser/base/moz.build
+@@ -78,3 +78,5 @@ DEFINES["MOZ_APP_VERSION_DISPLAY"] = CONFIG["MOZ_APP_VERSION_DISPLAY"]
+ DEFINES["APP_LICENSE_BLOCK"] = "%s/content/overrides/app-license.html" % SRCDIR
+ 
+ JAR_MANIFESTS += ["jar.mn"]
++
++DIRS += ["../../koi"]
