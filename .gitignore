@@ -156,3 +156,6 @@ engine/
 firefox-*/
 node_modules/
 .surfer/
+
+# Claude
+CLAUDE.md
