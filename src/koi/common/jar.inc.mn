@@ -12,3 +12,4 @@
 # in .css files is `%`, not `#`, so it is `%include`, `%ifdef` and so on.
 
         content/browser/koi-styles/koi-theme.css                (../../koi/common/styles/koi-theme.css)
+        content/browser/koi-styles/koi-shell.css                (../../koi/common/styles/koi-shell.css)

@@ -1,0 +1,21 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* The shell — the chrome around the page.
+ *
+ * Right now this does one job: get out of the way of the window vibrancy.
+ * An NSVisualEffectView sits behind the content view (see
+ * src/widget/cocoa/nsCocoaWindow-mm.patch) and blurs the desktop, but Gecko
+ * paints an opaque chrome background straight over it. Everything the OS is
+ * meant to show through has to stop painting.
+ *
+ * These are Zen's selectors, deliberately — a known-working reference is worth
+ * more than a set I reasoned my way to. Verified reachable: a diagnostic build
+ * colouring these elements showed all of them. */
+body,
+#tabbrowser-tabpanels,
+#navigator-toolbox,
+#browser {
+  background: transparent !important;
+}

@@ -1,0 +1,31 @@
+diff --git a/widget/cocoa/nsCocoaWindow.h b/widget/cocoa/nsCocoaWindow.h
+index 312011c1c2ac41e78affecbdef25d72766a7c882..a4a2a80203350045332b766925e737ebd1cb51ef 100644
+--- a/widget/cocoa/nsCocoaWindow.h
++++ b/widget/cocoa/nsCocoaWindow.h
+@@ -423,6 +423,16 @@ class nsCocoaWindow final : public nsIWidget {
+     return mNonDraggableRegion.Region();
+   }
+ 
++  // Koi: back browser windows with an NSVisualEffectView so the desktop shows
++  // through the chrome. SetWindowClass is where a widget learns it is a
++  // browser window rather than a popup or a dialog.
++  void SetWindowClass(const nsAString& aXulWinType,
++                      const nsAString& aXulWinClass,
++                      const nsAString& aXulWinName) override;
++  // Installs or removes the effect view to match the vibrancy pref. Safe to
++  // call repeatedly; it is a no-op when the window already matches.
++  void UpdateWindowMaterial();
++
+   void LookUpDictionary(const nsAString& aText,
+                         const nsTArray<mozilla::FontRange>& aFontRangeArray,
+                         const bool aIsVertical,
+@@ -664,6 +674,9 @@ class nsCocoaWindow final : public nsIWidget {
+ 
+   bool mModal = false;
+   bool mIsAnimationSuppressed = false;
++  // Koi: set once by SetWindowClass. Gates both the vibrancy pref callback
++  // registration and its teardown in the destructor.
++  bool mIsBrowserWindow = false;
+ 
+   bool mInReportMoveEvent = false;  // true if in a call to ReportMoveEvent().
+   bool mInResize = false;           // true if in a call to DoResize().

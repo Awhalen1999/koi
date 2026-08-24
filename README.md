@@ -3,7 +3,7 @@
 A fast, minimal browser built on Firefox (Gecko). macOS only.
 
 Calm by default. Nothing pops up, nothing asks for attention, nothing needs
-learning on first launch. All controls in 62px at the top; the rest belongs to
+learning on first launch. All controls in 64px at the top; the rest belongs to
 the page.
 
 ## Building

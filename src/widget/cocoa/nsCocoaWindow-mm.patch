@@ -1,0 +1,149 @@
+diff --git a/widget/cocoa/nsCocoaWindow.mm b/widget/cocoa/nsCocoaWindow.mm
+index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..fa8246444e810c739a18b1c9a7e328cc520a661e 100644
+--- a/widget/cocoa/nsCocoaWindow.mm
++++ b/widget/cocoa/nsCocoaWindow.mm
+@@ -84,6 +84,7 @@
+ #include "mozilla/StaticPrefs_browser.h"
+ #include "mozilla/StaticPrefs_general.h"
+ #include "mozilla/StaticPrefs_gfx.h"
++#include "mozilla/StaticPrefs_koi.h"
+ #include "mozilla/StaticPrefs_ui.h"
+ #include "mozilla/StaticPrefs_widget.h"
+ #include "mozilla/WritingModes.h"
+@@ -1332,6 +1333,125 @@ - (NSRect)_opaqueRectForWindowMoveWhenInTitlebar {
+ }
+ @end
+ 
++// Koi: back browser windows with an NSVisualEffectView so the chrome borrows
++// the desktop behind it. CSS cannot do this — backdrop-filter samples the
++// compositor, which holds no desktop pixels; only the window server does.
++// Firefox already uses this idiom for menus and tooltips, in
++// -[BaseWindow setEffectViewWrapperForStyle:].
++//
++// Note the chrome must also stop painting over the effect view, which is what
++// the transparent backgrounds in koi-shell.css are for. The two halves are
++// useless apart.
++
++static constexpr nsLiteralCString kKoiWindowVibrancyPref =
++    "koi.widget.macos.window-vibrancy"_ns;
++static constexpr nsLiteralCString kKoiWindowMaterialPref =
++    "koi.widget.macos.window-material"_ns;
++
++// The material decides the blur, so this mapping is most of the look. Values
++// match Zen's numbering, which keeps their notes applicable to us.
++static NSVisualEffectMaterial KoiWindowMaterial() {
++  switch (StaticPrefs::koi_widget_macos_window_material()) {
++    case 1:
++      return NSVisualEffectMaterialHUDWindow;
++    case 2:
++      return NSVisualEffectMaterialFullScreenUI;
++    case 3:
++      return NSVisualEffectMaterialPopover;
++    case 4:
++      return NSVisualEffectMaterialMenu;
++    case 5:
++      return NSVisualEffectMaterialToolTip;
++    case 6:
++      return NSVisualEffectMaterialHeaderView;
++    case 7:
++    default:
++      return NSVisualEffectMaterialUnderWindowBackground;
++  }
++}
++
++@interface KoiWindowMaterialView : NSVisualEffectView
++- (void)materialChanged;
++@end
++
++static void KoiWindowMaterialPrefChanged(const char* aPref, void* aClosure) {
++  [static_cast<KoiWindowMaterialView*>(aClosure) materialChanged];
++}
++
++@implementation KoiWindowMaterialView
++- (instancetype)initWithFrame:(NSRect)aRect {
++  self = [super initWithFrame:aRect];
++  if (!self) {
++    return nil;
++  }
++  self.appearance = nil;
++  self.emphasized = NO;
++  self.blendingMode = NSVisualEffectBlendingModeBehindWindow;
++  // Deliberately not FollowsWindowActiveState: the wallpaper should not dim
++  // when the window loses focus. Only the thing you touch ever changes.
++  self.state = NSVisualEffectStateActive;
++  [self materialChanged];
++  Preferences::RegisterCallback(KoiWindowMaterialPrefChanged,
++                                kKoiWindowMaterialPref, self);
++  return self;
++}
++
++- (void)dealloc {
++  Preferences::UnregisterCallback(KoiWindowMaterialPrefChanged,
++                                  kKoiWindowMaterialPref, self);
++  [super dealloc];
++}
++
++- (void)materialChanged {
++  self.material = KoiWindowMaterial();
++}
++@end
++
++static void KoiWindowVibrancyPrefChanged(const char* aPref, void* aClosure) {
++  static_cast<nsCocoaWindow*>(aClosure)->UpdateWindowMaterial();
++}
++
++void nsCocoaWindow::SetWindowClass(const nsAString& aXulWinType,
++                                   const nsAString& aXulWinClass,
++                                   const nsAString& aXulWinName) {
++  if (mWindowType != WindowType::TopLevel || mIsBrowserWindow ||
++      !aXulWinType.EqualsLiteral("navigator:browser")) {
++    return;
++  }
++  mIsBrowserWindow = true;
++  Preferences::RegisterCallback(KoiWindowVibrancyPrefChanged,
++                                kKoiWindowVibrancyPref, this);
++  UpdateWindowMaterial();
++}
++
++void nsCocoaWindow::UpdateWindowMaterial() {
++  NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
++
++  if (!mWindow) {
++    return;
++  }
++  const bool wanted = StaticPrefs::koi_widget_macos_window_vibrancy();
++  if (wanted ==
++      [mWindow.contentView isKindOfClass:[KoiWindowMaterialView class]]) {
++    return;
++  }
++
++  // Re-parent the existing content into a fresh wrapper. Assigning
++  // .contentView releases the old one.
++  NSRect frame = mWindow.contentView.frame;
++  NSView* wrapper = wanted ? [[KoiWindowMaterialView alloc] initWithFrame:frame]
++                           : [[NSView alloc] initWithFrame:frame];
++  wrapper.wantsLayer = YES;
++  for (NSView* view in [mWindow contentViewContents]) {
++    [view removeFromSuperviewWithoutNeedingDisplay];
++    [wrapper addSubview:view];
++  }
++  mWindow.contentView = wrapper;
++  [wrapper release];
++
++  NS_OBJC_END_TRY_IGNORE_BLOCK;
++}
++
+ void nsCocoaWindow::UpdateWindowDraggingRegion(
+     const LayoutDeviceIntRegion& aRegion) {
+   // mChildView returns YES from mouseDownCanMoveWindow, so we need to put
+@@ -4919,6 +5039,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
+ nsCocoaWindow::~nsCocoaWindow() {
+   NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
+ 
++  if (mIsBrowserWindow) {
++    Preferences::UnregisterCallback(KoiWindowVibrancyPrefChanged,
++                                    kKoiWindowVibrancyPref, this);
++  }
+   RemoveAllChildren();
+   if (mWindow && mWindowMadeHere) {
+     CancelAllTransitions();

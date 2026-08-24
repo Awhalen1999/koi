@@ -1,0 +1,36 @@
+diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
+index 7b82957f4ebad1a814dda2207bbf99f64068d2be..cd72ea623257c3e0b0e56aa9744a5f3406729bd2 100644
+--- a/modules/libpref/init/StaticPrefList.yaml
++++ b/modules/libpref/init/StaticPrefList.yaml
+@@ -10246,6 +10246,31 @@
+ #endif
+   mirror: always
+ 
++#---------------------------------------------------------------------------
++# Prefs starting with "koi."
++#---------------------------------------------------------------------------
++
++# Draw browser windows with macOS vibrancy, so the desktop shows through the
++# chrome. Koi's chrome has no colour of its own — this is what gives it the
++# user's wallpaper. Has no effect off macOS.
++- name: koi.widget.macos.window-vibrancy
++  type: bool
++  value: true
++  mirror: always
++
++# Which NSVisualEffectMaterial backs the window. The material decides the blur,
++# so this is not a cosmetic tweak; it is most of the look. Numbering matches
++# Zen's, so their notes transfer. Mapping lives in KoiWindowMaterial() in
++# widget/cocoa/nsCocoaWindow.mm:
++#   1 HUD window (default)   5 tooltip
++#   2 full screen UI         6 header view
++#   3 popover                7 under-window background
++#   4 menu
++- name: koi.widget.macos.window-material
++  type: uint32_t
++  value: 1
++  mirror: always
++
+ #---------------------------------------------------------------------------
+ # Prefs starting with "layers."
+ #---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ A fast, minimal browser built on Firefox (Gecko), macOS only.
 Helium's restraint, Zen's polish. Calm by default. Nothing pops up,
 nothing asks for attention, nothing needs learning on first launch.
 Chrome has no color of its own — it borrows the wallpaper. No themes.
-All controls in 62px at the top; the rest belongs to the page.
+All controls in 64px at the top; the rest belongs to the page.
 
 ## Stack
 - Firefox 154 stable, forked via `@zen-browser/surfer` 1.14.7
@@ -40,8 +40,36 @@ Koi mirrors this:
 | `prefs/**/*.yaml` | Default prefs, generated into `engine/browser/app/profile/koi.js`. |
 | `scripts/` | Node tooling (prefs generator, surfer postinstall patcher). |
 
-Design masters (SVG) live in `../koi-design/branding/` — **outside this repo and
-not under version control.** Sole copy. Worth fixing.
+## Design sources
+
+`../koi-design/` — **outside this repo and not under version control.** Sole
+copy. Worth fixing.
+
+- `branding/` — SVG masters. These are the inputs behind
+  `configs/branding/release/`; the rasters there were generated from them.
+- `design/` — the Claude Design prototypes, exported as `.dc.html`.
+  **`Koi Shell v4.dc.html` is the authoritative shell spec** — read values from
+  it rather than from screenshots or the brand kit, which is less complete.
+  Also `Koi Brand Kit`, `Branding Handoff`, `Lockup Cards`, `Platform Icons`,
+  `Spiral Mark`, plus `svg/` icon variants and `uploads/` (placeholder
+  wallpapers).
+
+The prototype is inline styles with `{{template}}` bindings — a POC, so port
+values, never the markup. Three things it settles that the brand kit does not:
+
+- Chrome is **64px**, two 32px rows, tabs *below* nav. The bottom row's
+  `padding: 0 12px 4px` is where the 4px page gutter comes from. Older
+  positioning copy says 62px; it is superseded.
+- Glass is a **depth system, not one value** — the further forward a surface
+  sits, the more it blurs and saturates. Shell 52/160, menu 52/170, palette
+  64/180, empty-state card 30/140, plus scrims at `rgba(8,10,14,.52)`+6px
+  (board) and `rgba(8,10,14,.28)`+2px (palette).
+- Motion is **two speeds**: spring `380ms cubic-bezier(.32,1.36,.5,1)` for
+  anything that moves or resizes, fade `150ms linear` for anything that only
+  changes colour. Keyframes `koiDrop`, `koiFade`, `koiRise`, `koiPop`.
+
+The address pill is a button wired to the command palette (`title="Address —
+⌘L"`), not an editable field.
 
 ### The four-hop bridge
 
@@ -85,7 +113,9 @@ copying the directives.
 
 Fast way to test chrome wiring without a full build:
 `./mach build browser/base/misc` exercises the whole jar chain in ~5 seconds.
-`npm run build:ui` (`mach build faster`) covers front-end more broadly.
+`npm run build:ui` (`mach build faster`) covers front-end more broadly and takes
+~19s. Neither compiles C++, so both are safe to run constantly while working on
+chrome. Reserve `npm run build` for changes that touch configure or source.
 
 **Do not** use surfer's template approach of `%include`-ing your CSS into
 Firefox's own `browser/themes/*/browser.css`. That makes every UI change a patch
@@ -285,6 +315,79 @@ Static prefs with C++ mirrors additionally need `pref_groups += ["koi"]` in
 
 ---
 
+## Window vibrancy (macOS)
+
+The chrome borrows the desktop wallpaper. **CSS cannot do this** — the
+compositor has no desktop pixels to sample, so `backdrop-filter` on the chrome
+document blurs Koi's own content and nothing else. Only the OS can composite
+what is behind a window.
+
+So browser windows are backed by an `NSVisualEffectView` in
+`NSVisualEffectBlendingModeBehindWindow`, in
+`src/widget/cocoa/nsCocoaWindow-mm.patch`. This is not exotic: Firefox already
+uses the identical idiom for menus and tooltips in
+`-[BaseWindow setEffectViewWrapperForStyle:]`. Zen does the same for browser
+windows, which is where the approach came from.
+
+### It takes two halves
+
+The patch alone does nothing visible. The effect view sits *behind* the content
+view, so Gecko paints the chrome straight over it and the window looks entirely
+normal. The other half is `src/koi/common/styles/koi-shell.css` making
+`body`, `#tabbrowser-tabpanels`, `#navigator-toolbox` and `#browser`
+transparent. **Neither half is worth anything without the other**, and both
+failure modes look identical from outside — an ordinary opaque window.
+
+Consequences worth knowing:
+
+- **The material chooses the blur.** You cannot dial `blur(52px)
+  saturate(160%)` on the shell — you pick from Apple's materials. The prototype's
+  exact shell numbers are therefore *not* portable to the window layer. They
+  remain correct for floating surfaces, which blur Koi's own chrome and so are
+  ordinary CSS.
+- **Default material is 1 (HUD window).** `UnderWindowBackground` (7) is
+  Apple's most restrained material and is close to invisible on its own —
+  defaulting to it looks exactly like a broken patch. Numbering matches Zen's
+  so their notes transfer.
+- `koi.widget.macos.window-vibrancy` (bool) toggles it live;
+  `koi.widget.macos.window-material` (uint32) picks the material. Both update
+  live via `Preferences::RegisterCallback`, so materials can be compared in
+  about:config without rebuilding — the only practical way to choose one.
+- State is pinned to `NSVisualEffectStateActive` rather than
+  `FollowsWindowActiveState`, so the wallpaper does not dim when the window
+  loses focus.
+- `SetWindowClass` is the hook where a widget learns it is `navigator:browser`
+  rather than a popup or dialog. It is a virtual on `nsIWidget`, called from
+  `AppWindow.cpp` with the `windowtype` attribute off `browser.xhtml`.
+- Firefox forces `mWindow.opaque = YES` for non-popup windows ("Non-popup
+  windows are always opaque"). This looks like it should block vibrancy and
+  **does not** — AppKit handles it when an `NSVisualEffectView` becomes the
+  content view. Calling `SetTransparencyMode` to "fix" it is unnecessary.
+
+### Debugging chrome, the cheap way first
+
+Two changes here were made on plausible reasoning and neither worked, because
+the actual unknown was never tested: *does this stylesheet reach the chrome at
+all?* A throwaway build painting `#navigator-toolbox` red answered it in twelve
+seconds and eliminated an entire branch. Serving a file over `chrome://` proves
+it is **registered**, not that it is **applied** — different claims.
+
+When following a reference implementation, take the whole thing. Zen's C++ was
+read closely three times while their CSS and their pref defaults went unread,
+and both omissions cost a full debugging cycle each.
+
+### StaticPrefs plumbing
+
+C++-mirrored prefs need three things, not one:
+
+1. an entry in `modules/libpref/init/StaticPrefList.yaml`, in the alphabetically
+   correct `# Prefs starting with "koi."` section
+2. `"koi"` added to `pref_groups` in `modules/libpref/moz.build`
+3. `#include "mozilla/StaticPrefs_koi.h"` at the use site
+
+Miss (2) and the generated header never exists, which surfaces as a confusing
+missing-include error rather than anything about prefs.
+
 ## Branding
 
 Brand key is `release`. Surfer generates `engine/browser/branding/release/` at
@@ -446,11 +549,31 @@ was verified against surfer's required-file checks before reuse.
 
 Dev builds do not produce `omni.ja`; chrome is served unpacked from `dist`.
 
-**Not yet done:** the browser has not been launched, so nothing is verified at
-runtime. `src/koi/` is a skeleton — one stylesheet declaring
-`--koi-chrome-height` and no rules, so Koi currently looks exactly like Firefox.
-`src/koi/moz.build` has an empty `DIRS` until a feature ships JS modules.
-`prefs/koi/` does not exist yet.
+**Runtime verified.** The browser launches and
+`chrome://browser/content/koi-styles/koi-theme.css` serves from the running
+build, so the four-hop chain works at runtime, not just at build time.
+
+**Design tokens are in.** `src/koi/common/styles/koi-theme.css` carries the full
+`--koi-*` set transcribed from the shell spec: 4px scale, chrome metrics, radii,
+ink, surfaces, the two glass recipes, scrims, shadows and the two motion speeds,
+plus a `prefers-reduced-motion` override. Tokens only — no rules yet, so Koi
+still looks exactly like Firefox.
+
+**Vibrancy works.** Confirmed at runtime: the desktop wallpaper shows through
+the chrome, and switching `koi.widget.macos.window-material` in about:config
+changes it live without a restart. 9 patches, all re-applying cleanly. The
+cocoa files pass `mach lint -l clang-format` with no changes.
+
+**Not yet done:** no chrome layout — the 64px two-row shell, tabs below nav and
+the page-as-card are all still to build, so Koi is Firefox's layout wearing
+Koi's glass. `src/koi/moz.build` has an empty `DIRS` until a feature ships JS
+modules. `prefs/koi/` does not exist yet.
+
+**Open, unexamined:** `BrowserGlue.sys.mjs:447` throws
+`NS_ERROR_UNEXPECTED [nsIPrefBranch.getIntPref]` on every startup, and
+`AboutNewTabRedirector.sys.mjs:550` throws `NS_ERROR_NOT_AVAILABLE` — the
+latter is likely `browser.newtabpage.enabled = false` leaving about:newtab with
+nothing to redirect to. Neither blocks anything; neither has been looked at.
 
 Known gap: the startup page is still Firefox's `about:home`.
 `browser.newtabpage.enabled` covers new tabs only; the start page is

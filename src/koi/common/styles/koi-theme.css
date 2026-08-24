@@ -2,14 +2,115 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Koi's design tokens. Loaded into every browser window via
- * browser/base/content/koi-assets.inc.xhtml.
+/* Koi's design tokens — the vocabulary every other Koi stylesheet is written
+ * in. Values are read from ../koi-design/design/Koi Shell v4.dc.html, which is
+ * the authoritative spec; the brand kit is a summary of it and less complete.
  *
- * This is the root of Koi's chrome styling. Nothing here patches Firefox's own
- * stylesheets — new stylesheets are added as files under src/koi/, registered
- * in a jar.inc.mn, and linked from koi-assets.inc.xhtml. */
+ * Loaded into every browser window via browser/base/content/koi-assets.inc.xhtml,
+ * after Firefox's own chrome stylesheets — so Koi rules win ties on equal
+ * specificity without needing !important.
+ *
+ * Everything is namespaced --koi-*. Firefox defines several hundred custom
+ * properties on this same :root, and an accidental collision is a bad afternoon.
+ *
+ * The chrome is always light ink over glass, because it always sits on the
+ * user's wallpaper. There is deliberately no light variant. */
 
 :root {
-  /* Every control lives in this band at the top; the rest belongs to the page. */
-  --koi-chrome-height: 62px;
+  /* Scale ------------------------------------------------------------------
+   * The shell is quantised to 4px: every size, pad, gap and radius below is a
+   * multiple of it. New values should be too. */
+  --koi-space-1: 4px;
+  --koi-space-2: 8px;
+  --koi-space-3: 12px;
+  --koi-space-4: 16px;
+  --koi-space-6: 24px;
+  --koi-space-8: 32px;
+
+  /* Chrome ------------------------------------------------------------------
+   * 64px in two equal rows. The top row acts on the window (lights, nav,
+   * address, tools); the bottom row acts on the page (view, tabs, new), and
+   * sits lower because switching tabs is the most frequent move in the shell.
+   *
+   * The gutter is not a separate decision — it is the bottom row's lower
+   * padding, which is what separates the chrome from the page card. */
+  --koi-chrome-height: 64px;
+  --koi-chrome-row: 32px;
+  --koi-chrome-pad: var(--koi-space-3);
+  --koi-gutter: var(--koi-space-1);
+
+  /* Radii */
+  --koi-radius-window: 12px;
+  --koi-radius-page: 12px;
+  --koi-radius-pill: 8px;
+  --koi-radius-favicon: 4px;
+  --koi-radius-palette: 16px;
+
+  /* Control metrics ---------------------------------------------------------
+   * Every icon in the chrome is 12px; every pill is 24px tall. */
+  --koi-icon: 12px;
+  --koi-pill-height: var(--koi-space-6);
+  --koi-dot: var(--koi-space-2);
+
+  /* Ink ---------------------------------------------------------------------
+   * White at three fixed opacities. Primary reads, secondary is available,
+   * tertiary is present but not asking for attention. */
+  --koi-fg: #fff;
+  --koi-fg-2: rgba(255, 255, 255, 0.62);
+  --koi-fg-3: rgba(255, 255, 255, 0.42);
+
+  /* Surfaces ----------------------------------------------------------------
+   * The chrome has no colour of its own. These are all white films over
+   * whatever the wallpaper happens to be. */
+  --koi-sheet: rgba(255, 255, 255, 0.07);
+  --koi-wash: rgba(255, 255, 255, 0.09);
+  --koi-active: rgba(255, 255, 255, 0.17);
+  --koi-hair: rgba(255, 255, 255, 0.16);
+
+  /* Glass -------------------------------------------------------------------
+   * Two recipes, and they are two different mechanisms rather than two styles.
+   *
+   * The shell blurs the macOS desktop, which CSS cannot sample — only the OS
+   * can. It is an NSVisualEffectView in blendingMode BehindWindow, applied in
+   * widget/cocoa, so there is no backdrop-filter for it here; --koi-sheet and
+   * --koi-hair are layered over whatever the OS composites.
+   *
+   * Floating surfaces blur Koi's own chrome, which the browser can sample
+   * perfectly, so those are plain CSS. Anything that floats above the chrome
+   * uses this one value — the spec's separate menu and empty-state recipes
+   * collapse into it with no visible loss. */
+  --koi-glass-float: blur(64px) saturate(180%);
+
+  /* Scrims ------------------------------------------------------------------
+   * Two weights, and the difference carries meaning: the board is a full
+   * takeover, the palette is a lighter overlay you are still oriented behind. */
+  --koi-scrim-board: rgba(8, 10, 14, 0.52);
+  --koi-scrim-board-blur: blur(6px);
+  --koi-scrim-float: rgba(8, 10, 14, 0.28);
+  --koi-scrim-float-blur: blur(2px);
+
+  /* Shadows -----------------------------------------------------------------
+   * Hairlines are composed at the use site rather than baked in here, so a
+   * rule can pick its own ring:
+   *   box-shadow: var(--koi-shadow-page), 0 0 0 0.5px var(--koi-hair); */
+  --koi-shadow-window: 0 30px 80px rgba(0, 0, 0, 0.45);
+  --koi-shadow-page: 0 6px 28px rgba(0, 0, 0, 0.22);
+  --koi-shadow-float: 0 32px 80px rgba(0, 0, 0, 0.42);
+  --koi-shadow-menu: 0 26px 64px rgba(0, 0, 0, 0.32);
+
+  /* Motion ------------------------------------------------------------------
+   * Two speeds, chosen by what is changing rather than by which component is
+   * changing. Anything that moves or resizes springs; anything that only
+   * changes colour or opacity fades. Only the thing you touch ever moves. */
+  --koi-spring: 380ms cubic-bezier(0.32, 1.36, 0.5, 1);
+  --koi-fade: 150ms linear;
+}
+
+/* Respect the system setting. The spring overshoots, which is exactly the kind
+ * of motion this is meant to suppress. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --koi-spring: 0ms linear;
+    --koi-fade: 0ms linear;
+  }
 }

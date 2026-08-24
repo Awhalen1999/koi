@@ -1,0 +1,12 @@
+diff --git a/modules/libpref/moz.build b/modules/libpref/moz.build
+index e856d8b9f9a5e1f54aa8f1e0d2653e7e2c943e77..153b0a098b723938f72e86b9e1fe236357ee38cc 100644
+--- a/modules/libpref/moz.build
++++ b/modules/libpref/moz.build
+@@ -55,6 +55,7 @@ pref_groups = [
+     "image",
+     "intl",
+     "javascript",
++    "koi",
+     "layers",
+     "layout",
+     "logging",
