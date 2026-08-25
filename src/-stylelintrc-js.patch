@@ -1,0 +1,15 @@
+diff --git a/.stylelintrc.js b/.stylelintrc.js
+index b484bf6600a7e1b8ad2aed8c8b7fe5e84cc3d023..1909a2991b9a927a77a7c1b38705a04046c0da77 100644
+--- a/.stylelintrc.js
++++ b/.stylelintrc.js
+@@ -280,7 +280,9 @@ module.exports = {
+     "media-query-no-invalid": null,
+     "stylelint-plugin-mozilla/media-query-no-invalid": true,
+     "stylelint-plugin-mozilla/no-base-design-tokens": true,
+-    "stylelint-plugin-mozilla/use-design-tokens": true,
++    // Koi has its own design system in src/koi/common/styles/koi-theme.css.
++    // Linting it against Mozilla's tokens buries real errors under noise.
++    "stylelint-plugin-mozilla/use-design-tokens": false,
+   },
+ 
+   overrides: [

@@ -4,18 +4,94 @@
 
 /* The shell — the chrome around the page.
  *
- * Right now this does one job: get out of the way of the window vibrancy.
- * An NSVisualEffectView sits behind the content view (see
- * src/widget/cocoa/nsCocoaWindow-mm.patch) and blurs the desktop, but Gecko
- * paints an opaque chrome background straight over it. Everything the OS is
- * meant to show through has to stop painting.
- *
- * These are Zen's selectors, deliberately — a known-working reference is worth
- * more than a set I reasoned my way to. Verified reachable: a diagnostic build
- * colouring these elements showed all of them. */
-body,
+ * Nesting works, but write the `&` explicitly. A bare nested selector
+ * (`#foo { }` with no `&`) is what an earlier failed attempt used, and it was
+ * never isolated from two other changes made at the same time, so it stays
+ * unverified. Zen writes `& #foo` throughout; matching them costs nothing and
+ * sidesteps the question. */
+
+/* Vibrancy ------------------------------------------------------------------
+ * An NSVisualEffectView behind the content view composites the desktop
+ * (src/widget/cocoa/nsCocoaWindow-mm.patch). Gecko has to stop painting over
+ * it. Both halves are required; either alone looks like an ordinary window. */
+
+/* !important is needed here and nowhere else: `body:-moz-window-inactive`
+ * (browser-shared.css:267) out-specifies a bare `body`, so without it the
+ * chrome turns opaque whenever the window loses focus. Firefox's
+ * `will-change: background-color` is dead once the colour is pinned. */
+body {
+  background: transparent !important;
+  will-change: auto;
+}
+
+/* Id selectors, and this sheet loads last, so document order already wins.
+ * Staying non-important keeps `#navigator-toolbox.fullscreen-floating-toolbox`
+ * opaque in native fullscreen and leaves `#tabbrowser-tabpanels[pendingpaint]`
+ * alone. `background-color`, not the shorthand — the shorthand would also
+ * reset `background-image` on elements Koi does not own. */
 #tabbrowser-tabpanels,
 #navigator-toolbox,
 #browser {
-  background: transparent !important;
+  background-color: transparent;
+}
+
+/* Firefox draws a chrome/content separator here (content-area.css:144). It
+ * resolves to opaque grey and 0.01px rounds up to a device pixel, so it paints
+ * a hard line across the wallpaper gutter. Koi's boundary is the gutter. */
+#navigator-toolbox {
+  border-bottom-style: none;
+}
+
+/* The page card --------------------------------------------------------------
+ * A rounded card inset on all four sides so the wallpaper frames it. The inset
+ * is a margin on the grid item, not padding on the grid container — see
+ * CLAUDE.md on XUL grid.
+ *
+ * Dropped in fullscreen, DOM or native: a video filling the screen wants no
+ * corners or shadow, and a macOS fullscreen space has no wallpaper behind it to
+ * frame with. `inFullscreen` is set both valued and bare, so match the bare
+ * attribute. Chrome-less `window.open` popups are not browser windows. */
+:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not(
+    [chromehidden~="location"]
+  ):not([chromehidden~="toolbar"])
+  #tabbrowser-tabpanels
+  .browserSidebarContainer {
+  margin: var(--koi-gutter);
+  /* clip, not hidden: the corners have to actually cut the page content. */
+  overflow: clip;
+  border-radius: var(--koi-radius-page);
+  box-shadow: var(--koi-shadow-page), 0 0 0 0.5px var(--koi-page-ring);
+}
+
+/* `.browserContainer` is what actually fills the card, and Firefox paints
+ * `--tabpanel-background-color` on it (content-area.css:205) — #f9f9fb
+ * normally, a purple gradient in private windows. It is visible whenever the
+ * browser is not painting: `browser:is([blank], [pendingpaint])` drops to
+ * opacity 0 on every new tab and cold tab switch. The card's backdrop is Koi's.
+ *
+ * Keyed off the content scheme rather than light-dark(): this element inherits
+ * the chrome's color-scheme but has to match the page in front of it. Firefox
+ * keys the same variable the same way, for the same reason.
+ *
+ * Not transparent, unlike Zen — Zen also patches out that opacity:0 rule; Koi
+ * keeps it, so transparency here would show the desktop through loading tabs. */
+#tabbrowser-tabpanels
+  .browserSidebarContainer
+  .browserContainer {
+  background: #fff;
+
+  @media (-moz-content-prefers-color-scheme: dark) {
+    background: #1c1c1e;
+  }
+}
+
+/* The panels are transparent, so a page painting no background of its own would
+ * show the desktop through it. Scoped to tab content: a bare
+ * `browser[type="content"]` also matches the sidebar, the AI window,
+ * picture-in-picture and devtools panels. Outside the fullscreen guard above —
+ * the panels are transparent in every window state, card or no card. */
+#tabbrowser-tabpanels
+  .browserSidebarContainer
+  browser[type="content"]:not([transparent="true"]) {
+  background: light-dark(#fff, #1c1c1e);
 }

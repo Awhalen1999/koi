@@ -123,6 +123,53 @@ against Mozilla source. Koi started that way; it was removed.
 
 ---
 
+## Chrome CSS — rules learned the hard way
+
+**Nesting works — but write the `&` explicitly.** An earlier round concluded
+"nesting does not apply from Koi's stylesheets". That was **wrong**, and the
+measurement behind it was confounded: flattening the selector also dropped
+`#tabbrowser-tabbox` from the chain and removed the guards, so three things
+changed and only one was blamed. A later probe with a single changed property
+confirmed `& > #nav-bar { }` nested inside `#navigator-toolbox` applies.
+
+What is still unverified is *bare* nesting — `#foo { }` with no `&`, which is
+what the failed attempt used. Zen writes `& #foo` everywhere, so write the `&`
+and the question never has to be answered.
+
+**`tabpanels` is a grid; padding on it does not inset its children.**
+`toolkit/content/xul.css` gives `tabpanels`/`deck`/`stack` `display: grid` and
+pins children to `grid-area: 1 / 1`. Padding on the container has no effect on
+them. Use **margin on the grid item**. This is why Zen injects
+`#zen-tabbox-wrapper` and forces `#tabbrowser-tabbox { display: flex }` — that
+wrapper is not decoration, it is the workaround.
+
+**Scope `browser[type="content"]` rules.** On its own it also matches the
+sidebar browser, the AI window, picture-in-picture and devtools panels. Anchor
+it under `.browserSidebarContainer` when you mean tab content.
+
+**Guard chrome rules three ways**, as Zen does:
+`:root:not([inDOMFullscreen="true"]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])`.
+Dropping the `location` guard leaves `window.open` popups styled as if they
+were browser windows.
+
+**`src/-stylelintrc-js.patch` turns off `use-design-tokens`.** Koi has its own
+token system; linting against Mozilla's buried real errors under noise. Our CSS
+passes `mach lint -l stylelint` with zero problems — keep it that way.
+
+### Debugging chrome
+
+When a rule appears not to work, do not reason about why. Build it with an
+unmissable value — a 24px padding, a red background, a 3px outline — and look.
+It costs one 12-second `npm run build:ui`.
+
+**Change one variable per measurement.** More than one and the result tells you
+about the pair, not the cause. This was got wrong repeatedly and cost a cycle
+each time.
+
+**Do not read small differences off scaled screenshots.** A "2px gap" in a
+downscaled capture was read as a working 4px padding that was in fact doing
+nothing, and an entire wrong explanation was built on top of it.
+
 ## Workflow
 
 - `npm run import` → `npm run build` → `npm start`
@@ -564,9 +611,41 @@ the chrome, and switching `koi.widget.macos.window-material` in about:config
 changes it live without a restart. 9 patches, all re-applying cleanly. The
 cocoa files pass `mach lint -l clang-format` with no changes.
 
-**Not yet done:** no chrome layout — the 64px two-row shell, tabs below nav and
-the page-as-card are all still to build, so Koi is Firefox's layout wearing
-Koi's glass. `src/koi/moz.build` has an empty `DIRS` until a feature ships JS
+**The page card works.** `src/koi/common/styles/koi-shell.css` insets the page
+by the gutter, rounds it to `--koi-radius-page` and drops `--koi-shadow-page`
+under it, so the wallpaper frames the page on all four sides. 10 patches.
+
+**Audited against Zen** (multi-agent review, 14 verified findings). Fixed:
+- `.browserContainer` sits between the card and the browser and Firefox paints
+  `--tabpanel-background-color` on it — `#f9f9fb`, or a **purple gradient in
+  private windows** — exposed whenever `browser:is([blank],[pendingpaint])`
+  drops to `opacity: 0`. Koi now paints it, keyed off
+  `-moz-content-prefers-color-scheme` rather than `light-dark()`, because the
+  element inherits the *chrome's* scheme but must match the *page*.
+- `:not([inFullscreen])` added — a macOS fullscreen space has no wallpaper to
+  frame the card with. The attribute is set both valued and bare; match bare.
+- `#navigator-toolbox`'s unconditional `border-bottom: 0.01px` rounded up to a
+  device pixel and drew a hard line across the wallpaper gutter.
+- `!important` narrowed to `body` alone, where `:-moz-window-inactive`
+  out-specifies it. Elsewhere it was suppressing Firefox's deliberately-opaque
+  fullscreen toolbox. `background-color`, not the shorthand.
+- `body`'s `will-change: background-color` is a dead compositor hint once the
+  colour is pinned; set to `auto`.
+
+**Tokens: 58.** Added accent (`#007aff` + two `color-mix` variants), the mono
+stack, an 8-size type scale, and the three glass **tints** — the blur values
+collapse to one recipe without loss, the tints do not. Deleted
+`--koi-radius-window` and `--koi-shadow-window`: AppKit draws both.
+
+**Load-bearing for the palette and menus:** `backdrop-filter` is a **no-op over
+the chrome band**, because the chrome deliberately paints nothing, so there is
+no backdrop to sample. It only bites where a surface overlaps the page card —
+the one region Gecko paints opaquely. The tint carries those surfaces; the blur
+is a bonus.
+
+**Not yet done:** the 64px two-row shell — tabs below nav, the toolbar
+contents, the tab strip. Koi is still Firefox's layout wearing Koi's glass and
+Koi's framing. `src/koi/moz.build` has an empty `DIRS` until a feature ships JS
 modules. `prefs/koi/` does not exist yet.
 
 **Open, unexamined:** `BrowserGlue.sys.mjs:447` throws

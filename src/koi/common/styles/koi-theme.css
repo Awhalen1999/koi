@@ -3,15 +3,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* Koi's design tokens — the vocabulary every other Koi stylesheet is written
- * in. Values are read from ../koi-design/design/Koi Shell v4.dc.html, which is
- * the authoritative spec; the brand kit is a summary of it and less complete.
+ * in. Values come from ../koi-design/design/Koi Shell v4.dc.html, which is the
+ * authoritative spec; the brand kit is a summary of it and less complete.
  *
  * Loaded into every browser window via browser/base/content/koi-assets.inc.xhtml,
- * after Firefox's own chrome stylesheets — so Koi rules win ties on equal
+ * after Firefox's own chrome stylesheets, so Koi rules win ties on equal
  * specificity without needing !important.
  *
  * Everything is namespaced --koi-*. Firefox defines several hundred custom
- * properties on this same :root, and an accidental collision is a bad afternoon.
+ * properties on this same :root and a collision would be a bad afternoon.
  *
  * The chrome is always light ink over glass, because it always sits on the
  * user's wallpaper. There is deliberately no light variant. */
@@ -19,28 +19,33 @@
 :root {
   /* Scale ------------------------------------------------------------------
    * The shell is quantised to 4px: every size, pad, gap and radius below is a
-   * multiple of it. New values should be too. */
-  --koi-space-1: 4px;
-  --koi-space-2: 8px;
-  --koi-space-3: 12px;
-  --koi-space-4: 16px;
-  --koi-space-6: 24px;
-  --koi-space-8: 32px;
+   * multiple of it. New values should be too.
+   *
+   * Named for the value, not the multiple — --koi-space-12 is 12px. A name
+   * that needs multiplying to read is a name that gets misused. */
+  --koi-space-4: 4px;
+  --koi-space-8: 8px;
+  --koi-space-12: 12px;
+  --koi-space-16: 16px;
+  --koi-space-24: 24px;
+  --koi-space-32: 32px;
 
   /* Chrome ------------------------------------------------------------------
    * 64px in two equal rows. The top row acts on the window (lights, nav,
    * address, tools); the bottom row acts on the page (view, tabs, new), and
    * sits lower because switching tabs is the most frequent move in the shell.
    *
-   * The gutter is not a separate decision — it is the bottom row's lower
-   * padding, which is what separates the chrome from the page card. */
-  --koi-chrome-height: 64px;
-  --koi-chrome-row: 32px;
-  --koi-chrome-pad: var(--koi-space-3);
-  --koi-gutter: var(--koi-space-1);
+   * The gutter is the page card's own inset on all four sides, applied as a
+   * margin in koi-shell.css — not the chrome's bottom padding, which could only
+   * ever produce the top edge. Do not add a padding-bottom here to help; it
+   * lands on top of that margin and doubles the gap. */
+  --koi-chrome-row: var(--koi-space-32);
+  --koi-chrome-height: calc(var(--koi-chrome-row) * 2);
+  --koi-chrome-pad: var(--koi-space-12);
+  --koi-gutter: var(--koi-space-4);
 
-  /* Radii */
-  --koi-radius-window: 12px;
+  /* Radii — the window's own corners are AppKit's, not ours, so there is no
+   * token for them. */
   --koi-radius-page: 12px;
   --koi-radius-pill: 8px;
   --koi-radius-favicon: 4px;
@@ -49,8 +54,28 @@
   /* Control metrics ---------------------------------------------------------
    * Every icon in the chrome is 12px; every pill is 24px tall. */
   --koi-icon: 12px;
-  --koi-pill-height: var(--koi-space-6);
-  --koi-dot: var(--koi-space-2);
+  --koi-pill-height: var(--koi-space-24);
+  --koi-dot: var(--koi-space-8);
+
+  /* Type --------------------------------------------------------------------
+   * One mono stack, spelled once. It appears 27 times in the spec, and a
+   * quoted family name is exactly where a stack drifts ('SF Mono' against
+   * SFMono-Regular). There is no sans token: Firefox chrome's own `font: menu`
+   * already resolves to SF on macOS.
+   *
+   * The eight sizes the chrome actually uses. The half-pixel pair are faithful
+   * to the spec but are prototype drift rather than system — worth revisiting
+   * when type gets a deliberate pass. */
+  --koi-font-mono: ui-monospace, "SF Mono", monospace;
+
+  --koi-text-8: 8px;
+  --koi-text-10: 10px;
+  --koi-text-10-5: 10.5px;
+  --koi-text-11: 11px;
+  --koi-text-12: 12px;
+  --koi-text-12-5: 12.5px;
+  --koi-text-13: 13px;
+  --koi-text-15: 15px;
 
   /* Ink ---------------------------------------------------------------------
    * White at three fixed opacities. Primary reads, secondary is available,
@@ -59,41 +84,61 @@
   --koi-fg-2: rgba(255, 255, 255, 0.62);
   --koi-fg-3: rgba(255, 255, 255, 0.42);
 
+  /* The one colour in the chrome that is not a white film, and it always means
+   * "this one, now": the palette's selected row, the board's active card, a set
+   * bookmark. Variants derive from the base so the hue is a one-line change. */
+  --koi-accent: #007aff;
+  --koi-accent-select: color-mix(in srgb, var(--koi-accent) 20%, transparent);
+  --koi-accent-inline: color-mix(in srgb, var(--koi-accent) 34%, transparent);
+
   /* Surfaces ----------------------------------------------------------------
-   * The chrome has no colour of its own. These are all white films over
-   * whatever the wallpaper happens to be. */
+   * The chrome has no colour of its own. These are white films over whatever
+   * the wallpaper happens to be. */
   --koi-sheet: rgba(255, 255, 255, 0.07);
   --koi-wash: rgba(255, 255, 255, 0.09);
   --koi-active: rgba(255, 255, 255, 0.17);
   --koi-hair: rgba(255, 255, 255, 0.16);
 
+  /* The page card is the one surface sitting on the glass rather than under it,
+   * so its edge is a dark ring rather than the white hairline. */
+  --koi-page-ring: rgba(0, 0, 0, 0.06);
+
   /* Glass -------------------------------------------------------------------
-   * Two recipes, and they are two different mechanisms rather than two styles.
+   * The shell's blur is the macOS desktop, which CSS cannot sample — only the
+   * OS can. It is an NSVisualEffectView in blendingMode BehindWindow, applied
+   * in widget/cocoa, so there is no backdrop-filter for it; --koi-sheet and
+   * --koi-hair layer over whatever the window server composites.
    *
-   * The shell blurs the macOS desktop, which CSS cannot sample — only the OS
-   * can. It is an NSVisualEffectView in blendingMode BehindWindow, applied in
-   * widget/cocoa, so there is no backdrop-filter for it here; --koi-sheet and
-   * --koi-hair are layered over whatever the OS composites.
-   *
-   * Floating surfaces blur Koi's own chrome, which the browser can sample
-   * perfectly, so those are plain CSS. Anything that floats above the chrome
-   * uses this one value — the spec's separate menu and empty-state recipes
-   * collapse into it with no visible loss. */
+   * Floating surfaces are plain CSS, but read this before relying on the blur:
+   * koi-shell.css makes the chrome paint nothing, so there is no backdrop for
+   * backdrop-filter to sample there. It only bites where a surface overlaps the
+   * page card, which is the one region Gecko paints opaquely. Over the chrome
+   * band it is a no-op. So the tint below is load-bearing and the blur is a
+   * bonus — do not tune one expecting the other to carry it. */
   --koi-glass-float: blur(64px) saturate(180%);
+
+  /* Tints, by depth. The blur values in the spec collapse to one without
+   * visible loss; these do not — .90/.58/.34 is what reads as depth. */
+  --koi-glass-menu: rgba(22, 24, 30, 0.9);
+  --koi-glass-palette: rgba(24, 26, 32, 0.58);
+  --koi-glass-card: rgba(18, 20, 24, 0.34);
 
   /* Scrims ------------------------------------------------------------------
    * Two weights, and the difference carries meaning: the board is a full
-   * takeover, the palette is a lighter overlay you are still oriented behind. */
+   * takeover, the palette is a lighter overlay you stay oriented behind. */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
   --koi-scrim-board-blur: blur(6px);
   --koi-scrim-float: rgba(8, 10, 14, 0.28);
   --koi-scrim-float-blur: blur(2px);
 
   /* Shadows -----------------------------------------------------------------
-   * Hairlines are composed at the use site rather than baked in here, so a
-   * rule can pick its own ring:
-   *   box-shadow: var(--koi-shadow-page), 0 0 0 0.5px var(--koi-hair); */
-  --koi-shadow-window: 0 30px 80px rgba(0, 0, 0, 0.45);
+   * Hairlines compose at the use site so a rule can pick its own ring — the
+   * page card takes --koi-page-ring, everything else --koi-hair:
+   *   box-shadow: var(--koi-shadow-float), 0 0 0 0.5px var(--koi-hair);
+   *
+   * The window's own drop shadow is drawn by the window server, outside the
+   * window bounds; no chrome box-shadow can reach it. Changing that is a
+   * widget/cocoa change, not a stylesheet one. */
   --koi-shadow-page: 0 6px 28px rgba(0, 0, 0, 0.22);
   --koi-shadow-float: 0 32px 80px rgba(0, 0, 0, 0.42);
   --koi-shadow-menu: 0 26px 64px rgba(0, 0, 0, 0.32);
