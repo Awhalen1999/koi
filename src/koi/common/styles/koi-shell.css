@@ -15,12 +15,19 @@
  * (src/widget/cocoa/nsCocoaWindow-mm.patch). Gecko has to stop painting over
  * it. Both halves are required; either alone looks like an ordinary window. */
 
-/* !important is needed here and nowhere else: `body:-moz-window-inactive`
+/* The body is the SHELL surface: the one film the whole window wears over
+ * the vibrancy, ringed by a hairline outline and a 1px top bevel highlight.
+ * (AppKit rounds the corners; the ring follows the window mask.)
+ *
+ * !important is needed here and nowhere else: `body:-moz-window-inactive`
  * (browser-shared.css:267) out-specifies a bare `body`, so without it the
  * chrome turns opaque whenever the window loses focus. Firefox's
  * `will-change: background-color` is dead once the colour is pinned. */
 body {
-  background: transparent !important;
+  background: var(--koi-glass-shell) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 0.5px var(--koi-hair);
   will-change: auto;
 }
 

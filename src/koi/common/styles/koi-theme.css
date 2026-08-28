@@ -14,11 +14,16 @@
  * Everything is namespaced --koi-*. Firefox defines several hundred custom
  * properties on this same :root and a collision would be a bad afternoon.
  *
- * The sheet deliberately runs ahead of its consumers: values transcribed from
- * the spec for surfaces not yet built (the board's scrim, the menus' shadow,
- * the spaces' dots, the smaller type sizes) live here so the vocabulary is
- * complete when those features land. A token no spec or feature claims is the
- * thing that gets deleted.
+ * The sheet deliberately runs ahead of its consumers: values transcribed
+ * from the spec for surfaces not yet built (the board's scrim, the menus'
+ * shadow, the spaces' dots, the smaller type sizes) live here so the
+ * vocabulary is complete when those features land. A token no spec or
+ * feature claims is the thing that gets deleted.
+ *
+ * The glass departs from the spec deliberately: v5's four tints collapsed
+ * into one white-film ladder plus the menu tint (a design decision, not
+ * drift) after the blur findings below made the spec's depth-by-blur system
+ * unportable.
  *
  * The chrome is always light ink over glass, because it always sits on the
  * user's wallpaper. There is deliberately no light variant. */
@@ -54,14 +59,14 @@
   --koi-chrome-pad: var(--koi-space-12);
   --koi-gutter: var(--koi-space-4);
 
-  /* The address pill is centered and capped — 640, wider than the spec's
-   * 520 by request, and matching the centered palette's width so pill and
-   * panel read as one surface. Tabs are all exactly as wide as each other:
-   * they narrow together from this ceiling to a 100px floor, then the strip
-   * scrolls instead. The floor is browser.tabs.tabMinWidth
-   * (prefs/firefox/chrome-ui.yaml) — Firefox plumbs that pref into layout
-   * itself, so it has no token here. */
-  --koi-field-max: 640px;
+  /* The address pill is centered and capped. The cap deliberately outgrows
+   * the spec's 520: the field is the top row's centrepiece, so it tracks the
+   * window — 60% of its width, floored at 640, capped at 1200. Tabs are all
+   * exactly as wide as each other: they narrow together from this ceiling to
+   * a 100px floor, then the strip scrolls instead. The floor is
+   * browser.tabs.tabMinWidth (prefs/firefox/chrome-ui.yaml) — Firefox plumbs
+   * that pref into layout itself, so it has no token here. */
+  --koi-field-max: clamp(640px, 60vw, 1200px);
   --koi-tab-max: 178px;
 
   /* Radii — the window's own corners are AppKit's, not ours, so there is no
@@ -117,16 +122,10 @@
   --koi-accent-select: color-mix(in srgb, var(--koi-accent) 20%, transparent);
   --koi-accent-inline: color-mix(in srgb, var(--koi-accent) 34%, transparent);
 
-  /* Surfaces ----------------------------------------------------------------
-   * The chrome has no colour of its own. These are white films over whatever
-   * the wallpaper happens to be. */
-  --koi-sheet: rgba(255, 255, 255, 0.07);
-  --koi-wash: rgba(255, 255, 255, 0.09);
-  --koi-active: rgba(255, 255, 255, 0.17);
+  /* Edges ---------------------------------------------------------------------
+   * Two hairlines: white on glass surfaces, dark on the page card — the one
+   * surface sitting on the glass rather than under it. */
   --koi-hair: rgba(255, 255, 255, 0.16);
-
-  /* The page card is the one surface sitting on the glass rather than under it,
-   * so its edge is a dark ring rather than the white hairline. */
   --koi-page-ring: rgba(0, 0, 0, 0.06);
 
   /* Glass -------------------------------------------------------------------
@@ -145,11 +144,28 @@
    * because the wallpaper behind the window is already OS-blurred, and reads
    * frosted over a page because the tint is nearly opaque. */
 
-  /* Tints, by depth — .90/.34 is what reads as depth. Menus AND the palette
-   * take the .90: anything floated over page content needs near-opacity to
-   * read at all (see above). The card only ever sits on wallpaper. */
+  /* The glass: one straight ladder of white films, 5% brighter per step.
+   * Five steps, one meaning each:
+   *
+   *   SHELL  — the window's own film: the whole body, the bevel, the
+   *            outline. Barely there; the wallpaper does the talking.
+   *   WASH   — a hovered bare glyph: the +, a tab ×, a pin, a key cap.
+   *   WELL   — a resting pill: the address field, focused included —
+   *            focus is the caret's job, not the surface's.
+   *   HOVER  — a hovered pill: the field, a tab.
+   *   RAISED — the active surface: the selected tab, the empty-state card.
+   *            The most frosted thing on the shell.
+   *
+   * Plus the one tint off the ladder, MENU, for anything floated over PAGE
+   * CONTENT (the urlbar's open dropdown, menus): near-opaque, because
+   * out-of-process pixels can't be blurred and a film is unreadable there
+   * (see above). */
+  --koi-glass-shell: rgba(255, 255, 255, 0.07);
+  --koi-glass-wash: rgba(255, 255, 255, 0.12);
+  --koi-glass-well: rgba(255, 255, 255, 0.17);
+  --koi-glass-hover: rgba(255, 255, 255, 0.22);
+  --koi-glass-raised: rgba(255, 255, 255, 0.27);
   --koi-glass-menu: rgba(22, 24, 30, 0.9);
-  --koi-glass-card: rgba(18, 20, 24, 0.34);
 
   /* Scrims ------------------------------------------------------------------
    * Two weights, and the difference carries meaning: the board is a full

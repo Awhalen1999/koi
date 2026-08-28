@@ -9,8 +9,8 @@
  * keyed on that attribute: no empty tab, no trace of this file.
  *
  * The card's blur is the window's own vibrancy — the wallpaper behind the
- * window is already composited blurred, so the tint (--koi-glass-card) is
- * what this surface actually carries. See koi-theme.css on glass. */
+ * window is already composited blurred, so the RAISED glass film is what
+ * this surface actually carries. See koi-theme.css on glass. */
 
 /* While the empty card shows, the window behind it is the wallpaper: lift the
  * shell's backdrop paint and the page card's chrome. Blank browsers paint
@@ -39,7 +39,7 @@
   position: absolute;
   inset: 0 var(--koi-gutter) var(--koi-gutter);
   border-radius: var(--koi-radius-page);
-  background: var(--koi-glass-card);
+  background: var(--koi-glass-raised);
   /* Softer than the page card's shadow — the spec's empty-card weight. */
   box-shadow:
     0 6px 28px rgba(0, 0, 0, 0.14),
@@ -72,7 +72,7 @@
   align-items: center;
   padding: 0 var(--koi-space-8);
   border-radius: 6px;
-  background: var(--koi-wash);
+  background: var(--koi-glass-wash);
   font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
   color: var(--koi-fg);
@@ -105,7 +105,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--koi-radius-page);
-  background: var(--koi-wash);
+  background: var(--koi-glass-wash);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   transition:
     transform var(--koi-spring),
@@ -114,7 +114,7 @@
 
   &:hover {
     transform: translateY(-2px);
-    background: var(--koi-active);
+    background: var(--koi-glass-hover);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   }
 }

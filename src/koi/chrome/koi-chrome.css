@@ -45,8 +45,10 @@
 
   /* Tab pill clothes, on the tab.tokens.css API. */
   --tab-border-radius: var(--koi-radius-pill);
-  --tab-background-color-hover: var(--koi-wash);
-  --tab-background-color-selected: var(--koi-active);
+  /* Tabs speak the glass ladder (koi-theme.css): the one hover color, the
+   * one active color — the same film the empty-state card wears. */
+  --tab-background-color-hover: var(--koi-glass-hover);
+  --tab-background-color-selected: var(--koi-glass-raised);
   --tab-box-shadow-selected: 0 0 0 0.5px var(--koi-hair);
   /* Inside the pill: 10px inset, 8px favicon-to-label. */
   --tab-inline-padding: 10px;
@@ -187,18 +189,26 @@
 }
 
 /* The address pill -----------------------------------------------------------
- * Centered between Firefox's toolbar springs, capped at the spec's width.
- * Wash at rest, active on hover, and the near-opaque menu tint while focused
- * or showing results: an open dropdown floats over page content, and a
- * translucent film is unreadable there (see koi-theme.css on glass). */
+ * Centered between Firefox's toolbar springs, capped at --koi-field-max.
+ * The pill holds exactly two rungs of the glass ladder: WELL at rest —
+ * focused included, focus is the caret's job — and HOVER under the pointer.
+ * Only the open dropdown leaves the ladder for the near-opaque MENU tint: it
+ * floats over page content, and a translucent film is unreadable there (see
+ * koi-theme.css on glass).
+ *
+ * Firefox paints --urlbar-background-color-focus on `[focused]` OR `[open]`
+ * (urlbar-searchbar.css), and it focuses the urlbar on every blank tab — so
+ * that variable must stay WELL or new tabs open with a dark field. `[open]`
+ * takes the menu tint by rule instead. (`[breakout-extend]` is only ever set
+ * while the view is open, so `[open]` covers both.) */
 
 #urlbar-container {
   max-width: var(--koi-field-max);
 }
 
 #urlbar {
-  --urlbar-background-color: var(--koi-wash);
-  --urlbar-background-color-focus: var(--koi-glass-menu);
+  --urlbar-background-color: var(--koi-glass-well);
+  --urlbar-background-color-focus: var(--koi-glass-well);
   --urlbar-background-border: none;
   --urlbar-background-border-focused: none;
   --urlbar-background-border-radius: var(--koi-radius-pill);
@@ -206,23 +216,25 @@
   margin-inline: 0;
   color: var(--koi-fg);
 
-  /* The resting pill: hairline ring, wash, active on hover. Scoped away from
-   * the focused/open states, which keep Firefox's breakout styling. */
-  &:not([breakout-extend], [open]) {
-    & > .urlbar-background {
-      box-shadow: inset 0 0 0 0.5px var(--koi-hair);
-    }
-
-    &:hover > .urlbar-background {
-      background-color: var(--koi-active);
-    }
+  /* One hairline ring, every state. */
+  & > .urlbar-background {
+    box-shadow: inset 0 0 0 0.5px var(--koi-hair);
   }
 
-  /* The open dropdown inherits the chrome's system color-scheme; its
-   * light-dark() tokens have to agree with the dark tint whatever the OS
-   * theme says. */
-  &:is([breakout-extend], [open]) {
+  &:hover:not([open]) > .urlbar-background {
+    background-color: var(--koi-glass-hover);
+  }
+
+  /* The open dropdown: the MENU tint under the menu shadow, and a dark
+   * color-scheme so the view's light-dark() tokens agree with the tint
+   * whatever the OS theme says. */
+  &[open] {
     color-scheme: dark;
+
+    & > .urlbar-background {
+      background-color: var(--koi-glass-menu);
+      box-shadow: var(--koi-shadow-menu), inset 0 0 0 0.5px var(--koi-hair);
+    }
   }
 
   & .urlbar-input {
@@ -285,11 +297,11 @@
       center / contain no-repeat;
   }
 
-  /* The × belongs to a hovered inactive tab and to nothing else: the active
-   * tab already answers to ⌘W, and a strip of permanent close buttons is
-   * noise the spec deliberately leaves out. */
-  &[selected] .tab-close-button,
-  &:not([selected], :hover) .tab-close-button {
+  /* The × belongs to the hovered tab — any tab, the selected one included —
+   * and to nothing else: a strip of permanent close buttons is noise the
+   * spec deliberately leaves out. (v5 hid it on the selected tab too; "⌘W
+   * closes the active tab" read nice and tested badly.) */
+  &:not(:hover) .tab-close-button {
     display: none;
   }
 
@@ -298,7 +310,7 @@
 
     &:hover {
       color: var(--koi-fg);
-      background-color: var(--koi-wash);
+      background-color: var(--koi-glass-wash);
     }
   }
 }
@@ -308,7 +320,7 @@
  * overflows, then #new-tab-button pins it beside the strip — both get the
  * same clothes. */
 :is(#tabs-newtab-button, #new-tab-button) {
-  --toolbarbutton-background-color-hover: var(--koi-wash);
+  --toolbarbutton-background-color-hover: var(--koi-glass-wash);
   color: var(--koi-fg-3);
   /* The same 4px the pills keep between themselves: the last tab's 2px clip
    * padding plus this. */
