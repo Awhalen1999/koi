@@ -1,0 +1,60 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Floating surfaces — Firefox's own panels in Koi's clothes.
+ *
+ * Every arrow panel (the app menu, downloads, identity and permissions, the
+ * extensions panel, the bookmark editor) floats over page content, so it
+ * wears the near-opaque MENU tint — the same surface as the address pill's
+ * open dropdown, for the same reason: out-of-process page pixels cannot be
+ * blurred, and a translucent film is unreadable there (koi-theme.css on
+ * glass).
+ *
+ * Dressed through the panel token API alone: toolkit paints every panel's
+ * ::part(content) from --panel-* (toolkit/themes/shared/popup.css), so one
+ * rule covers them all, and the dark color-scheme resolves their inner
+ * light-dark() colours to match the tint whatever the OS theme says. The
+ * radius stays Firefox's — it tracks the OS's own menu corners.
+ *
+ * Menupopups and plain panels are deliberately left alone: macOS renders
+ * them natively with real vibrancy, which is already Koi's language. */
+
+panel[type="arrow"] {
+  --panel-background-color: var(--koi-glass-menu);
+  --panel-text-color: var(--koi-fg);
+  --panel-border-color: var(--koi-hair);
+  color-scheme: dark;
+}
+
+/* The findbar rides the bottom edge of the page card, over content: same
+ * doctrine, same tint. The border keeps its 1px of geometry (the hidden-state
+ * margin math counts it, findBar.css) but loses its grey line. */
+.browserContainer > findbar {
+  background-color: var(--koi-glass-menu);
+  color: var(--koi-fg);
+  color-scheme: dark;
+  border-top-color: transparent;
+
+  /* The find field is a field, so it wears the field's clothes: the resting
+   * WELL under a hairline ring, on the pill radius, focus left to the caret —
+   * the address field's doctrine. The notfound red keeps its job (it is a
+   * signal, not decoration), so the states are carved out rather than
+   * restated; the flash state's yellow blink is retired by pref
+   * (prefs/firefox/chrome-ui.yaml), and its carve-out here keeps this rule
+   * honest if that pref ever flips back. */
+  & .findbar-textbox {
+    border: none;
+    border-radius: var(--koi-radius-pill);
+    box-shadow: inset 0 0 0 0.5px var(--koi-hair);
+
+    &:not([status="notfound"], [flash="true"]) {
+      background-color: var(--koi-glass-well);
+      color: var(--koi-fg);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

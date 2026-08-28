@@ -25,3 +25,8 @@
 # backdrop, which koi-shell.css still paints.
 - name: browser.tabs.allow_transparent_browser
   value: true
+
+# The findbar blinks its field yellow when it opens (findbar.js _flash).
+# Nothing in Koi asks for attention; the field opening focused is the cue.
+- name: accessibility.typeaheadfind.flashBar
+  value: 0

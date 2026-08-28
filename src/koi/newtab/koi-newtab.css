@@ -35,6 +35,10 @@
 }
 
 :root[koi-empty] #koi-empty-state {
+  /* A backdrop, not a wall: it covers the whole card, and chrome sharing
+   * that space (the findbar, riding the card's bottom edge) must stay
+   * clickable through it. The pins opt back in below. */
+  pointer-events: none;
   /* The page card's own geometry: inset by the gutter, rounded, ringed. */
   position: absolute;
   inset: 0 var(--koi-gutter) var(--koi-gutter);
@@ -96,6 +100,7 @@
 }
 
 .koi-empty-pin {
+  pointer-events: auto;
   appearance: none;
   border: none;
   width: 40px;
