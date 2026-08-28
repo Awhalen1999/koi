@@ -42,6 +42,11 @@
   --urlbar-min-height: var(--koi-pill-height);
   /* The pill is the urlbar: no block padding around the background. */
   --urlbar-padding-block: 0px;
+  /* And the open dropdown is the pill, same footprint: this margin is what
+   * Proton's expand-on-open grows the bar by — [breakout-extend] adds it to
+   * each side and shifts the input text by it (urlbar-searchbar.css). Zeroed,
+   * the dropdown and its rows line up with the resting field exactly. */
+  --urlbar-margin-inline: 0px;
 
   /* Tab pill clothes, on the tab.tokens.css API. */
   --tab-border-radius: var(--koi-radius-pill);
@@ -213,6 +218,11 @@
   --urlbar-background-border-focused: none;
   --urlbar-background-border-radius: var(--koi-radius-pill);
   --urlbar-background-outline-focused: none;
+  /* When open, Firefox insets the painted background from the popover by
+   * half the pill height minus the view radius — a value that forks with the
+   * active design-token branch. Pinned to 0 so the open surface is the
+   * popover, which --urlbar-margin-inline: 0px (above) pins to the pill. */
+  --urlbar-background-inset-breakout: 0px;
   margin-inline: 0;
   color: var(--koi-fg);
 
