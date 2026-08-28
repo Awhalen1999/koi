@@ -1,0 +1,180 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* The palette — Koi Shell v5's cmdOpen surface, hung on Firefox's urlbar.
+ *
+ * The urlbar is already a manual popover living in the top layer
+ * ([breakout], position: absolute), sized by stylesheet rules over
+ * JS-measured variables. That means the palette is a restyle, not a rebuild:
+ * these rules dress the popover in glass while the field is focused or
+ * showing results, and blur or Escape puts the pill back — Firefox's own
+ * machinery, end to end.
+ *
+ * Two postures, the Zen pattern, branched on how the palette was summoned —
+ * koi-palette.js stamps [koi-summon] on #urlbar at each summons:
+ *
+ *   "center" — the big middle menu, the spec's cmdOpen geometry. ⌘T, the +
+ *   button, ⌘K, and landing on an empty tab. ⌘T and + create no tab: the
+ *   menu overlays the current page and committing opens the new tab
+ *   (browser.urlbar.openintab).
+ *
+ *   "anchor" — the in-place editor: the panel stays at the field's own spot
+ *   (Firefox's natural breakout position) and grows rightward, with the URL
+ *   selected. Every click on the pill, and ⌘L. This is the default posture;
+ *   "center" is the exception it opts into.
+ *
+ * Both postures pin `top` with !important — the only force Koi uses:
+ * UrlbarInput writes style.top inline on every focus
+ * (#updateTextboxPosition), and an inline style outranks every sheet. Its
+ * measurement (flush: false box quads) also proved unreliable after the
+ * toolbox row swap — it can report the pre-swap position — so Koi states
+ * both positions outright instead of trusting it.
+ *
+ * The scrim is the popover's own ::backdrop — no extra element, and custom
+ * properties reach it by inheriting from the urlbar. */
+
+/* Both postures: the glass, the ink, the view. ------------------------------- */
+
+#urlbar[breakout]:is([breakout-extend], [open]) {
+  /* The results view, on its token API. */
+  --urlbarview-background-color-hover: var(--koi-wash);
+  --urlbarview-background-color-selected: var(--koi-accent-select);
+  --urlbarview-text-color-selected: var(--koi-fg);
+  --urlbarview-text-color-secondary: var(--koi-fg-3);
+  --urlbarview-text-color-action: var(--koi-fg-2);
+  --urlbarview-separator-color: var(--koi-hair);
+  --urlbarview-border-radius: var(--koi-radius-pill);
+
+  height: auto;
+  margin-block-start: 0;
+  overflow: hidden;
+  /* The menu tint, not the lighter palette one, and no backdrop-filter: page
+   * content renders out-of-process, so chrome CSS cannot sample its pixels —
+   * a blur here is a verified no-op and the frost has to be carried by
+   * opacity, the way Zen's panel does. Over an empty tab the wallpaper
+   * behind is already OS-blurred by the window's own vibrancy. */
+  background: var(--koi-glass-menu);
+  box-shadow:
+    var(--koi-shadow-float),
+    0 0 0 0.5px var(--koi-hair),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--koi-fg);
+  /* The glass tint is dark whatever the OS theme; the view's light-dark()
+   * tokens have to agree. */
+  color-scheme: dark;
+  animation: koiDrop var(--koi-spring) both;
+
+  /* The panel paints itself; the pill's background has no role here. The
+   * resting pill styling is scoped to :not([breakout-extend], [open]) in
+   * koi-chrome.css, so the two states never fight. */
+  & > .urlbar-background {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  /* A search glyph where the pill keeps its lock. Page actions belong to the
+   * resting field. */
+  & #identity-box,
+  & #trust-icon-container,
+  & #page-action-buttons {
+    display: none;
+  }
+
+  & .urlbar-input-box {
+    align-items: center;
+
+    &::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      flex: none;
+      margin-inline-end: var(--koi-space-12);
+      background-color: var(--koi-fg-2);
+      mask: url(chrome://global/skin/icons/search-glass.svg) center / contain
+        no-repeat;
+    }
+  }
+
+  & .urlbar-input {
+    font-family: inherit;
+    font-size: var(--koi-text-15);
+    letter-spacing: -0.01em;
+    color: var(--koi-fg);
+
+    &::placeholder {
+      color: var(--koi-fg-3);
+      opacity: 1;
+    }
+  }
+
+  & .urlbarView {
+    border-top: 0.5px solid var(--koi-hair);
+  }
+}
+
+#urlbar[breakout]:is([breakout-extend], [open])::backdrop {
+  /* Dim only — the spec's scrim blur cannot reach out-of-process page
+   * pixels either. */
+  background: var(--koi-scrim-float);
+  animation: koiFade var(--koi-fade) both;
+}
+
+/* The middle menu: ⌘T, the + button, ⌘K, and landing on an empty tab. -------- */
+
+#urlbar[koi-summon="center"][breakout]:is([breakout-extend], [open]) {
+  /* Upper third, scaling with the window — the spec's 64px assumed v5's
+   * one-row chrome; under two rows it collided with the tab strip. */
+  top: 22vh !important;
+  /* Centered without transforms, so entrance animations own `transform`. */
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(640px, calc(100vw - 96px));
+  border-radius: var(--koi-radius-palette);
+
+  & .urlbar-input-container {
+    min-height: 56px;
+    padding-inline: var(--koi-space-16);
+  }
+}
+
+/* The in-place editor: every click on the pill, and ⌘L. ----------------------
+ * Horizontally it stays where Firefox puts it — the popover's static
+ * position is the pill's own container — and grows rightward. Vertically it
+ * takes the pill's seat in row one: 4px, the row's air above a 36px pill. */
+
+#urlbar[breakout]:is([breakout-extend], [open]):not([koi-summon="center"]) {
+  top: var(--koi-space-4) !important;
+  width: min(560px, calc(100vw - 240px));
+  border-radius: var(--koi-radius-page);
+
+  & .urlbar-input-container {
+    min-height: 44px;
+    padding-inline: var(--koi-space-12);
+  }
+}
+
+/* The pill stays home while the palette is out: the container paints a
+ * stand-in, so the row never shows a hole where the search bar was. */
+#urlbar-container:has(> #urlbar:is([breakout-extend], [open]))::before {
+  content: "";
+  width: 100%;
+  height: var(--koi-pill-height);
+  align-self: center;
+  border-radius: var(--koi-radius-pill);
+  background-color: var(--koi-wash);
+  box-shadow: inset 0 0 0 0.5px var(--koi-hair);
+}
+
+/* The resting field is a display: no caret ever blinks in it, and the cursor
+ * says "control", not "text". koi-palette.js turns its clicks into a summons. */
+#urlbar:not([focused]) {
+  cursor: default;
+
+  & .urlbar-input {
+    caret-color: transparent;
+    cursor: default;
+  }
+}

@@ -13,3 +13,4 @@
 
         content/browser/koi-styles/koi-theme.css                (../../koi/common/styles/koi-theme.css)
         content/browser/koi-styles/koi-shell.css                (../../koi/common/styles/koi-shell.css)
+        content/browser/koi-common/koi-mark.svg                 (../../koi/common/assets/koi-mark.svg)

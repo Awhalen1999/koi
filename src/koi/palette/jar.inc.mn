@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Included from browser/base/jar.mn, so source paths are relative to
-# browser/base/. See src/koi/common/jar.inc.mn for the ground rules
-# (no bare `*` flag, `%` is the preprocessor marker in .css).
+# browser/base/. See src/koi/common/jar.inc.mn for the ground rules.
 
-        content/browser/koi-chrome/koi-chrome.css               (../../koi/chrome/koi-chrome.css)
+        content/browser/koi-palette/koi-palette.css             (../../koi/palette/koi-palette.css)
+        content/browser/koi-palette/koi-palette.js              (../../koi/palette/koi-palette.js)

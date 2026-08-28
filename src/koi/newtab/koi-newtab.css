@@ -1,0 +1,143 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* The empty state — Koi Shell v5's noTabs card.
+ *
+ * koi-newtab.js builds #koi-empty-state inside #tabbrowser-tabbox and stamps
+ * [koi-empty] on :root while the selected tab is blank. Every rule here is
+ * keyed on that attribute: no empty tab, no trace of this file.
+ *
+ * The card's blur is the window's own vibrancy — the wallpaper behind the
+ * window is already composited blurred, so the tint (--koi-glass-card) is
+ * what this surface actually carries. See koi-theme.css on glass. */
+
+/* While the empty card shows, the window behind it is the wallpaper: lift the
+ * shell's backdrop paint and the page card's chrome. Blank browsers paint
+ * nothing themselves (browser.tabs.allow_transparent_browser, and the shell's
+ * content-backdrop rule already excludes [transparent="true"]); ordinary
+ * pages keep sitting on .browserContainer's paint because [koi-empty] is only
+ * ever set while the selected tab is empty. */
+:root[koi-empty] #tabbrowser-tabpanels .browserSidebarContainer {
+  box-shadow: none;
+
+  & .browserContainer {
+    background: transparent;
+  }
+}
+
+:root[koi-empty] #tabbrowser-tabbox {
+  position: relative;
+}
+
+#koi-empty-state {
+  display: none;
+}
+
+:root[koi-empty] #koi-empty-state {
+  /* The page card's own geometry: inset by the gutter, rounded, ringed. */
+  position: absolute;
+  inset: 0 var(--koi-gutter) var(--koi-gutter);
+  border-radius: var(--koi-radius-page);
+  background: var(--koi-glass-card);
+  /* Softer than the page card's shadow — the spec's empty-card weight. */
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.14),
+    inset 0 0 0 0.5px var(--koi-hair);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: koiRise var(--koi-spring) both;
+}
+
+.koi-empty-mark {
+  width: 31.5px;
+  height: 36px;
+}
+
+.koi-empty-line {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-8);
+  margin-top: var(--koi-space-32);
+  font-size: var(--koi-text-13);
+  color: var(--koi-fg);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+}
+
+.koi-empty-key {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--koi-space-8);
+  border-radius: 6px;
+  background: var(--koi-wash);
+  font-family: var(--koi-font-mono);
+  font-size: var(--koi-text-11);
+  color: var(--koi-fg);
+  text-shadow: none;
+}
+
+.koi-empty-pins {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-12);
+  margin-top: var(--koi-space-32);
+
+  /* No bookmarks, no row — and no stray margins either. */
+  &:empty {
+    display: none;
+
+    + .koi-empty-pin-label {
+      display: none;
+    }
+  }
+}
+
+.koi-empty-pin {
+  appearance: none;
+  border: none;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--koi-radius-page);
+  background: var(--koi-wash);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition:
+    transform var(--koi-spring),
+    background var(--koi-fade),
+    box-shadow var(--koi-fade);
+
+  &:hover {
+    transform: translateY(-2px);
+    background: var(--koi-active);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  }
+}
+
+.koi-empty-pin-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--koi-radius-favicon);
+}
+
+.koi-empty-pin-label {
+  height: var(--koi-space-16);
+  margin-top: var(--koi-space-12);
+  display: flex;
+  align-items: center;
+  font-family: var(--koi-font-mono);
+  font-size: var(--koi-text-11);
+  color: var(--koi-fg-2);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transition: opacity var(--koi-fade);
+
+  &.shown {
+    opacity: 1;
+  }
+}

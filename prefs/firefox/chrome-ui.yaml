@@ -2,10 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# The one-line chrome (Koi Shell v5). Layout lives in src/koi/chrome/; these
-# are the two knobs Firefox only exposes as prefs.
+# The chrome and the palette (src/koi/chrome/, src/koi/palette/,
+# src/koi/newtab/): the knobs Firefox only exposes as prefs.
 
-# All controls in one 40px row; a second bookmarks row would double the chrome.
+# Two rows are the whole chrome; a bookmarks row would make it three.
 - name: browser.toolbars.bookmarks.visibility
   value: never
 
@@ -13,3 +13,22 @@
 # sideways instead, so a tab is always readable and always present.
 - name: browser.tabs.tabMinWidth
   value: 100
+
+# The empty state (src/koi/newtab/) is chrome drawn over the wallpaper, so an
+# empty tab must be an actually empty page. Startup lands on about:blank like
+# every new tab (browser.newtabpage.enabled is already off in newtab.yaml).
+- name: browser.startup.homepage
+  value: about:blank
+
+# Blank browsers paint nothing, letting the wallpaper through to the empty
+# card. Ordinary pages are unaffected: they sit on .browserContainer's
+# backdrop, which koi-shell.css still paints.
+- name: browser.tabs.allow_transparent_browser
+  value: true
+
+# ⌘T and + open the palette over the current page instead of creating a tab
+# (koi-palette.js); committing is what creates it. This pref is Firefox's own
+# half of that contract (_whereToOpen): urlbar commits open in a new tab, an
+# already-empty tab is reused, and ⌥↩ still navigates in place.
+- name: browser.urlbar.openintab
+  value: true

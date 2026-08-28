@@ -3,8 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* Koi's design tokens — the vocabulary every other Koi stylesheet is written
- * in. Values come from Koi Shell v5.dc.html ("one line of chrome"), which is
- * the authoritative spec; the brand kit is a summary of it and less complete.
+ * in. Values come from the specs in ../koi-design/design/: Koi Shell v4 for
+ * the shell layout, v5 for the floating surfaces (palette, empty state); the
+ * brand kit is a summary of them and less complete.
  *
  * Loaded into every browser window via browser/base/content/koi-assets.inc.xhtml,
  * after Firefox's own chrome stylesheets, so Koi rules win ties on equal
@@ -12,6 +13,12 @@
  *
  * Everything is namespaced --koi-*. Firefox defines several hundred custom
  * properties on this same :root and a collision would be a bad afternoon.
+ *
+ * The sheet deliberately runs ahead of its consumers: values transcribed from
+ * the spec for surfaces not yet built (the board's scrim, the menus' shadow,
+ * the spaces' dots, the smaller type sizes) live here so the vocabulary is
+ * complete when those features land. A token no spec or feature claims is the
+ * thing that gets deleted.
  *
  * The chrome is always light ink over glass, because it always sits on the
  * user's wallpaper. There is deliberately no light variant. */
@@ -31,23 +38,30 @@
   --koi-space-32: 32px;
 
   /* Chrome ------------------------------------------------------------------
-   * One 40px row. Tabs and the address share it and neither ever hides the
-   * other: lights, nav, a fixed-width address field, the strip, then tools.
+   * Two rows, split by what they act on. The top row acts on the window
+   * (lights, nav, the address pill, tools); the bottom row acts on the page
+   * (board, tabs, new), sitting closest to the content it controls.
    *
-   * The gutter is the page card's own inset, applied as a margin in
-   * koi-shell.css — sides and bottom only in v5; the card meets the chrome row
-   * directly at the top. Do not add a padding-bottom here to help; it lands on
-   * top of that margin and doubles the gap. */
-  --koi-chrome-height: 40px;
+   * Each row is 44px, not the spec's 32: a row is the pill height plus 4px of
+   * air each side, and the pill height follows Firefox's tabs
+   * (see --koi-pill-height).
+   *
+   * The gutter is the page card's inset: the bottom row's own
+   * padding-block-end supplies the top edge (koi-chrome.css), the card's
+   * margin supplies the other three (koi-shell.css). Each edge has exactly
+   * one owner — a second padding or margin doubles the gap. */
+  --koi-chrome-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-4));
   --koi-chrome-pad: var(--koi-space-12);
   --koi-gutter: var(--koi-space-4);
 
-  /* The field never shrinks, so the URL sits in the same place in every
-   * window. Tabs are all exactly as wide as each other: they narrow together
-   * from this ceiling to a 100px floor, then the strip scrolls instead. The
-   * floor is browser.tabs.tabMinWidth (prefs/firefox/chrome-ui.yaml) — Firefox
-   * plumbs that pref into layout itself, so it has no token here. */
-  --koi-field-width: 300px;
+  /* The address pill is centered and capped — 640, wider than the spec's
+   * 520 by request, and matching the centered palette's width so pill and
+   * panel read as one surface. Tabs are all exactly as wide as each other:
+   * they narrow together from this ceiling to a 100px floor, then the strip
+   * scrolls instead. The floor is browser.tabs.tabMinWidth
+   * (prefs/firefox/chrome-ui.yaml) — Firefox plumbs that pref into layout
+   * itself, so it has no token here. */
+  --koi-field-max: 640px;
   --koi-tab-max: 178px;
 
   /* Radii — the window's own corners are AppKit's, not ours, so there is no
@@ -58,12 +72,13 @@
   --koi-radius-palette: 16px;
 
   /* Control metrics ---------------------------------------------------------
-   * Every icon in the chrome is 12px. Pills — the address field and every
-   * tab — are 28px tall in the 40px row; square controls (the + button) are
-   * 24px. */
-  --koi-icon: 12px;
-  --koi-pill-height: 28px;
-  --koi-ctrl: var(--koi-space-24);
+   * Control sizing is Firefox's, not the spec's: 16px glyphs in 32px boxes,
+   * the standard 24px close target, and 36px pills (their tab height) — the
+   * spec's 12px-glyph/28px-pill metric was proportioned for a prototype stage
+   * and cramps proven hit targets. Firefox's numbers are tested at every
+   * density and locale; Koi supplies the layout and the ink, so the only
+   * control token here is the pill height the glyph boxes have no say in. */
+  --koi-pill-height: 36px;
   --koi-dot: var(--koi-space-8);
 
   /* Type --------------------------------------------------------------------
@@ -72,9 +87,10 @@
    * SFMono-Regular). There is no sans token: Firefox chrome's own `font: menu`
    * already resolves to SF on macOS.
    *
-   * The nine sizes the chrome actually uses. The half-pixel entries are
-   * faithful to the spec but are prototype drift rather than system — worth
-   * revisiting when type gets a deliberate pass. */
+   * The spec's nine sizes; the smallest belong to surfaces not yet built
+   * (favicon letters, group labels, footer hints, menu rows). The half-pixel
+   * entries are faithful to the spec but are prototype drift rather than
+   * system — worth revisiting when type gets a deliberate pass. */
   --koi-font-mono: ui-monospace, "SF Mono", monospace;
 
   --koi-text-8: 8px;
@@ -101,13 +117,6 @@
   --koi-accent-select: color-mix(in srgb, var(--koi-accent) 20%, transparent);
   --koi-accent-inline: color-mix(in srgb, var(--koi-accent) 34%, transparent);
 
-  /* The focused field's two-part ring: a bright inner line and a soft halo.
-   * The inner blue is the spec's literal — lighter than the accent, and not
-   * derivable from it. */
-  --koi-focus-ring:
-    0 0 0 1px rgba(120, 170, 255, 0.55),
-    0 0 0 4px color-mix(in srgb, var(--koi-accent) 16%, transparent);
-
   /* Surfaces ----------------------------------------------------------------
    * The chrome has no colour of its own. These are white films over whatever
    * the wallpaper happens to be. */
@@ -121,32 +130,33 @@
   --koi-page-ring: rgba(0, 0, 0, 0.06);
 
   /* Glass -------------------------------------------------------------------
-   * The shell's blur is the macOS desktop, which CSS cannot sample — only the
-   * OS can. It is an NSVisualEffectView in blendingMode BehindWindow, applied
-   * in widget/cocoa, so there is no backdrop-filter for it; --koi-sheet and
-   * --koi-hair layer over whatever the window server composites.
+   * There is no CSS blur in Koi's chrome, verified twice over:
    *
-   * Floating surfaces are plain CSS, but read this before relying on the blur:
-   * koi-shell.css makes the chrome paint nothing, so there is no backdrop for
-   * backdrop-filter to sample there. It only bites where a surface overlaps the
-   * page card, which is the one region Gecko paints opaquely. Over the chrome
-   * band it is a no-op. So the tint below is load-bearing and the blur is a
-   * bonus — do not tune one expecting the other to carry it. */
-  --koi-glass-float: blur(64px) saturate(180%);
+   *   - The shell's blur is the macOS desktop, which only the OS can sample —
+   *     an NSVisualEffectView in blendingMode BehindWindow (widget/cocoa).
+   *     The chrome paints nothing, so backdrop-filter has no backdrop there.
+   *   - Page content renders out-of-process, and chrome CSS cannot sample a
+   *     remote browser's pixels either — a backdrop-filter over the page card
+   *     is a no-op too. (An earlier note here claimed it bites there; a
+   *     surface floated over a real page disproved it.)
+   *
+   * So the spec's blur numbers do not port: the TINTS below carry these
+   * surfaces entirely. A floating surface reads frosted over an empty tab
+   * because the wallpaper behind the window is already OS-blurred, and reads
+   * frosted over a page because the tint is nearly opaque. */
 
-  /* Tints, by depth. The blur values in the spec collapse to one without
-   * visible loss; these do not — .90/.58/.34 is what reads as depth. */
+  /* Tints, by depth — .90/.34 is what reads as depth. Menus AND the palette
+   * take the .90: anything floated over page content needs near-opacity to
+   * read at all (see above). The card only ever sits on wallpaper. */
   --koi-glass-menu: rgba(22, 24, 30, 0.9);
-  --koi-glass-palette: rgba(24, 26, 32, 0.58);
   --koi-glass-card: rgba(18, 20, 24, 0.34);
 
   /* Scrims ------------------------------------------------------------------
    * Two weights, and the difference carries meaning: the board is a full
-   * takeover, the palette is a lighter overlay you stay oriented behind. */
+   * takeover, the palette is a lighter overlay you stay oriented behind.
+   * Dim only — scrim blurs cannot reach page pixels (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
-  --koi-scrim-board-blur: blur(6px);
   --koi-scrim-float: rgba(8, 10, 14, 0.28);
-  --koi-scrim-float-blur: blur(2px);
 
   /* Shadows -----------------------------------------------------------------
    * Hairlines compose at the use site so a rule can pick its own ring — the
@@ -174,5 +184,45 @@
   :root {
     --koi-spring: 0ms linear;
     --koi-fade: 0ms linear;
+  }
+}
+
+/* The spec's entrance keyframes, defined as they gain a user — a keyframe
+ * with no animation is dead weight. koiPop joins when something needs the
+ * spec's transform-centered drop; Koi's palette centers with margins instead,
+ * so it rises on koiDrop. Pair with the motion tokens:
+ *   animation: koiRise var(--koi-spring) both;
+ * and reduced-motion collapses the duration to zero for free. */
+@keyframes koiRise {
+  from {
+    opacity: 0;
+    transform: scale(0.965);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes koiDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes koiFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }

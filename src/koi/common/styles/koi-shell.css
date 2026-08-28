@@ -56,8 +56,8 @@ body {
   ):not([chromehidden~="toolbar"])
   #tabbrowser-tabpanels
   .browserSidebarContainer {
-  /* Sides and bottom only: in v5 the card meets the 40px chrome row directly
-   * at the top — the row's own air is the top inset. */
+  /* Sides and bottom only: the tab row's own padding-block-end supplies the
+   * top gap (koi-chrome.css) — one owner per edge, or the gap doubles. */
   margin: 0 var(--koi-gutter) var(--koi-gutter);
   /* clip, not hidden: the corners have to actually cut the page content. */
   overflow: clip;

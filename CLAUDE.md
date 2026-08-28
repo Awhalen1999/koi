@@ -6,7 +6,7 @@ A fast, minimal browser built on Firefox (Gecko), macOS only.
 Helium's restraint, Zen's polish. Calm by default. Nothing pops up,
 nothing asks for attention, nothing needs learning on first launch.
 Chrome has no color of its own — it borrows the wallpaper. No themes.
-All controls in one 40px row at the top; the rest belongs to the page.
+All controls in two 44px rows at the top; the rest belongs to the page.
 
 ## Stack
 - Firefox 154 stable, forked via `@zen-browser/surfer` 1.14.7
@@ -48,26 +48,29 @@ copy. Worth fixing.
 - `branding/` — SVG masters. These are the inputs behind
   `configs/branding/release/`; the rasters there were generated from them.
 - `design/` — the Claude Design prototypes, exported as `.dc.html`.
-  **`Koi Shell v5.dc.html` ("one line of chrome") is the authoritative shell
-  spec**; v4 and its 64px two-row layout are superseded. Read values from the
-  spec rather than from screenshots or the brand kit, which is less complete.
-  Also `Koi Brand Kit`, `Branding Handoff`, `Lockup Cards`, `Platform Icons`,
-  `Spiral Mark`, plus `svg/` icon variants and `uploads/` (placeholder
-  wallpapers).
+  **`Koi Shell v4.dc.html` is the authoritative shell layout** — two rows,
+  tabs below nav, a centered address pill that is a control, not an input.
+  v5 ("one line of chrome") was built, shipped, and deliberately retired: one
+  shared row read as cool but not practical, and it needed DOM surgery where
+  v4 needs none. **v5 stays authoritative for the floating surfaces** — the
+  palette (cmdOpen), the empty-state card (noTabs) — which Koi kept. Read
+  values from the specs rather than from screenshots or the brand kit, which
+  is less complete. Also `Koi Brand Kit`, `Branding Handoff`, `Lockup Cards`,
+  `Platform Icons`, `Spiral Mark`, plus `svg/` icon variants and `uploads/`
+  (placeholder wallpapers).
 
-The prototype is inline styles with `{{template}}` bindings — a POC, so port
-values, never the markup. What v5 settles:
+The prototypes are inline styles with `{{template}}` bindings — POCs, so port
+values, never the markup. What they settle:
 
-- Chrome is **one 40px row**, nothing ever hides anything else: lights,
-  back/fwd/stop-reload, hairline, a **fixed 300px** address field, the tab
-  strip, the + button, hairline, then extensions/downloads/menu. Pills (field
-  and tabs) are 28px radius 8; square controls are 24px; glyphs are 12px.
-  Tabs are all equal width — 178px ceiling, 100px floor, then the strip
-  scrolls sideways. The page card is inset `0 4px 4px` (no top gutter).
-- The address field is a **real, always-editable input** (mono 11.5px): click
-  or ⌘L to edit, reload swaps to stop while loading, and the field tints left
-  to right as its own progress bar. It carries lock/not-secure, reader, zoom,
-  and the bookmark star; tabs keep favicon, host, and audio.
+- Chrome is **two rows**, split by what they act on. Top row, the window's:
+  lights, back/fwd/reload, a **centered address pill capped at 520px** (lock,
+  mono host, bookmark star; wash at rest, active on hover), then
+  extensions/downloads/menu. Bottom row, the page's: the board button, the
+  tab strip (equal-width tabs, 178px ceiling, 100px floor, then sideways
+  scroll, 4px gaps), the +. The bottom row's `padding: 0 12px 4px` is where
+  the page card's top gutter comes from.
+- The address pill is a **display and a trigger, not an editor**: clicking it
+  (or ⌘L/⌘K) summons the palette, which is where typing happens.
 - Glass is a **depth system, not one value** — the further forward a surface
   sits, the more it blurs and saturates. Shell 52/160, menu 52/170, palette
   64/180, empty-state card 30/140, plus scrims at `rgba(8,10,14,.52)`+6px
@@ -75,8 +78,7 @@ values, never the markup. What v5 settles:
 - Motion is **two speeds**: spring `380ms cubic-bezier(.32,1.36,.5,1)` for
   anything that moves or resizes, fade `150ms linear` for anything that only
   changes colour. Keyframes `koiDrop`, `koiFade`, `koiRise`, `koiPop`.
-- Still ahead of the implementation: the ⌘K palette, peek (⌘E), the board
-  (⇧⌘E), and spaces (dots beside the strip).
+- Still ahead of the implementation: peek (⌘E), the board (⇧⌘E), and spaces.
 
 ### The four-hop bridge
 
@@ -659,23 +661,29 @@ stack, an 8-size type scale, and the three glass **tints** — the blur values
 collapse to one recipe without loss, the tints do not. Deleted
 `--koi-radius-window` and `--koi-shadow-window`: AppKit draws both.
 
-**Load-bearing for the palette and menus:** `backdrop-filter` is a **no-op over
-the chrome band**, because the chrome deliberately paints nothing, so there is
-no backdrop to sample. It only bites where a surface overlaps the page card —
-the one region Gecko paints opaquely. The tint carries those surfaces; the blur
-is a bonus.
+**Load-bearing for the palette and menus:** there is **no CSS blur anywhere in
+Koi's chrome**. `backdrop-filter` is a no-op over the chrome band (the chrome
+paints nothing, so there is no backdrop to sample) **and** over the page card —
+page content renders out-of-process and chrome CSS cannot sample a remote
+browser's pixels. An earlier note claimed blur bites over the card; floating
+the palette over a real page disproved it. The tints carry every floating
+surface (which is why menus and the palette share the near-opaque .90 recipe),
+and the only real blur is the window's own vibrancy behind an empty tab.
 
-**The one-line chrome is in (Koi Shell v5).** `src/koi/chrome/` holds the whole
-feature — one small script, one stylesheet, zero new Firefox patches:
+**The two-row chrome is in (Koi Shell v4).** `src/koi/chrome/` is one
+stylesheet — no script, no DOM moves, zero new Firefox patches:
 
-- `koi-chrome.js` is the only DOM surgery in Koi: on DOMContentLoaded it moves
-  `#tabbrowser-tabs` and `#new-tab-button` into `#nav-bar` after the address
-  field and stamps `[koi-onerow]` on `:root`. Popups are skipped, and every
-  rule in `koi-chrome.css` is keyed on the attribute, so an unmoved window
-  keeps stock layout instead of losing its tabs. This is Firefox's own
-  pattern: vertical-tabs mode relocates the same widget, and **nav-bar already
-  ships its own traffic-light buttonbox and titlebar spacers** for exactly
-  this state — they are merely CSS-hidden unless `[tabs-hidden]`.
+- Firefox already ships both rows, tabs above nav; the whole v4 layout is a
+  flex `order` swap on `#navigator-toolbox`. The traffic lights come along
+  because **nav-bar ships its own buttonbox and titlebar spacers** (normally
+  CSS-hidden unless `[tabs-hidden]`); Koi shows nav-bar's and hides
+  TabsToolbar's. (v5's one-line chrome needed JS to merge the rows into one —
+  that script and its `[koi-onerow]` gate were deleted with the pivot, which
+  is much of why v4 won.)
+- The address pill centers between Firefox's own toolbar springs, capped at
+  `--koi-field-max` (the spec's 520px). It is a control: wash at rest, active
+  on hover, no caret, no go-button, no search-engine chip — clicks and ⌘L/⌘K
+  summon the palette (koi-palette.js).
 - Style through Firefox's **variable API** (`--tab-min-height`,
   `--tab-max-width`, `--urlbar-background-*`, `--toolbarbutton-*`) rather than
   its structure, and grep the 154 tree before writing a name — several
@@ -687,18 +695,104 @@ feature — one small script, one stylesheet, zero new Firefox patches:
   variables, and focus state is `#urlbar[focused]`.
 - `close-12.svg` draws the whole × through `context-fill-opacity`, so
   `fill-opacity: 0` deletes the glyph — it is not the hover circle.
-- `TabBarVisibility.update()` re-shows TabsToolbar on every tab open/close, so
-  Koi hides it with `display: none`, not `collapsed`.
 - Two prefs carry the rest (`prefs/firefox/chrome-ui.yaml`): bookmarks toolbar
   `never`, `browser.tabs.tabMinWidth` 100 — the spec's tab floor, which
   Firefox plumbs into layout itself.
+- The spacing system is documented at the top of `koi-chrome.css`: two 44px
+  rows, 12px of air between clusters, 4px between tab pills (Firefox's own
+  2px `--tab-overflow-clip-margin` per tab, free), edge margins written
+  `calc(12px - slack)` — visual gaps, not box gaps, re-deriving if Firefox's
+  paddings change. The page card's top gutter is the bottom row's
+  `padding-block-end`; the card's margin owns the other three edges — one
+  owner per edge. **Control sizing is Firefox's, untouched**: 16px glyphs in
+  32px boxes (8px `--toolbarbutton-padding-inner` slack), 16px favicons, the
+  24px close target, 36px pills in 44px rows (their tab strip math; the row
+  derives as pill + 2×4px) — Koi supplies layout and ink, Firefox supplies
+  control geometry. Deliberate deviations from the spec: the hairline
+  dividers are omitted for now, and Firefox's all-tabs button stands in for
+  the board button until ⇧⌘E ships.
 
-**Not yet done:** the ⌘K palette, peek (⌘E), the board (⇧⌘E), spaces, the
-field-as-progress-bar tint, the urlbar results popover (still near-stock and
-constrained to the field's 300px), tab-overflow scroll styling (stock
-arrowscrollbox buttons), and the empty-state card. `src/koi/moz.build` still
-has an empty `DIRS` until a feature ships JS modules. `prefs/koi/` does not
-exist yet.
+**The empty state is in (v5's noTabs card).** `src/koi/newtab/` — a chrome
+overlay, not a content page, because the design shows the wallpaper *through*
+an empty tab and a web page can't do that:
+
+- `koi-newtab.js` builds `#koi-empty-state` inside `#tabbrowser-tabbox` and
+  stamps `[koi-empty]` on `:root` while `gBrowser.selectedTab.isEmpty`
+  (TabSelect + TabAttrModified + location changes — busy flips always
+  dispatch TabAttrModified, which matters because a settled about:blank
+  emits no further progress events). Pins are the toolbar folder's first six
+  bookmarks, favicons via the `page-icon:` protocol, refetched on each
+  reveal.
+- The wallpaper path: `browser.tabs.allow_transparent_browser` makes blank
+  browsers paint nothing (koi-shell.css's content-backdrop rule already
+  excluded `[transparent="true"]`), and under `[koi-empty]` koi-newtab.css
+  lifts `.browserContainer`'s paint and the card's shadow. Ordinary pages are
+  untouched — they sit on `.browserContainer`, which still paints.
+- Startup lands on about:blank too (`browser.startup.homepage`), which
+  resolves the "what is the startup page" gap: the empty state is.
+- `koiRise`, `koiDrop` and `koiFade` live in koi-theme.css with the motion
+  tokens; `koiPop` joins when something needs the spec's transform-centered
+  drop.
+
+**The palette is in (v5's cmdOpen surface), hung on Firefox's urlbar.**
+`src/koi/palette/` — a restyle, not a rebuild:
+
+- The urlbar in 154 is already a manual popover in the top layer
+  (`[breakout]`, `position: absolute`), sized by stylesheet rules over
+  JS-measured `--urlbar-width/height` variables. While
+  `:is([breakout-extend], [open])`, koi-palette.css dresses the popover in
+  palette glass; blur or Escape and Firefox puts the pill back itself. All
+  providers, keyboard handling and results are stock.
+- **⌘T and the + button create no tab** (the Zen pattern): koi-palette.js
+  intercepts both (keydown/click capture, before Firefox's bindings) and
+  opens the middle menu over the current page; **committing is what creates
+  the tab**, via Firefox's own `browser.urlbar.openintab` pref — its
+  `_whereToOpen` turns a plain commit into "tab", reuses an already-empty
+  tab, and keeps ⌥↩ as navigate-in-place. No monkey-patching, no lazy-tab
+  bookkeeping: the pref is the other half of the interception.
+- **Two postures, branched on how it was summoned**: koi-palette.js stamps
+  `[koi-summon]` on `#urlbar`. "center" (the middle menu — `min(640px,
+  100vw - 96px)`, top 64px, 56px row) is ⌘T, +, ⌘K, and landing on an
+  empty tab; "anchor" (the in-place editor at the field's own spot —
+  Firefox's natural breakout position, no overrides — 560px/44px, URL
+  selected) is every click on the pill and ⌘L. Anchored is the default
+  posture; "center" is the exception it opts into. A `summoning` flag marks
+  focus events summon() itself caused, so the focus listener only picks a
+  posture for outside focus.
+- **The only `!important`s in Koi pin the palette's `top`** (both postures):
+  UrlbarInput writes `style.top` inline on every focus
+  (`#updateTextboxPosition`), and inline outranks every sheet. Its flush-less
+  box-quads measurement also proved unreliable after the toolbox row swap —
+  it can report the pre-swap position — so koi-palette.css states both
+  positions outright (anchored: the pill's row-one seat at 4px; centered:
+  22vh) instead of trusting it. While the palette is out, the pill's
+  container paints a stand-in pill (`::before` + `:has()`), so the row never
+  shows a hole.
+- The scrim is the popover's own `::backdrop` (custom properties reach it by
+  inheritance). `color-scheme: dark` is forced on the floating state so the
+  view's `light-dark()` tokens agree with the glass tint; the results view is
+  skinned via its `--urlbarview-*` token API.
+- The resting field is a **display, not an editor**: koi-palette.js turns
+  left-clicks on the text area into focus-and-select (the identity lock and
+  page actions keep their own click jobs), remaps ⌘K from Firefox's
+  search-mode focus to a plain summons, and hides the caret at rest. Focusing
+  always floats, so the pill never shows a focus ring — the resting hairline
+  in koi-chrome.css is scoped `:not([breakout-extend], [open])` and the two
+  states never fight.
+- **The palette never opens empty**: a focus listener calls
+  `gURLBar.view.autoOpen(...)` whenever the view is closed, so every summons
+  arrives with suggestion rows. autoOpen gates on the event looking like a
+  click, so keyboard summonses borrow a synthetic `mousedown`. Emptiness is
+  Firefox's own `tab.isEmpty` everywhere (palette posture, the empty-state
+  card, and `_whereToOpen`'s tab reuse), so posture, card, and commit
+  destination can never disagree.
+
+**Not yet done:** the palette's ACTIONS/commands rows and footer hints (the
+view shows Firefox's stock providers for now), peek (⌘E), the board (⇧⌘E),
+spaces, the field-as-progress-bar tint, and tab-overflow scroll styling
+(stock arrowscrollbox buttons). `src/koi/moz.build` still has an empty `DIRS`
+until a feature ships JS modules (Koi scripts load via jar + browser.xhtml,
+not EXTRA_JS_MODULES). `prefs/koi/` does not exist yet.
 
 **Open, unexamined:** `BrowserGlue.sys.mjs:447` throws
 `NS_ERROR_UNEXPECTED [nsIPrefBranch.getIntPref]` on every startup, and

@@ -1,0 +1,18 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!-- The Koi mark, silver — the empty state's silhouette over the wallpaper.
+   - Path and gradient are verbatim from Koi Shell v5.dc.html (koiLandSil). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+  <defs>
+    <linearGradient id="koi-mark-silver" gradientUnits="userSpaceOnUse" x1="120" y1="0" x2="330" y2="512">
+      <stop offset="0" stop-color="#fdfdfe"/>
+      <stop offset="0.18" stop-color="#e7eaee"/>
+      <stop offset="0.44" stop-color="#c5cad1"/>
+      <stop offset="0.54" stop-color="#f3f5f7"/>
+      <stop offset="0.72" stop-color="#cbd0d7"/>
+      <stop offset="1" stop-color="#a7aeb7"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#koi-mark-silver)" d="M202 128.39A128 128 0 0 1 202 383.61Q192 384 192 374L192 330Q192 320 201.96 319.22A64 64 0 0 0 201.96 192.78Q192 192 192 182L192 138Q192 128 202 128.39ZM182 447.74A192 192 0 0 1 182 64.26Q192 64 192 74L192 118Q192 128 182 128.39A128 128 0 0 0 182 383.61Q192 384 192 394L192 438Q192 448 182 447.74ZM202 0.2A256 256 0 0 1 202 511.8Q192 512 192 502L192 458Q192 448 202 447.74A192 192 0 0 0 202 64.26Q192 64 192 54L192 10Q192 0 202 0.2Z"/>
+</svg>
