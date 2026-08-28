@@ -6,7 +6,7 @@ A fast, minimal browser built on Firefox (Gecko), macOS only.
 Helium's restraint, Zen's polish. Calm by default. Nothing pops up,
 nothing asks for attention, nothing needs learning on first launch.
 Chrome has no color of its own — it borrows the wallpaper. No themes.
-All controls in 64px at the top; the rest belongs to the page.
+All controls in one 40px row at the top; the rest belongs to the page.
 
 ## Stack
 - Firefox 154 stable, forked via `@zen-browser/surfer` 1.14.7
@@ -48,18 +48,26 @@ copy. Worth fixing.
 - `branding/` — SVG masters. These are the inputs behind
   `configs/branding/release/`; the rasters there were generated from them.
 - `design/` — the Claude Design prototypes, exported as `.dc.html`.
-  **`Koi Shell v4.dc.html` is the authoritative shell spec** — read values from
-  it rather than from screenshots or the brand kit, which is less complete.
+  **`Koi Shell v5.dc.html` ("one line of chrome") is the authoritative shell
+  spec**; v4 and its 64px two-row layout are superseded. Read values from the
+  spec rather than from screenshots or the brand kit, which is less complete.
   Also `Koi Brand Kit`, `Branding Handoff`, `Lockup Cards`, `Platform Icons`,
   `Spiral Mark`, plus `svg/` icon variants and `uploads/` (placeholder
   wallpapers).
 
 The prototype is inline styles with `{{template}}` bindings — a POC, so port
-values, never the markup. Three things it settles that the brand kit does not:
+values, never the markup. What v5 settles:
 
-- Chrome is **64px**, two 32px rows, tabs *below* nav. The bottom row's
-  `padding: 0 12px 4px` is where the 4px page gutter comes from. Older
-  positioning copy says 62px; it is superseded.
+- Chrome is **one 40px row**, nothing ever hides anything else: lights,
+  back/fwd/stop-reload, hairline, a **fixed 300px** address field, the tab
+  strip, the + button, hairline, then extensions/downloads/menu. Pills (field
+  and tabs) are 28px radius 8; square controls are 24px; glyphs are 12px.
+  Tabs are all equal width — 178px ceiling, 100px floor, then the strip
+  scrolls sideways. The page card is inset `0 4px 4px` (no top gutter).
+- The address field is a **real, always-editable input** (mono 11.5px): click
+  or ⌘L to edit, reload swaps to stop while loading, and the field tints left
+  to right as its own progress bar. It carries lock/not-secure, reader, zoom,
+  and the bookmark star; tabs keep favicon, host, and audio.
 - Glass is a **depth system, not one value** — the further forward a surface
   sits, the more it blurs and saturates. Shell 52/160, menu 52/170, palette
   64/180, empty-state card 30/140, plus scrims at `rgba(8,10,14,.52)`+6px
@@ -67,9 +75,8 @@ values, never the markup. Three things it settles that the brand kit does not:
 - Motion is **two speeds**: spring `380ms cubic-bezier(.32,1.36,.5,1)` for
   anything that moves or resizes, fade `150ms linear` for anything that only
   changes colour. Keyframes `koiDrop`, `koiFade`, `koiRise`, `koiPop`.
-
-The address pill is a button wired to the command palette (`title="Address —
-⌘L"`), not an editable field.
+- Still ahead of the implementation: the ⌘K palette, peek (⌘E), the board
+  (⇧⌘E), and spaces (dots beside the strip).
 
 ### The four-hop bridge
 
@@ -407,9 +414,14 @@ Consequences worth knowing:
   rather than a popup or dialog. It is a virtual on `nsIWidget`, called from
   `AppWindow.cpp` with the `windowtype` attribute off `browser.xhtml`.
 - Firefox forces `mWindow.opaque = YES` for non-popup windows ("Non-popup
-  windows are always opaque"). This looks like it should block vibrancy and
-  **does not** — AppKit handles it when an `NSVisualEffectView` becomes the
-  content view. Calling `SetTransparencyMode` to "fix" it is unnecessary.
+  windows are always opaque"). AppKit still composites the effect view — but on
+  macOS 26 the titlebar backdrop "matches the window background" and is drawn
+  across the top strip *between* the effect view and the DOM, so an opaque
+  window paints that strip solid and no CSS can reach it. The patch therefore
+  calls `SetTransparencyMode(Transparent)` when vibrancy is on. Verified by a
+  native view-tree dump: `NSTitlebarContainerView` spans the strip above
+  `KoiWindowMaterialView`. (An earlier note here said the call was unnecessary;
+  that was pre-macOS-26.)
 
 ### Debugging chrome, the cheap way first
 
@@ -493,6 +505,16 @@ After a design change: regenerate rasters from `../koi-design/branding/`, then
 - `MOZ_APPUPDATE_HOST` defaults to `localhost:7648`, deliberately non-resolving.
   Set surfer.json `updateHostname` only once a real update server exists; until
   then keep `app.update.auto` off.
+- `surfer import` applies each patch as `git apply -R` (revert, errors
+  swallowed) then `git apply`. If it dies with "patch does not apply", diff
+  the engine file against its `src/` patch before suspecting the baseline: a
+  session that edited `engine/` without running `npm run export` leaves the
+  tree matching *neither* state, so both applies fail. The tree is ahead —
+  export the file, then import. (This happened with `nsCocoaWindow.mm`'s
+  macOS 26 `SetTransparencyMode` fix.)
+- `surfer license-check` scans `ENGINE_DIR/src` relative to the cwd, which
+  does not exist in Koi's layout — it errors before checking anything. Put
+  MPL headers on new files by hand (every file in `src/` has one to copy).
 - `surfer license-check --fix` inserts MPL headers into `src/` for
   `.mjs/.js/.ts/.css/.html/.svg/.xml/.py`, `moz.build`, `jar.mn`. Run it before
   committing new files.
@@ -643,10 +665,40 @@ no backdrop to sample. It only bites where a surface overlaps the page card —
 the one region Gecko paints opaquely. The tint carries those surfaces; the blur
 is a bonus.
 
-**Not yet done:** the 64px two-row shell — tabs below nav, the toolbar
-contents, the tab strip. Koi is still Firefox's layout wearing Koi's glass and
-Koi's framing. `src/koi/moz.build` has an empty `DIRS` until a feature ships JS
-modules. `prefs/koi/` does not exist yet.
+**The one-line chrome is in (Koi Shell v5).** `src/koi/chrome/` holds the whole
+feature — one small script, one stylesheet, zero new Firefox patches:
+
+- `koi-chrome.js` is the only DOM surgery in Koi: on DOMContentLoaded it moves
+  `#tabbrowser-tabs` and `#new-tab-button` into `#nav-bar` after the address
+  field and stamps `[koi-onerow]` on `:root`. Popups are skipped, and every
+  rule in `koi-chrome.css` is keyed on the attribute, so an unmoved window
+  keeps stock layout instead of losing its tabs. This is Firefox's own
+  pattern: vertical-tabs mode relocates the same widget, and **nav-bar already
+  ships its own traffic-light buttonbox and titlebar spacers** for exactly
+  this state — they are merely CSS-hidden unless `[tabs-hidden]`.
+- Style through Firefox's **variable API** (`--tab-min-height`,
+  `--tab-max-width`, `--urlbar-background-*`, `--toolbarbutton-*`) rather than
+  its structure, and grep the 154 tree before writing a name — several
+  memorable ones are gone: `--toolbarbutton-inner-padding` is now
+  `--toolbarbutton-padding-inner`, hover is
+  `--toolbarbutton-background-color-hover`.
+- The urlbar input is `.urlbar-input` (a class; `#urlbar-input` no longer
+  exists), the pill is `.urlbar-background` and is painted entirely by
+  variables, and focus state is `#urlbar[focused]`.
+- `close-12.svg` draws the whole × through `context-fill-opacity`, so
+  `fill-opacity: 0` deletes the glyph — it is not the hover circle.
+- `TabBarVisibility.update()` re-shows TabsToolbar on every tab open/close, so
+  Koi hides it with `display: none`, not `collapsed`.
+- Two prefs carry the rest (`prefs/firefox/chrome-ui.yaml`): bookmarks toolbar
+  `never`, `browser.tabs.tabMinWidth` 100 — the spec's tab floor, which
+  Firefox plumbs into layout itself.
+
+**Not yet done:** the ⌘K palette, peek (⌘E), the board (⇧⌘E), spaces, the
+field-as-progress-bar tint, the urlbar results popover (still near-stock and
+constrained to the field's 300px), tab-overflow scroll styling (stock
+arrowscrollbox buttons), and the empty-state card. `src/koi/moz.build` still
+has an empty `DIRS` until a feature ships JS modules. `prefs/koi/` does not
+exist yet.
 
 **Open, unexamined:** `BrowserGlue.sys.mjs:447` throws
 `NS_ERROR_UNEXPECTED [nsIPrefBranch.getIntPref]` on every startup, and

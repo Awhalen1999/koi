@@ -1,5 +1,5 @@
 diff --git a/widget/cocoa/nsCocoaWindow.mm b/widget/cocoa/nsCocoaWindow.mm
-index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..fa8246444e810c739a18b1c9a7e328cc520a661e 100644
+index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..571ea5550811325e3481ee92fb7c7dfaf60f43ce 100644
 --- a/widget/cocoa/nsCocoaWindow.mm
 +++ b/widget/cocoa/nsCocoaWindow.mm
 @@ -84,6 +84,7 @@
@@ -10,7 +10,7 @@ index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..fa8246444e810c739a18b1c9a7e328cc
  #include "mozilla/StaticPrefs_ui.h"
  #include "mozilla/StaticPrefs_widget.h"
  #include "mozilla/WritingModes.h"
-@@ -1332,6 +1333,125 @@ - (NSRect)_opaqueRectForWindowMoveWhenInTitlebar {
+@@ -1332,6 +1333,134 @@ - (NSRect)_opaqueRectForWindowMoveWhenInTitlebar {
  }
  @end
  
@@ -117,6 +117,15 @@ index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..fa8246444e810c739a18b1c9a7e328cc
 +    return;
 +  }
 +
++  // The window background must be clear, not merely covered. On macOS 26 the
++  // titlebar backdrop "matches the window background" (see
++  // updateTitlebarTransparency) and is drawn across the top strip between the
++  // effect view and the DOM — an opaque window paints that strip solid and no
++  // CSS can reach it. Verified by a native view-tree dump:
++  // NSTitlebarContainerView spans the strip above KoiWindowMaterialView.
++  SetTransparencyMode(wanted ? TransparencyMode::Transparent
++                             : TransparencyMode::Opaque);
++
 +  // Re-parent the existing content into a fresh wrapper. Assigning
 +  // .contentView releases the old one.
 +  NSRect frame = mWindow.contentView.frame;
@@ -136,7 +145,7 @@ index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..fa8246444e810c739a18b1c9a7e328cc
  void nsCocoaWindow::UpdateWindowDraggingRegion(
      const LayoutDeviceIntRegion& aRegion) {
    // mChildView returns YES from mouseDownCanMoveWindow, so we need to put
-@@ -4919,6 +5039,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
+@@ -4919,6 +5048,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
  nsCocoaWindow::~nsCocoaWindow() {
    NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
  

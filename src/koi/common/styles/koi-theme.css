@@ -3,8 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* Koi's design tokens — the vocabulary every other Koi stylesheet is written
- * in. Values come from ../koi-design/design/Koi Shell v4.dc.html, which is the
- * authoritative spec; the brand kit is a summary of it and less complete.
+ * in. Values come from Koi Shell v5.dc.html ("one line of chrome"), which is
+ * the authoritative spec; the brand kit is a summary of it and less complete.
  *
  * Loaded into every browser window via browser/base/content/koi-assets.inc.xhtml,
  * after Firefox's own chrome stylesheets, so Koi rules win ties on equal
@@ -31,18 +31,24 @@
   --koi-space-32: 32px;
 
   /* Chrome ------------------------------------------------------------------
-   * 64px in two equal rows. The top row acts on the window (lights, nav,
-   * address, tools); the bottom row acts on the page (view, tabs, new), and
-   * sits lower because switching tabs is the most frequent move in the shell.
+   * One 40px row. Tabs and the address share it and neither ever hides the
+   * other: lights, nav, a fixed-width address field, the strip, then tools.
    *
-   * The gutter is the page card's own inset on all four sides, applied as a
-   * margin in koi-shell.css — not the chrome's bottom padding, which could only
-   * ever produce the top edge. Do not add a padding-bottom here to help; it
-   * lands on top of that margin and doubles the gap. */
-  --koi-chrome-row: var(--koi-space-32);
-  --koi-chrome-height: calc(var(--koi-chrome-row) * 2);
+   * The gutter is the page card's own inset, applied as a margin in
+   * koi-shell.css — sides and bottom only in v5; the card meets the chrome row
+   * directly at the top. Do not add a padding-bottom here to help; it lands on
+   * top of that margin and doubles the gap. */
+  --koi-chrome-height: 40px;
   --koi-chrome-pad: var(--koi-space-12);
   --koi-gutter: var(--koi-space-4);
+
+  /* The field never shrinks, so the URL sits in the same place in every
+   * window. Tabs are all exactly as wide as each other: they narrow together
+   * from this ceiling to a 100px floor, then the strip scrolls instead. The
+   * floor is browser.tabs.tabMinWidth (prefs/firefox/chrome-ui.yaml) — Firefox
+   * plumbs that pref into layout itself, so it has no token here. */
+  --koi-field-width: 300px;
+  --koi-tab-max: 178px;
 
   /* Radii — the window's own corners are AppKit's, not ours, so there is no
    * token for them. */
@@ -52,9 +58,12 @@
   --koi-radius-palette: 16px;
 
   /* Control metrics ---------------------------------------------------------
-   * Every icon in the chrome is 12px; every pill is 24px tall. */
+   * Every icon in the chrome is 12px. Pills — the address field and every
+   * tab — are 28px tall in the 40px row; square controls (the + button) are
+   * 24px. */
   --koi-icon: 12px;
-  --koi-pill-height: var(--koi-space-24);
+  --koi-pill-height: 28px;
+  --koi-ctrl: var(--koi-space-24);
   --koi-dot: var(--koi-space-8);
 
   /* Type --------------------------------------------------------------------
@@ -63,15 +72,16 @@
    * SFMono-Regular). There is no sans token: Firefox chrome's own `font: menu`
    * already resolves to SF on macOS.
    *
-   * The eight sizes the chrome actually uses. The half-pixel pair are faithful
-   * to the spec but are prototype drift rather than system — worth revisiting
-   * when type gets a deliberate pass. */
+   * The nine sizes the chrome actually uses. The half-pixel entries are
+   * faithful to the spec but are prototype drift rather than system — worth
+   * revisiting when type gets a deliberate pass. */
   --koi-font-mono: ui-monospace, "SF Mono", monospace;
 
   --koi-text-8: 8px;
   --koi-text-10: 10px;
   --koi-text-10-5: 10.5px;
   --koi-text-11: 11px;
+  --koi-text-11-5: 11.5px;
   --koi-text-12: 12px;
   --koi-text-12-5: 12.5px;
   --koi-text-13: 13px;
@@ -90,6 +100,13 @@
   --koi-accent: #007aff;
   --koi-accent-select: color-mix(in srgb, var(--koi-accent) 20%, transparent);
   --koi-accent-inline: color-mix(in srgb, var(--koi-accent) 34%, transparent);
+
+  /* The focused field's two-part ring: a bright inner line and a soft halo.
+   * The inner blue is the spec's literal — lighter than the accent, and not
+   * derivable from it. */
+  --koi-focus-ring:
+    0 0 0 1px rgba(120, 170, 255, 0.55),
+    0 0 0 4px color-mix(in srgb, var(--koi-accent) 16%, transparent);
 
   /* Surfaces ----------------------------------------------------------------
    * The chrome has no colour of its own. These are white films over whatever

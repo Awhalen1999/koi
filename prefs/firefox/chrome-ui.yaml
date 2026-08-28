@@ -1,0 +1,15 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# The one-line chrome (Koi Shell v5). Layout lives in src/koi/chrome/; these
+# are the two knobs Firefox only exposes as prefs.
+
+# All controls in one 40px row; a second bookmarks row would double the chrome.
+- name: browser.toolbars.bookmarks.visibility
+  value: never
+
+# The spec's tab floor: tabs narrow together to 100px, then the strip scrolls
+# sideways instead, so a tab is always readable and always present.
+- name: browser.tabs.tabMinWidth
+  value: 100
