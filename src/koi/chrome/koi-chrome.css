@@ -169,6 +169,50 @@
   display: none;
 }
 
+/* Row three: the bookmarks row, off by default. ------------------------------
+ * View ▸ Toolbars can switch it on (the default is `never`,
+ * prefs/firefox/chrome-ui.yaml), so it dresses like the rows above. It slots
+ * under the tab strip as the row nearest the page, so it takes over the
+ * card's top gap as its own padding-block-end — the tab row's gutter above it
+ * reads as inter-row air. When collapsed, Firefox clamps the toolbar to
+ * max-height: 0 (border-box, padding included) and the gap owner reverts to
+ * the tab row; no state fork needed. */
+
+#navigator-toolbox > #PersonalToolbar {
+  background-color: transparent;
+  color: var(--koi-fg);
+  padding: 0 var(--koi-chrome-pad) var(--koi-gutter);
+
+  /* Bookmarks wear small pills: quiet ink, the wash on hover, the tabs'
+   * favicon tile and 8px icon-to-label rhythm one size down. */
+  & #PlacesToolbarItems > .bookmark-item {
+    padding: var(--koi-space-4) var(--koi-space-8);
+    border-radius: var(--koi-radius-pill);
+    color: var(--koi-fg-2);
+    font-size: var(--koi-text-12);
+    transition:
+      color var(--koi-fade),
+      background-color var(--koi-fade);
+
+    &:hover {
+      color: var(--koi-fg);
+      background-color: var(--koi-glass-wash);
+    }
+
+    & .toolbarbutton-icon {
+      width: 16px;
+      height: 16px;
+      margin-inline-end: var(--koi-space-8);
+      border-radius: var(--koi-radius-favicon);
+    }
+  }
+
+  /* The first-run "Import bookmarks…" message. */
+  & #personal-toolbar-empty-description {
+    color: var(--koi-fg-3);
+  }
+}
+
 /* Toolbar buttons ------------------------------------------------------------
  * Both rows: quiet glyphs, ink shifts on hover, no wash behind them. The
  * wash hover belongs to the + button alone (below). Geometry is Firefox's

@@ -93,7 +93,7 @@
         pinLabel.textContent = "";
         for (const item of items) {
           const pin = el("button", "koi-empty-pin");
-          pin.title = item.title || item.uri;
+          pin.setAttribute("aria-label", item.title || item.uri);
           const icon = el("img", "koi-empty-pin-icon");
           icon.src = "page-icon:" + item.uri;
           icon.alt = "";

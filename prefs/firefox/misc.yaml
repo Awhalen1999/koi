@@ -15,6 +15,15 @@
 - name: app.update.auto
   value: false
 
+# The old-build check reads app.update.checkInstallTime.days, a branding pref
+# surfer's generated branding never defines. The read throws inside
+# BrowserGlue._onFirstWindowLoaded and silently aborts everything after it —
+# the whole browser-first-window-ready category (PageActions, AboutNewTab,
+# TabCrashHandler, ProcessHangMonitor, ...). No update server, no install-time
+# check; skipping it also unbreaks the star/⌘D popup and about:newtab.
+- name: app.update.checkInstallTime
+  value: false
+
 # Matches --with-unsigned-addon-scopes=app,system; Mozilla's signing does not
 # cover this build.
 - name: xpinstall.signatures.required
