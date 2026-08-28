@@ -345,6 +345,80 @@
   }
 }
 
+/* Overflow --------------------------------------------------------------------
+ * When the strip fills, tabs hold the 100px floor and the strip scrolls
+ * sideways. No scroll arrows and no stock smudge indicators — chrome asking
+ * for attention — the strip's edge says it instead: the outermost pills fade
+ * to nothing on whichever side is hiding tabs. Scrolling still has four ways
+ * in: trackpad, wheel, dragging a tab against the edge, and ⌃Tab.
+ *
+ * The fade is a MASK, not an overlay. The chrome paints nothing, so there is
+ * no colour an overlay could fade to — the only way to dissolve a pill into
+ * the wallpaper is to make the pill itself transparent.
+ *
+ * The stop lengths are registered so they can transition: per the motion
+ * doctrine a fade's appearance is a fade (koi-theme.css). If the engine ever
+ * declines to animate mask stops, this degrades to an instant switch. */
+
+@property --koi-strip-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --koi-strip-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+#tabbrowser-arrowscrollbox,
+#pinned-tabs-container {
+  &::part(scrollbutton-up),
+  &::part(scrollbutton-down),
+  &::part(overflow-start-indicator),
+  &::part(overflow-end-indicator) {
+    display: none;
+  }
+}
+
+/* Both fades are 0 whenever they have nothing to say: at an edge the host
+ * carries scrolledtostart/scrolledtoend, and a non-overflowing strip carries
+ * both (arrowscrollbox.js), collapsing the mask to identity. */
+#tabbrowser-arrowscrollbox[orient="horizontal"] {
+  --koi-strip-fade-start: 0px;
+  --koi-strip-fade-end: 0px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--koi-strip-fade-start),
+    black calc(100% - var(--koi-strip-fade-end)),
+    transparent
+  );
+  transition:
+    --koi-strip-fade-start var(--koi-fade),
+    --koi-strip-fade-end var(--koi-fade);
+
+  &:not([scrolledtostart]) {
+    --koi-strip-fade-start: var(--koi-space-32);
+  }
+
+  &:not([scrolledtoend]) {
+    --koi-strip-fade-end: var(--koi-space-32);
+  }
+
+  /* The gradient axis is physical; the scroll attributes are logical. */
+  &:-moz-locale-dir(rtl) {
+    mask-image: linear-gradient(
+      to left,
+      transparent,
+      black var(--koi-strip-fade-start),
+      black calc(100% - var(--koi-strip-fade-end)),
+      transparent
+    );
+  }
+}
+
 /* The right cluster ------------------------------------------------------------
  * Extensions, downloads, menu, at the top row's end. Downloads is ordered
  * after extensions to match the spec (it autohides until something
