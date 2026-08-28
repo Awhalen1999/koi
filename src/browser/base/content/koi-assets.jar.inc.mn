@@ -11,4 +11,3 @@
 #include ../../../koi/common/jar.inc.mn
 #include ../../../koi/chrome/jar.inc.mn
 #include ../../../koi/newtab/jar.inc.mn
-#include ../../../koi/palette/jar.inc.mn

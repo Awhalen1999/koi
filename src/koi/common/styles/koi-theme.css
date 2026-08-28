@@ -188,9 +188,8 @@
 }
 
 /* The spec's entrance keyframes, defined as they gain a user — a keyframe
- * with no animation is dead weight. koiPop joins when something needs the
- * spec's transform-centered drop; Koi's palette centers with margins instead,
- * so it rises on koiDrop. Pair with the motion tokens:
+ * with no animation is dead weight, so koiDrop, koiFade and koiPop join when
+ * the menus, scrims and palette do. Pair with the motion tokens:
  *   animation: koiRise var(--koi-spring) both;
  * and reduced-motion collapses the duration to zero for free. */
 @keyframes koiRise {
@@ -202,27 +201,5 @@
   to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes koiDrop {
-  from {
-    opacity: 0;
-    transform: translateY(-12px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes koiFade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
   }
 }

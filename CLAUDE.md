@@ -69,8 +69,10 @@ values, never the markup. What they settle:
   tab strip (equal-width tabs, 178px ceiling, 100px floor, then sideways
   scroll, 4px gaps), the +. The bottom row's `padding: 0 12px 4px` is where
   the page card's top gutter comes from.
-- The address pill is a **display and a trigger, not an editor**: clicking it
-  (or ⌘L/⌘K) summons the palette, which is where typing happens.
+- The address pill as a **display and a trigger** (clicking summons the
+  palette, which is where typing happens) is spec intent that was built and
+  then deliberately shelved — see the palette note in Current state. Today
+  the pill is an ordinary editable field in Koi's clothes.
 - Glass is a **depth system, not one value** — the further forward a surface
   sits, the more it blurs and saturates. Shell 52/160, menu 52/170, palette
   64/180, empty-state card 30/140, plus scrims at `rgba(8,10,14,.52)`+6px
@@ -681,9 +683,9 @@ stylesheet — no script, no DOM moves, zero new Firefox patches:
   that script and its `[koi-onerow]` gate were deleted with the pivot, which
   is much of why v4 won.)
 - The address pill centers between Firefox's own toolbar springs, capped at
-  `--koi-field-max` (the spec's 520px). It is a control: wash at rest, active
-  on hover, no caret, no go-button, no search-engine chip — clicks and ⌘L/⌘K
-  summon the palette (koi-palette.js).
+  `--koi-field-max`. An ordinary editable field in Koi's clothes: wash at
+  rest, active on hover, the near-opaque menu tint while focused or open, no
+  go-button, no search-engine chip.
 - Style through Firefox's **variable API** (`--tab-min-height`,
   `--tab-max-width`, `--urlbar-background-*`, `--toolbarbutton-*`) rather than
   its structure, and grep the 154 tree before writing a name — several
@@ -734,58 +736,31 @@ an empty tab and a web page can't do that:
   tokens; `koiPop` joins when something needs the spec's transform-centered
   drop.
 
-**The palette is in (v5's cmdOpen surface), hung on Firefox's urlbar.**
-`src/koi/palette/` — a restyle, not a rebuild:
+**The palette (v5's cmdOpen surface) was built, shipped, and shelved for
+now** — the pill is a plain editable field again, and search may return as a
+floating surface later. The full implementation is one `git show` away —
+`src/koi/palette/` as of commit `ceefef2` ("update tab and search UI") — and
+the mechanism is small and known:
 
-- The urlbar in 154 is already a manual popover in the top layer
-  (`[breakout]`, `position: absolute`), sized by stylesheet rules over
-  JS-measured `--urlbar-width/height` variables. While
-  `:is([breakout-extend], [open])`, koi-palette.css dresses the popover in
-  palette glass; blur or Escape and Firefox puts the pill back itself. All
-  providers, keyboard handling and results are stock.
-- **⌘T and the + button create no tab** (the Zen pattern): koi-palette.js
-  intercepts both (keydown/click capture, before Firefox's bindings) and
-  opens the middle menu over the current page; **committing is what creates
-  the tab**, via Firefox's own `browser.urlbar.openintab` pref — its
-  `_whereToOpen` turns a plain commit into "tab", reuses an already-empty
-  tab, and keeps ⌥↩ as navigate-in-place. No monkey-patching, no lazy-tab
-  bookkeeping: the pref is the other half of the interception.
-- **Two postures, branched on how it was summoned**: koi-palette.js stamps
-  `[koi-summon]` on `#urlbar`. "center" (the middle menu — `min(640px,
-  100vw - 96px)`, top 64px, 56px row) is ⌘T, +, ⌘K, and landing on an
-  empty tab; "anchor" (the in-place editor at the field's own spot —
-  Firefox's natural breakout position, no overrides — 560px/44px, URL
-  selected) is every click on the pill and ⌘L. Anchored is the default
-  posture; "center" is the exception it opts into. A `summoning` flag marks
-  focus events summon() itself caused, so the focus listener only picks a
-  posture for outside focus.
-- **The only `!important`s in Koi pin the palette's `top`** (both postures):
-  UrlbarInput writes `style.top` inline on every focus
-  (`#updateTextboxPosition`), and inline outranks every sheet. Its flush-less
-  box-quads measurement also proved unreliable after the toolbox row swap —
-  it can report the pre-swap position — so koi-palette.css states both
-  positions outright (anchored: the pill's row-one seat at 4px; centered:
-  22vh) instead of trusting it. While the palette is out, the pill's
-  container paints a stand-in pill (`::before` + `:has()`), so the row never
-  shows a hole.
-- The scrim is the popover's own `::backdrop` (custom properties reach it by
-  inheritance). `color-scheme: dark` is forced on the floating state so the
-  view's `light-dark()` tokens agree with the glass tint; the results view is
-  skinned via its `--urlbarview-*` token API.
-- The resting field is a **display, not an editor**: koi-palette.js turns
-  left-clicks on the text area into focus-and-select (the identity lock and
-  page actions keep their own click jobs), remaps ⌘K from Firefox's
-  search-mode focus to a plain summons, and hides the caret at rest. Focusing
-  always floats, so the pill never shows a focus ring — the resting hairline
-  in koi-chrome.css is scoped `:not([breakout-extend], [open])` and the two
-  states never fight.
-- **The palette never opens empty**: a focus listener calls
-  `gURLBar.view.autoOpen(...)` whenever the view is closed, so every summons
-  arrives with suggestion rows. autoOpen gates on the event looking like a
-  click, so keyboard summonses borrow a synthetic `mousedown`. Emptiness is
-  Firefox's own `tab.isEmpty` everywhere (palette posture, the empty-state
-  card, and `_whereToOpen`'s tab reuse), so posture, card, and commit
-  destination can never disagree.
+- The urlbar in 154 is a manual popover in the top layer (`[breakout]`,
+  `position: absolute`), sized by stylesheet rules over JS-measured
+  `--urlbar-width/height` variables — a floating palette is a *restyle* of
+  that popover, not a rebuild. UrlbarInput pins `style.top` inline on every
+  focus (and its flush-less measurement can report stale positions), so a
+  restyle must pin `top` itself with `!important`.
+- `gURLBar.view.autoOpen({event})` opens the suggestion rows without typed
+  input (it wants a `mousedown`/`command`-shaped event); the scrim is the
+  popover's own `::backdrop`; the results view restyles via its
+  `--urlbarview-*` token API plus `color-scheme: dark`.
+- The Zen new-tab flow (⌘T/+ open the palette over the current page, commit
+  creates the tab) is: intercept ⌘T/+ in capture phase, plus Firefox's own
+  `browser.urlbar.openintab` pref — `_whereToOpen` turns plain commits into
+  "tab", reuses `tab.isEmpty` tabs, keeps ⌥↩ as navigate-in-place.
+
+What remains today: the open dropdown gets the near-opaque menu tint via
+`--urlbar-background-color-focus` and `color-scheme: dark` (koi-chrome.css) —
+a translucent film over out-of-process page content is unreadable, see the
+glass doctrine in koi-theme.css.
 
 **Not yet done:** the palette's ACTIONS/commands rows and footer hints (the
 view shows Firefox's stock providers for now), peek (⌘E), the board (⇧⌘E),

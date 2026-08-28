@@ -52,7 +52,7 @@
 
       const line = el("div", "koi-empty-line");
       const chip = el("kbd", "koi-empty-key");
-      chip.textContent = "⌘K";
+      chip.textContent = "⌘L";
       const before = el("span");
       before.textContent = "Press";
       const after = el("span");
