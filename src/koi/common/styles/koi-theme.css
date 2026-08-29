@@ -47,14 +47,13 @@
    * (lights, nav, the address pill, tools); the bottom row acts on the page
    * (board, tabs, new), sitting closest to the content it controls.
    *
-   * Each row is 44px, not the spec's 32: a row is the pill height plus 4px of
-   * air each side, and the pill height follows Firefox's tabs
-   * (see --koi-pill-height).
+   * A row is the pill height plus 4px of air each side — one number,
+   * --koi-pill-height, drives every row. Chrome height is the page's to
+   * spend, so the pill is tuned, not inherited (see Control metrics).
    *
-   * The gutter is the page card's inset: the bottom row's own
-   * padding-block-end supplies the top edge (koi-chrome.css), the card's
-   * margin supplies the other three (koi-shell.css). Each edge has exactly
-   * one owner — a second padding or margin doubles the gap. */
+   * The gutter is the page card's inset, owned entirely by the card's own
+   * margin (koi-shell.css). Chrome rows end where their pills end — no row
+   * carries batting for a neighbour. */
   --koi-chrome-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-4));
   --koi-chrome-pad: var(--koi-space-12);
   --koi-gutter: var(--koi-space-4);
@@ -77,13 +76,13 @@
   --koi-radius-palette: 16px;
 
   /* Control metrics ---------------------------------------------------------
-   * Control sizing is Firefox's, not the spec's: 16px glyphs in 32px boxes,
-   * the standard 24px close target, and 36px pills (their tab height) — the
-   * spec's 12px-glyph/28px-pill metric was proportioned for a prototype stage
-   * and cramps proven hit targets. Firefox's numbers are tested at every
-   * density and locale; Koi supplies the layout and the ink, so the only
-   * control token here is the pill height the glyph boxes have no say in. */
-  --koi-pill-height: 36px;
+   * One pill height for the tabs and the address field; every row derives
+   * from it. Tuned by eye: the spec's 24 sat too short, Firefox's 36 read
+   * as massive once three rows were on screen — 32 is the middle that
+   * held up. Glyph geometry stays Firefox's 16px-in-32px boxes; Koi paints
+   * no box behind a bare glyph, so a box meeting its row edge shows
+   * nothing. Bookmark pills run one size down (icon plus 4px each side). */
+  --koi-pill-height: 32px;
   --koi-dot: var(--koi-space-8);
 
   /* Type --------------------------------------------------------------------

@@ -173,6 +173,17 @@ When a rule appears not to work, do not reason about why. Build it with an
 unmissable value — a 24px padding, a red background, a 3px outline — and look.
 It costs one 12-second `npm run build:ui`.
 
+**Row instrumentation, the spacing analogue:** when vertical spacing looks
+off, do not measure screenshots — scaled captures lie (see below). Paint every
+box in the stack a different translucent colour in one throwaway build
+(`#nav-bar` red, `#TabsToolbar` blue, `#tabbrowser-tabs` green,
+`.tabbrowser-tab` orange outline, `#PersonalToolbar` purple,
+`#urlbar-container` yellow outline). A dark seam between two colours is an
+unowned gap; one colour outgrowing the boxes inside it is that element
+inflating the row. This found TabsToolbar accumulating height from content
+where nav-bar was clamped — the fix that followed declares every row's
+height explicitly.
+
 **Change one variable per measurement.** More than one and the result tells you
 about the pair, not the cause. This was got wrong repeatedly and cost a cycle
 each time.

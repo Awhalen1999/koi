@@ -41,7 +41,7 @@
   pointer-events: none;
   /* The page card's own geometry: inset by the gutter, rounded, ringed. */
   position: absolute;
-  inset: 0 var(--koi-gutter) var(--koi-gutter);
+  inset: var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   background: var(--koi-glass-raised);
   /* Softer than the page card's shadow — the spec's empty-card weight. */

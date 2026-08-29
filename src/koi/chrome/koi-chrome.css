@@ -7,7 +7,8 @@
  * Two rows, split by what they act on. The top row acts on the window:
  * lights, back/forward/reload, a centered address pill, then tools. The
  * bottom row acts on the page: the board button, the tab strip, the + —
- * sitting closest to the content it controls.
+ * sitting closest to the content it controls. (A third, the bookmarks
+ * sub-row, is off by default and dressed further down.)
  *
  * Firefox already ships both rows — tabs above nav — so the whole layout is
  * a flex `order` swap on #navigator-toolbox. No DOM moves, no scripts: the
@@ -22,13 +23,13 @@
  *
  * The spacing system, so every value below reads as intent:
  *
- *   - Two 44px rows; the bottom row carries the page card's 4px top gap as
- *     its own bottom padding. 12px of AIR between clusters, 4px between tab
- *     pills — and the + button sits 4px off the last pill, the same gap tabs
- *     keep from each other.
- *   - Control sizing is FIREFOX'S, untouched: 36px pills (their tab strip
- *     math), 16px glyphs in 32px boxes, the standard 24px close target.
- *     Proven proportions; Koi supplies layout and ink.
+ *   - Two equal rows of pill-plus-air, heights declared, never accumulated
+ *     from content. The page card's 4px top gap is the card's own margin
+ *     (koi-shell.css). 12px of AIR between clusters, 4px between tab
+ *     pills — and the + button sits 4px off the last pill, the same gap
+ *     tabs keep from each other.
+ *   - Pills share one height, --koi-pill-height; bookmark pills run one
+ *     size down. Glyph geometry stays Firefox's: 16px glyphs in 32px boxes.
  *   - The address pill is centered between Firefox's own toolbar springs
  *     and capped at --koi-field-max.
  *
@@ -37,8 +38,11 @@
 /* The rows ------------------------------------------------------------------ */
 
 :root {
-  /* Firefox's geometry is variable-driven; 36px pills in 44px rows. */
+  /* Firefox's geometry is variable-driven; rows are pill + 2 × 4px air. */
   --tab-min-height: var(--koi-pill-height);
+  /* Firefox floats tab pills on a 6px block margin of their own; the
+   * system's air is 4px everywhere, and the row derives from it. */
+  --tab-margin-block: var(--koi-space-4);
   --urlbar-min-height: var(--koi-pill-height);
   /* The pill is the urlbar: no block padding around the background. */
   --urlbar-padding-block: 0px;
@@ -144,13 +148,16 @@
 }
 
 /* Row two: the page's row. --------------------------------------------------
- * Board button, tab strip, +. Its bottom padding is the page card's top gap —
- * the card's own margin covers the other three sides (koi-shell.css). */
+ * Board button, tab strip, +. */
 
 #navigator-toolbox > #TabsToolbar {
+  /* Rows are declared, not accumulated: pill-plus-air and nothing else —
+   * content cannot inflate the row. (nav-bar has the same clamp; a
+   * content-derived row grows by whatever Firefox happens to put in it.) */
+  height: var(--koi-chrome-height);
+  min-height: 0;
   background-color: transparent;
   padding-inline: var(--koi-chrome-pad);
-  padding-block-end: var(--koi-gutter);
 
   /* The lights live in row one. */
   & .titlebar-buttonbox-container,
@@ -172,16 +179,18 @@
 /* Row three: the bookmarks row, off by default. ------------------------------
  * View ▸ Toolbars can switch it on (the default is `never`,
  * prefs/firefox/chrome-ui.yaml), so it dresses like the rows above. It slots
- * under the tab strip as the row nearest the page, so it takes over the
- * card's top gap as its own padding-block-end — the tab row's gutter above it
- * reads as inter-row air. When collapsed, Firefox clamps the toolbar to
- * max-height: 0 (border-box, padding included) and the gap owner reverts to
- * the tab row; no state fork needed. */
+ * under the tab strip; collapsed, Firefox clamps it to max-height: 0 and the
+ * layout is as if it were never there. */
 
 #navigator-toolbox > #PersonalToolbar {
+  /* Same clamp, one size down: the sub-row is its 24px pill and nothing
+   * else. Firefox's collapse animation still wins — max-height: 0 beats a
+   * fixed height, so toggling the toolbar off behaves as stock. */
+  height: var(--koi-space-24);
+  min-height: 0;
   background-color: transparent;
   color: var(--koi-fg);
-  padding: 0 var(--koi-chrome-pad) var(--koi-gutter);
+  padding: 0 var(--koi-chrome-pad);
 
   /* Bookmarks wear small pills: quiet ink, the wash on hover, the tabs'
    * favicon tile and 8px icon-to-label rhythm one size down. */
@@ -360,6 +369,9 @@
   }
 
   & .tab-close-button {
+    /* Firefox's 24px box, which fits the pill with 4px air — but padded 5px
+     * rather than their 6px, so the glyph renders 14px instead of 12px. */
+    --tab-close-button-padding: 5px;
     color: var(--koi-fg-2);
 
     &:hover {
@@ -472,3 +484,5 @@
 #downloads-button {
   order: 1;
 }
+
+
