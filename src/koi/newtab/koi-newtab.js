@@ -2,6 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* Loaded into browser.xhtml, so the browser-window globals are real; the
+ * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
+ * they are declared here instead. */
+/* global gBrowser, openTrustedLinkIn */
+
 /* The empty state — Koi Shell v5's noTabs card.
  *
  * An empty tab is not a page, it is the absence of one, so this is chrome,
@@ -73,10 +78,24 @@
         }
       };
 
-      // The pins are the first six bookmarks on the toolbar folder, favicons
-      // via page-icon: so they are real sites, not tiles pretending to be.
-      // Refetched on every reveal — six bookmarks is too cheap to cache.
+      // Stable per-site colour: hash the host into the small tile palette
+      // (koi-newtab.css), so a site keeps its colour across sessions.
+      const hashOf = text => {
+        let hash = 0;
+        for (const ch of text) {
+          hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+        }
+        return hash;
+      };
+
+      // The pins are the toolbar folder's bookmarks — the folder the star
+      // saves to, and the set the user curated to see — capped so the card
+      // never becomes a wall; the long tail belongs to ⌘L. Favicons via
+      // page-icon: when Places has one; a site without one becomes the
+      // spec's letter tile. Refetched on every reveal.
+      let revealGeneration = 0;
       async function refreshPins() {
+        const generation = ++revealGeneration;
         let items = [];
         try {
           const tree = await PlacesUtils.promiseBookmarksTree(
@@ -84,20 +103,41 @@
           );
           items = (tree.children ?? [])
             .filter(child => child.uri && !child.uri.startsWith("place:"))
-            .slice(0, 6);
+            .slice(0, 24);
         } catch {
           // No Places yet (first run mid-init): an empty row is fine.
         }
 
+        const icons = await Promise.all(
+          items.map(item =>
+            PlacesUtils.favicons
+              .getFaviconForPage(Services.io.newURI(item.uri))
+              .catch(() => null)
+          )
+        );
+        if (generation !== revealGeneration) {
+          // A newer reveal is already rebuilding the row.
+          return;
+        }
+
         pins.replaceChildren();
         pinLabel.textContent = "";
-        for (const item of items) {
+        items.forEach((item, i) => {
           const pin = el("button", "koi-empty-pin");
           pin.setAttribute("aria-label", item.title || item.uri);
-          const icon = el("img", "koi-empty-pin-icon");
-          icon.src = "page-icon:" + item.uri;
-          icon.alt = "";
-          pin.append(icon);
+          if (icons[i]) {
+            const icon = el("img", "koi-empty-pin-icon");
+            icon.src = "page-icon:" + item.uri;
+            icon.alt = "";
+            pin.append(icon);
+          } else {
+            const host = hostOf(item.uri).replace(/^www\./, "");
+            const name = (item.title || "").trim() || host;
+            pin.classList.add("koi-tile-" + (hashOf(host) % 6));
+            const letter = el("span", "koi-empty-pin-letter");
+            letter.textContent = name ? name[0].toUpperCase() : "•";
+            pin.append(letter);
+          }
           pin.addEventListener("click", event => {
             openTrustedLinkIn(
               item.uri,
@@ -112,7 +152,7 @@
             pinLabel.classList.remove("shown");
           });
           pins.append(pin);
-        }
+        });
       }
 
       // tab.isEmpty is Firefox's own emptiness: a blank page, a clean

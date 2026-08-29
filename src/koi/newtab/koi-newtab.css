@@ -85,6 +85,11 @@
 
 .koi-empty-pins {
   display: flex;
+  /* Eight tiles to a row, then wrap, centered — the fetch caps at 24
+   * (koi-newtab.js), so the grid is at most three rows. */
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 468px;
   align-items: center;
   gap: var(--koi-space-12);
   margin-top: var(--koi-space-32);
@@ -128,6 +133,40 @@
   width: 24px;
   height: 24px;
   border-radius: var(--koi-radius-favicon);
+}
+
+/* A pin with no stored favicon is the spec's letter tile: the site's initial
+ * on one of six colours from the v5 mock, hashed from the host so a site
+ * keeps its colour. The palette sits after the pin's hover rule on equal
+ * specificity, so the colour also holds under the pointer. */
+.koi-empty-pin-letter {
+  font-size: var(--koi-text-15);
+  font-weight: 600;
+  color: var(--koi-fg);
+}
+
+.koi-empty-pin.koi-tile-0 {
+  background: #5558d6;
+}
+
+.koi-empty-pin.koi-tile-1 {
+  background: #8b5cf6;
+}
+
+.koi-empty-pin.koi-tile-2 {
+  background: #4c82e8;
+}
+
+.koi-empty-pin.koi-tile-3 {
+  background: #e0674a;
+}
+
+.koi-empty-pin.koi-tile-4 {
+  background: #3a3f4a;
+}
+
+.koi-empty-pin.koi-tile-5 {
+  background: #46a0ac;
 }
 
 .koi-empty-pin-label {
