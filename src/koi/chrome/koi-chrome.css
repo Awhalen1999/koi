@@ -369,10 +369,23 @@
   }
 
   & .tab-close-button {
-    /* Firefox's 24px box, which fits the pill with 4px air — but padded 5px
-     * rather than their 6px, so the glyph renders 14px instead of 12px. */
-    --tab-close-button-padding: 5px;
+    /* The system's 4px of air on all four sides: a 20px box in the 28px
+     * pill, pulled to 4px off the trailing edge (Firefox's stock -5px pull
+     * left 5px there against 2px vertically, and the mismatch showed). The
+     * 3.5px padding renders the glyph at 13px — judged at 12, 13 and 14 —
+     * and the icon is pinned to the content box: unsized, the 12px-intrinsic
+     * SVG leaves slack that rounding drops on one side, and the × sits
+     * off-centre. */
+    width: 20px;
+    height: 20px;
+    --tab-close-button-padding: 3.5px;
+    margin-inline-end: calc(var(--koi-space-4) - var(--tab-inline-padding));
     color: var(--koi-fg-2);
+
+    & .toolbarbutton-icon {
+      width: 13px;
+      height: 13px;
+    }
 
     &:hover {
       color: var(--koi-fg);
@@ -484,5 +497,6 @@
 #downloads-button {
   order: 1;
 }
+
 
 

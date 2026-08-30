@@ -11,4 +11,5 @@
 #include ../../../koi/common/jar.inc.mn
 #include ../../../koi/chrome/jar.inc.mn
 #include ../../../koi/panels/jar.inc.mn
+#include ../../../koi/board/jar.inc.mn
 #include ../../../koi/newtab/jar.inc.mn

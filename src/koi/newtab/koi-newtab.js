@@ -64,12 +64,6 @@
       after.textContent = "to go anywhere";
       line.append(before, chip, after);
 
-      const pins = el("div", "koi-empty-pins");
-      const pinLabel = el("div", "koi-empty-pin-label");
-
-      card.append(mark, line, pins, pinLabel);
-      tabbox.append(card);
-
       const hostOf = uri => {
         try {
           return new URL(uri).host || uri;
@@ -78,15 +72,22 @@
         }
       };
 
-      // Stable per-site colour: hash the host into the small tile palette
-      // (koi-newtab.css), so a site keeps its colour across sessions.
-      const hashOf = text => {
+      // Stable per-site colour: hash the www-less host into the small tile
+      // palette (koi-newtab.css), so a site keeps its colour forever.
+      const tileOf = uri => {
+        const host = hostOf(uri).replace(/^www\./, "");
         let hash = 0;
-        for (const ch of text) {
+        for (const ch of host) {
           hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
         }
-        return hash;
+        return "koi-tile-" + (hash % 6);
       };
+
+      const pins = el("div", "koi-empty-pins");
+      const pinLabel = el("div", "koi-empty-pin-label");
+
+      card.append(mark, line, pins, pinLabel);
+      tabbox.append(card);
 
       // The pins are the toolbar folder's bookmarks — the folder the star
       // saves to, and the set the user curated to see — capped so the card
@@ -131,9 +132,11 @@
             icon.alt = "";
             pin.append(icon);
           } else {
+            // No favicon: the letter tile — the site's initial on its
+            // hashed colour.
             const host = hostOf(item.uri).replace(/^www\./, "");
             const name = (item.title || "").trim() || host;
-            pin.classList.add("koi-tile-" + (hashOf(host) % 6));
+            pin.classList.add(tileOf(item.uri));
             const letter = el("span", "koi-empty-pin-letter");
             letter.textContent = name ? name[0].toUpperCase() : "•";
             pin.append(letter);

@@ -1,0 +1,144 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* The board (⇧⌘E) and peek (⌘E) — koi-board.js's one surface, two
+ * densities. The mode attribute is the whole switch: peek lays the same
+ * cards in one row over the light scrim, board is the full grid over the
+ * heavy one. Scrims dim only — page pixels are out of process and cannot
+ * be blurred (koi-theme.css on glass) — and the cards themselves wear the
+ * MENU tint, the surface for anything floated over page content. */
+
+#koi-board {
+  display: none;
+  /* The page card's own geometry, floated over it. */
+  position: absolute;
+  inset: var(--koi-gutter);
+  border-radius: var(--koi-radius-page);
+  overflow: clip;
+  animation: koiFade var(--koi-fade) both;
+}
+
+#koi-board[mode] {
+  display: flex;
+}
+
+#koi-board:is([mode="board"], [mode="bookmarks"]) {
+  background: var(--koi-scrim-board);
+}
+
+#koi-board[mode="peek"] {
+  background: var(--koi-scrim-float);
+}
+
+.koi-board-grid {
+  width: 100%;
+  animation: koiRise var(--koi-spring) both;
+}
+
+/* Board and bookmarks: a responsive grid, scrolling when the window is
+ * short. */
+#koi-board:is([mode="board"], [mode="bookmarks"]) .koi-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--koi-space-16);
+  align-content: start;
+  padding: var(--koi-space-24);
+  overflow-y: auto;
+}
+
+/* Peek: one row under the chrome; the page stays visible beneath. */
+#koi-board[mode="peek"] .koi-board-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--koi-space-12);
+  padding: var(--koi-space-12);
+  overflow-x: auto;
+}
+
+#koi-board[mode="peek"] .koi-card {
+  width: 240px;
+  flex: none;
+}
+
+/* The card: a MENU-tinted header over the page thumbnail. Focus doubles as
+ * selection — arrows move it, Enter commits — and the current tab's card
+ * carries the accent ring on arrival. */
+.koi-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--koi-radius-page);
+  overflow: clip;
+  background: var(--koi-glass-menu);
+  box-shadow: var(--koi-shadow-menu), 0 0 0 0.5px var(--koi-hair);
+  color-scheme: dark;
+
+  &:is(.koi-card-current, :focus-visible) {
+    outline: 2px solid var(--koi-accent);
+    outline-offset: -2px;
+  }
+}
+
+.koi-card-header {
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-8);
+  padding-inline: 10px var(--koi-space-4);
+  color: var(--koi-fg);
+  font-size: var(--koi-text-12);
+}
+
+.koi-card-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: var(--koi-radius-favicon);
+}
+
+.koi-card-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The tab strip's × treatment: the same 20px box, the same wash on hover,
+ * the same shared glyph — drawn as a background here since this button has
+ * no XUL image machinery. */
+.koi-card-close {
+  appearance: none;
+  border: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 3.5px;
+  border-radius: var(--koi-radius-favicon);
+  background: url("resource://content-accessible/close-12.svg") center /
+    13px no-repeat;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
+  transition: background-color var(--koi-fade);
+
+  &:hover {
+    fill: var(--koi-fg);
+    background-color: var(--koi-glass-wash);
+  }
+}
+
+/* The thumbnail — a live capture (tabs) or Firefox's cached page shot
+ * (bookmarks) — or the quiet glass fallback for a card with nothing to
+ * show. Deliberately no letter tiles here: a grid of loud colour blocks
+ * fought the screenshots, and calm won. */
+.koi-card-thumb {
+  aspect-ratio: 16 / 10;
+  background: var(--koi-glass-well);
+
+  & :is(canvas, .koi-card-shot) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}

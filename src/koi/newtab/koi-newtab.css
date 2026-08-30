@@ -135,9 +135,9 @@
   border-radius: var(--koi-radius-favicon);
 }
 
-/* A pin with no stored favicon is the spec's letter tile: the site's initial
- * on one of six colours from the v5 mock, hashed from the host so a site
- * keeps its colour. The palette sits after the pin's hover rule on equal
+/* A pin with no stored favicon is the letter tile: the site's initial on
+ * one of six colours from the v5 mock, hashed from the host so a site keeps
+ * its colour. The palette sits after the pin's hover rule on equal
  * specificity, so the colour also holds under the pointer. */
 .koi-empty-pin-letter {
   font-size: var(--koi-text-15);

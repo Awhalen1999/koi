@@ -77,12 +77,15 @@
 
   /* Control metrics ---------------------------------------------------------
    * One pill height for the tabs and the address field; every row derives
-   * from it. Tuned by eye: the spec's 24 sat too short, Firefox's 36 read
-   * as massive once three rows were on screen — 32 is the middle that
-   * held up. Glyph geometry stays Firefox's 16px-in-32px boxes; Koi paints
-   * no box behind a bare glyph, so a box meeting its row edge shows
-   * nothing. Bookmark pills run one size down (icon plus 4px each side). */
-  --koi-pill-height: 32px;
+   * from it. Tuned by eye against the neighbours: the spec's 24 sat too
+   * short, Firefox's 36 read as massive, and 28 — Helium's own control
+   * height — lands notably shorter than Firefox and Chrome without going
+   * as tight as Helium's 3px-unit chrome (their 68px total vs our 76;
+   * see their patches/helium/ui/layout-constants.patch). Glyph geometry
+   * stays Firefox's 16px-in-32px boxes; Koi paints no box behind a bare
+   * glyph, so a box outgrowing its row edge shows nothing. Bookmark pills
+   * run one size down (icon plus 4px each side). */
+  --koi-pill-height: 28px;
   --koi-dot: var(--koi-space-8);
 
   /* Type --------------------------------------------------------------------
@@ -116,8 +119,13 @@
 
   /* The one colour in the chrome that is not a white film, and it always means
    * "this one, now": the palette's selected row, the board's active card, a set
-   * bookmark. Variants derive from the base so the hue is a one-line change. */
-  --koi-accent: #007aff;
+   * bookmark. Its value is the OS's own accent (the CSS AccentColor system
+   * keyword) — the wallpaper-borrowing doctrine taken to its end: Koi imposes
+   * no colour at all, the user's Mac supplies it, live from System Settings.
+   * The token stays the API; a brand hex is a one-line change back. Known
+   * edge: the graphite setting yields a grey accent, which whispers where
+   * this should point — accepted. Variants derive from the base. */
+  --koi-accent: AccentColor;
   --koi-accent-select: color-mix(in srgb, var(--koi-accent) 20%, transparent);
   --koi-accent-inline: color-mix(in srgb, var(--koi-accent) 34%, transparent);
 
@@ -203,8 +211,8 @@
 }
 
 /* The spec's entrance keyframes, defined as they gain a user — a keyframe
- * with no animation is dead weight, so koiDrop, koiFade and koiPop join when
- * the menus, scrims and palette do. Pair with the motion tokens:
+ * with no animation is dead weight, so koiDrop and koiPop join when the
+ * menus and palette do. Pair with the motion tokens:
  *   animation: koiRise var(--koi-spring) both;
  * and reduced-motion collapses the duration to zero for free. */
 @keyframes koiRise {
@@ -216,5 +224,15 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes koiFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
