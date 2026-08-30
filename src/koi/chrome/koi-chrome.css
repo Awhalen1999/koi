@@ -166,10 +166,26 @@
   }
 }
 
-/* The board button leads the strip, the spec's grid position. Firefox's
- * all-tabs panel stands in for the board until ⇧⌘E ships. */
+/* The page's controls lead the page's row: back/forward/reload (moved in
+ * by koi-chrome.js — they operate the page, not the window), then the
+ * all-tabs chevron, then the strip. Flex order arranges them; all four are
+ * CustomizableUI placements in the same container. */
+#TabsToolbar :is(#back-button, #forward-button, #stop-reload-button) {
+  order: -2;
+}
+
 #alltabs-button {
   order: -1;
+}
+
+/* Firefox draws a separator before the strip whenever a toolbarbutton
+ * precedes it in the DOM (tabs.css ::before) — our nav cluster now does.
+ * Killed at its token: every drawing of it consumes this variable, and the
+ * variable is immune to the strip's internal DOM, where an element-scoped
+ * rule proved not to be. Koi draws no dividers; the 12px rhythm carries
+ * the grouping. */
+:root {
+  --tabstrip-inner-border: none;
 }
 
 #firefox-view-button {
@@ -497,6 +513,3 @@
 #downloads-button {
   order: 1;
 }
-
-
-

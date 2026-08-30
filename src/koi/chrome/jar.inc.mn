@@ -7,3 +7,4 @@
 # (no bare `*` flag, `%` is the preprocessor marker in .css).
 
         content/browser/koi-chrome/koi-chrome.css               (../../koi/chrome/koi-chrome.css)
+        content/browser/koi-chrome/koi-chrome.js                (../../koi/chrome/koi-chrome.js)
