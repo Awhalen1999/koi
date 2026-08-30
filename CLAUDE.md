@@ -780,11 +780,21 @@ spaces, the field-as-progress-bar tint, and tab-overflow scroll styling
 until a feature ships JS modules (Koi scripts load via jar + browser.xhtml,
 not EXTRA_JS_MODULES). `prefs/koi/` does not exist yet.
 
-**Open, unexamined:** `BrowserGlue.sys.mjs:447` throws
-`NS_ERROR_UNEXPECTED [nsIPrefBranch.getIntPref]` on every startup, and
-`AboutNewTabRedirector.sys.mjs:550` throws `NS_ERROR_NOT_AVAILABLE` — the
-latter is likely `browser.newtabpage.enabled = false` leaving about:newtab with
-nothing to redirect to. Neither blocks anything; neither has been looked at.
+**Startup errors — resolved and known.** The old `BrowserGlue.sys.mjs:447`
+`getIntPref` throw was a missing branding pref
+(`app.update.checkInstallTime.days`) aborting `_onFirstWindowLoaded`, which
+silently killed the whole `browser-first-window-ready` category — PageActions
+(the star/⌘D popup), AboutNewTab (the other startup error), TabCrashHandler
+and more. Fixed by `app.update.checkInstallTime: false` (misc.yaml); if a
+startup regression ever looks like "several unrelated things broke at once",
+suspect an early throw in that sequence first.
+
+**Known benign seam:** `TelemetryUtils.sys.mjs` throws
+`TypeError: date is undefined` (truncateToHours) when EventPing assembles a
+ping from a TelemetrySession that never initialised. Recording-off prefs do
+not reach it, reporting is compiled out so nothing can ever be sent, and
+patching Firefox for a console line fails the patch-budget test. It prints
+red in `npm start`'s filtered log (scripts/koi-log.mjs); leave it.
 
 Known gap: the startup page is still Firefox's `about:home`.
 `browser.newtabpage.enabled` covers new tabs only; the start page is

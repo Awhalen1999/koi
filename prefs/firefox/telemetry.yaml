@@ -13,6 +13,12 @@
 - name: toolkit.telemetry.unified
   value: false
 
+# The telemetry JS still ships — only reporting is compiled out — so keep
+# recording switched off too. (This does NOT silence the known TelemetryUtils
+# startup error; see CLAUDE.md. It is defence-in-depth like the rest.)
+- name: toolkit.telemetry.enabled
+  value: false
+
 - name: toolkit.telemetry.archive.enabled
   value: false
 

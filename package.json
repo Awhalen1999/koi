@@ -13,7 +13,7 @@
     "export": "surfer export",
     "build": "surfer build",
     "build:ui": "surfer build --ui",
-    "start": "cd engine && ./mach run --noprofile",
+    "start": "cd engine && ./mach run --noprofile 2>&1 | node ../scripts/koi-log.mjs",
     "package": "surfer package",
     "reset-ff": "surfer reset",
     "lc": "surfer license-check",
