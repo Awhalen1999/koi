@@ -23,7 +23,7 @@
   display: flex;
 }
 
-#koi-board:is([mode="board"], [mode="bookmarks"]) {
+#koi-board[mode="board"] {
   background: var(--koi-scrim-board);
 }
 
@@ -36,9 +36,8 @@
   animation: koiRise var(--koi-spring) both;
 }
 
-/* Board and bookmarks: a responsive grid, scrolling when the window is
- * short. */
-#koi-board:is([mode="board"], [mode="bookmarks"]) .koi-board-grid {
+/* Board: a responsive grid, scrolling when the window is short. */
+#koi-board[mode="board"] .koi-board-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--koi-space-16);
@@ -80,7 +79,9 @@
 }
 
 .koi-card-header {
-  height: 32px;
+  /* The header is a tab pill flattened onto the card: same height, same
+   * button geometry, so the two surfaces speak one control language. */
+  height: var(--koi-pill-height);
   flex: none;
   display: flex;
   align-items: center;
@@ -104,16 +105,15 @@
   white-space: nowrap;
 }
 
-/* The tab strip's × treatment: the same 20px box, the same wash on hover,
- * the same shared glyph — drawn as a background here since this button has
- * no XUL image machinery. */
+/* The tab ×'s exact clothes: 20px box, 13px glyph, wash on hover — drawn
+ * as a background since this button has no XUL image machinery. The
+ * pill-height header leaves it even air on every side. */
 .koi-card-close {
   appearance: none;
   border: none;
   flex: none;
   width: 20px;
   height: 20px;
-  padding: 3.5px;
   border-radius: var(--koi-radius-favicon);
   background: url("resource://content-accessible/close-12.svg") center /
     13px no-repeat;
@@ -127,18 +127,50 @@
   }
 }
 
-/* The thumbnail — a live capture (tabs) or Firefox's cached page shot
- * (bookmarks) — or the quiet glass fallback for a card with nothing to
+/* The audio badge: the close button's twin, speaker instead of ×. Hidden
+ * unless the tab plays or is muted; the muted state swaps the glyph. */
+.koi-card-audio {
+  display: none;
+  appearance: none;
+  border: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  /* The system's 4px between the two boxes — the same air tab pills keep —
+   * by trimming the header's 8px flex gap. Hidden, the badge creates no gap
+   * at all and the × is untouched. */
+  margin-inline-end: calc(var(--koi-space-4) - var(--koi-space-8));
+  border-radius: var(--koi-radius-favicon);
+  background: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg")
+    center / 13px no-repeat;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
+  transition: background-color var(--koi-fade);
+
+  &:is(.playing, .muted) {
+    display: block;
+  }
+
+  &.muted {
+    background-image: url("chrome://browser/skin/tabbrowser/tab-audio-muted-small.svg");
+  }
+
+  &:hover {
+    fill: var(--koi-fg);
+    background-color: var(--koi-glass-wash);
+  }
+}
+
+/* The thumbnail, or the quiet glass fallback for a tab with nothing to
  * show. Deliberately no letter tiles here: a grid of loud colour blocks
  * fought the screenshots, and calm won. */
 .koi-card-thumb {
   aspect-ratio: 16 / 10;
   background: var(--koi-glass-well);
 
-  & :is(canvas, .koi-card-shot) {
+  & canvas {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
   }
 }

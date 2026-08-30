@@ -5,17 +5,17 @@
 /* Loaded into browser.xhtml, so the browser-window globals are real; the
  * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
  * they are declared here instead. */
-/* global gBrowser, PageThumbs, openTrustedLinkIn */
+/* global gBrowser, PageThumbs */
 
-/* The board (⇧⌘E), peek (⌘E), and the bookmarks board — cards for
- * everything.
+/* The board (⇧⌘E) and peek (⌘E) — every tab as a card.
  *
- * One surface, three modes: peek is a single row of tab cards over a light
- * scrim, the board is the full tab grid over the heavy one, and bookmarks
- * is the same grid fed from Places instead of gBrowser (opened by the
- * top-bar bookmarks button). The mode attribute carries layout AND source;
- * the cards are the shared component. ⌘E reclaims Firefox's find-selection
- * binding, by design.
+ * One surface, two densities: peek is a single row of cards over a light
+ * scrim, the board is the full grid over the heavy one. Same cards, same
+ * keys, same data — the mode attribute only changes the layout
+ * (koi-board.css). ⌘E reclaims Firefox's find-selection binding, by design.
+ * (A bookmarks mode existed briefly and was withdrawn: a flat grid loses
+ * bookmark folders, and a surface that hides structure is worse than none.
+ * It can return once folders have a design.)
  *
  * Like the empty state, this is chrome in #tabbrowser-tabbox: one subtree,
  * one attribute, no DOM moves, no patches. Cards are rebuilt fresh on every
@@ -38,10 +38,6 @@
         return;
       }
 
-      const { PlacesUtils } = ChromeUtils.importESModule(
-        "resource://gre/modules/PlacesUtils.sys.mjs"
-      );
-
       const XHTML = "http://www.w3.org/1999/xhtml";
       const el = (tag, className) => {
         const node = document.createElementNS(XHTML, tag);
@@ -57,11 +53,8 @@
       surface.append(grid);
       tabbox.append(surface);
 
-      // null when closed, else "peek" | "board" | "bookmarks". Peek and
-      // board show tabs; bookmarks shows Places. The mode is both layout
-      // and source; sourceOf names the half that decides what cards hold.
+      // null when closed, else "peek" | "board".
       let openMode = null;
-      const sourceOf = mode => (mode === "bookmarks" ? "bookmarks" : "tabs");
 
       // The thumbnail backing store matches the largest card the CSS draws,
       // so board cards stay sharp and peek cards downscale.
@@ -86,7 +79,22 @@
         label.textContent = tab.label;
         const close = el("button", "koi-card-close");
         close.setAttribute("aria-label", "Close tab");
-        header.append(icon, label, close);
+
+        // The audio badge: shown while the tab plays or is muted, click
+        // toggles — the tab strip's speaker, carried onto the card.
+        const audio = el("button", "koi-card-audio");
+        const syncAudio = () => {
+          audio.classList.toggle("playing", tab.hasAttribute("soundplaying"));
+          audio.classList.toggle("muted", tab.hasAttribute("muted"));
+          audio.setAttribute(
+            "aria-label",
+            tab.hasAttribute("muted") ? "Unmute tab" : "Mute tab"
+          );
+        };
+        syncAudio();
+        card.koiSyncAudio = syncAudio;
+        audio.addEventListener("click", () => tab.toggleMuteAudio());
+        header.append(icon, label, audio, close);
 
         const thumb = el("div", "koi-card-thumb");
         card.append(header, thumb);
@@ -107,6 +115,9 @@
         }
 
         card.addEventListener("click", event => {
+          if (event.target === audio) {
+            return; // The badge's own listener toggles mute.
+          }
           if (event.target === close) {
             gBrowser.removeTab(tab, { animate: false });
             return; // onTabClose removes the card.
@@ -117,70 +128,6 @@
           closeSurface();
         });
         return card;
-      };
-
-      // A bookmark card: no live browser behind it, so the thumbnail is
-      // Firefox's cached page screenshot when one exists (visited sites
-      // have one; the rest keep the glass fallback) — and no ×: removal
-      // belongs to the star, not a hover on a grid.
-      const bookmarkCardFor = item => {
-        const card = el("div", "koi-card");
-        card.setAttribute("role", "button");
-        card.tabIndex = 0;
-
-        const header = el("div", "koi-card-header");
-        const icon = el("img", "koi-card-icon");
-        icon.src = "page-icon:" + item.uri;
-        icon.alt = "";
-        const label = el("span", "koi-card-label");
-        label.textContent = item.title || item.uri;
-        header.append(icon, label);
-
-        const thumb = el("div", "koi-card-thumb");
-        const shot = el("img", "koi-card-shot");
-        shot.alt = "";
-        shot.addEventListener("error", () => shot.remove());
-        shot.src = PageThumbs.getThumbnailURL(item.uri);
-        thumb.append(shot);
-        card.append(header, thumb);
-
-        card.addEventListener("click", event => {
-          openTrustedLinkIn(item.uri, event.metaKey ? "tab" : "current");
-          closeSurface();
-        });
-        return card;
-      };
-
-      // Every bookmark, flattened depth-first from the three roots the
-      // star can reach, capped so the grid stays a grid.
-      const fillBookmarkCards = async () => {
-        const items = [];
-        try {
-          const roots = await Promise.all(
-            [
-              PlacesUtils.bookmarks.toolbarGuid,
-              PlacesUtils.bookmarks.menuGuid,
-              PlacesUtils.bookmarks.unfiledGuid,
-            ].map(guid => PlacesUtils.promiseBookmarksTree(guid))
-          );
-          const walk = node => {
-            for (const child of node.children ?? []) {
-              if (child.uri && !child.uri.startsWith("place:")) {
-                items.push(child);
-              } else if (child.children) {
-                walk(child);
-              }
-            }
-          };
-          roots.forEach(walk);
-        } catch {
-          // No Places yet: an empty board is fine.
-        }
-        if (sourceOf(openMode) !== "bookmarks") {
-          return; // The surface moved on while we fetched.
-        }
-        grid.replaceChildren(...items.slice(0, 60).map(bookmarkCardFor));
-        grid.firstChild?.focus();
       };
 
       const onTabClose = event => {
@@ -202,27 +149,36 @@
       // navigate intent, and navigating dismisses the surface.
       const onTabSelect = () => closeSurface();
 
+      // Audio starting, stopping or muting while the surface shows.
+      const onTabAttrModified = event => {
+        const changed = event.detail.changed;
+        if (!changed.includes("soundplaying") && !changed.includes("muted")) {
+          return;
+        }
+        for (const card of grid.children) {
+          if (card.koiTab === event.target) {
+            card.koiSyncAudio?.();
+            break;
+          }
+        }
+      };
+
       const openSurface = mode => {
         if (openMode === mode) {
           closeSurface();
           return;
         }
-        // Peek and board share their cards; a source change rebuilds them.
-        const rebuild = sourceOf(openMode) !== sourceOf(mode) || !openMode;
         if (!openMode) {
+          grid.replaceChildren(...gBrowser.visibleTabs.map(cardFor));
           gBrowser.tabContainer.addEventListener("TabClose", onTabClose);
           gBrowser.tabContainer.addEventListener("TabSelect", onTabSelect);
+          gBrowser.tabContainer.addEventListener(
+            "TabAttrModified",
+            onTabAttrModified
+          );
         }
         openMode = mode;
         surface.setAttribute("mode", mode);
-        if (rebuild) {
-          if (sourceOf(mode) === "tabs") {
-            grid.replaceChildren(...gBrowser.visibleTabs.map(cardFor));
-          } else {
-            grid.replaceChildren();
-            fillBookmarkCards();
-          }
-        }
         (grid.querySelector(".koi-card-current") ?? grid.firstChild)?.focus();
       };
 
@@ -235,6 +191,10 @@
         grid.replaceChildren();
         gBrowser.tabContainer.removeEventListener("TabClose", onTabClose);
         gBrowser.tabContainer.removeEventListener("TabSelect", onTabSelect);
+        gBrowser.tabContainer.removeEventListener(
+          "TabAttrModified",
+          onTabAttrModified
+        );
         gBrowser.selectedBrowser?.focus();
       };
 
@@ -297,27 +257,22 @@
         true
       );
 
-      // The bookmarks button: the top bar's one bookmarks affordance,
-      // opening the board fed with bookmarks. Injected beside the app-menu
-      // button — outside CustomizableUI's managed placements, so customize
-      // mode cannot orphan it.
-      const panelUIButton = document.getElementById("PanelUI-button");
-      if (panelUIButton) {
-        const button = document.createXULElement("toolbarbutton");
-        button.id = "koi-bookmarks-button";
-        button.className = "toolbarbutton-1 chromeclass-toolbar-additional";
-        button.setAttribute(
-          "image",
-          "chrome://browser/skin/bookmark-hollow.svg"
-        );
-        button.setAttribute("tooltiptext", "Bookmarks");
-        button.addEventListener("command", () => openSurface("bookmarks"));
-        panelUIButton.before(button);
-      }
-
-      // The strip's all-tabs chevron keeps its stock panel for now; a Koi
-      // board button replaces it in a coming pass. (Intercepting its command
-      // event was tried and lost — the panel opens on an earlier path.)
+      // The board button: the strip's leading control, the mock's 2×2
+      // squares, opening exactly what ⇧⌘E opens. skipintoolbarset keeps
+      // CustomizableUI's area rebuilds off a node it does not manage;
+      // koi-chrome.css seats it and hides the stock all-tabs chevron it
+      // replaces.
+      const boardButton = document.createXULElement("toolbarbutton");
+      boardButton.id = "koi-board-button";
+      boardButton.className = "toolbarbutton-1 chromeclass-toolbar-additional";
+      boardButton.setAttribute("skipintoolbarset", "true");
+      boardButton.setAttribute(
+        "image",
+        "chrome://browser/content/koi-common/koi-board.svg"
+      );
+      boardButton.setAttribute("tooltiptext", "Board (⇧⌘E)");
+      boardButton.addEventListener("command", () => openSurface("board"));
+      gBrowser.tabContainer.before(boardButton);
     },
     { once: true }
   );

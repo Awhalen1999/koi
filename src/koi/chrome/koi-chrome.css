@@ -168,14 +168,21 @@
 
 /* The page's controls lead the page's row: back/forward/reload (moved in
  * by koi-chrome.js — they operate the page, not the window), then the
- * all-tabs chevron, then the strip. Flex order arranges them; all four are
- * CustomizableUI placements in the same container. */
+ * board button, then the strip. Flex order arranges them. */
 #TabsToolbar :is(#back-button, #forward-button, #stop-reload-button) {
   order: -2;
 }
 
-#alltabs-button {
+/* Koi's board button (koi-board.js) in the chevron's old seat. */
+#koi-board-button {
   order: -1;
+}
+
+/* The stock all-tabs chevron, replaced by the board: its list is the
+ * board's cards, its search is ⌘L's switch-to-tab, its audio duties moved
+ * onto the cards. Containers and groups get Koi UI when Koi adopts them. */
+#alltabs-button {
+  display: none;
 }
 
 /* Firefox draws a separator before the strip whenever a toolbarbutton
@@ -407,6 +414,31 @@
       color: var(--koi-fg);
       background-color: var(--koi-glass-wash);
     }
+  }
+}
+
+/* The audio button follows the ×'s convention: 20px box, 13px glyph,
+ * favicon radius, quiet ink over the wash on hover. It is a moz-button —
+ * the glyph lives in its shadow ::part(button) — so geometry rides its
+ * variable API and ink rides the part. (Not .tab-icon-overlay — that is
+ * the pinned tab's corner badge, a different element that keeps Firefox's
+ * geometry.) */
+.tab-audio-button {
+  --button-size-icon-small: 20px;
+  --button-min-height-small: 20px;
+  --icon-size: 13px;
+  --button-border-radius: var(--koi-radius-favicon);
+
+  &::part(button) {
+    fill: var(--koi-fg-2);
+    transition:
+      background-color var(--koi-fade),
+      fill var(--koi-fade);
+  }
+
+  &:hover::part(button) {
+    fill: var(--koi-fg);
+    background-color: var(--koi-glass-wash);
   }
 }
 
