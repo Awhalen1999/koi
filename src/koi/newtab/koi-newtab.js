@@ -5,7 +5,7 @@
 /* Loaded into browser.xhtml, so the browser-window globals are real; the
  * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
  * they are declared here instead. */
-/* global gBrowser, openTrustedLinkIn */
+/* global gBrowser, openTrustedLinkIn, PrivateBrowsingUtils */
 
 /* The empty state — Koi Shell v5's noTabs card.
  *
@@ -23,8 +23,15 @@
   addEventListener(
     "DOMContentLoaded",
     () => {
-      // Popups and other chromeless windows have no empty state.
-      if (!window.toolbar.visible) {
+      // Popups and other chromeless windows have no empty state. Neither
+      // do private windows: their blank tab is about:privatebrowsing, a
+      // page that paints its own UI (the overlay double-exposed over it),
+      // and a private window is no place for the bookmark grid anyway.
+      // Owning the private empty state is a designed round, deferred.
+      if (
+        !window.toolbar.visible ||
+        window.PrivateBrowsingUtils?.isWindowPrivate(window)
+      ) {
         return;
       }
 

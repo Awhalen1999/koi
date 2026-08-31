@@ -201,6 +201,15 @@ nothing, and an entire wrong explanation was built on top of it.
 - mozbuild hides build output when it sees `CLAUDECODE` in the env, which makes
   failures invisible. To see real errors:
   `cd engine && env -u CLAUDECODE ./mach configure` (or `./mach build`)
+- **Quit Koi with ⌘Q.** Ctrl+C in the `npm start` terminal kills the process,
+  which sessionstore records as a crash (sessionCheckpoints.json ends with no
+  shutdown entries); two in a row and startup lands on about:sessionrestore's
+  "trouble getting your pages back". Not a bug — a dev-loop artifact.
+- `npm start` pipes through `scripts/koi-log.mjs`: magenta = Koi's own files,
+  red/yellow = chrome errors/warnings (the bug radar), gray = page JS and
+  macOS noise, with same-host page spam collapsed to a counter. The JS-error
+  echo is gated by `browser.dom.window.dump.enabled` (local builds only),
+  which cannot split page from chrome — hence the filter.
 
 ---
 
@@ -669,7 +678,9 @@ under it, so the wallpaper frames the page on all four sides. 10 patches.
 - `body`'s `will-change: background-color` is a dead compositor hint once the
   colour is pinned; set to `auto`.
 
-**Tokens: 58.** Added accent (`#007aff` + two `color-mix` variants), the mono
+**Tokens: 58.** Added accent (the CSS `AccentColor` system keyword — the
+user's macOS accent, live from System Settings; Koi imposes no colour of its
+own — plus two `color-mix` variants), the mono
 stack, an 8-size type scale, and the three glass **tints** — the blur values
 collapse to one recipe without loss, the tints do not. Deleted
 `--koi-radius-window` and `--koi-shadow-window`: AppKit draws both.
@@ -684,7 +695,8 @@ surface (which is why menus and the palette share the near-opaque .90 recipe),
 and the only real blur is the window's own vibrancy behind an empty tab.
 
 **The two-row chrome is in (Koi Shell v4).** `src/koi/chrome/` is one
-stylesheet — no script, no DOM moves, zero new Firefox patches:
+stylesheet plus one small script (`koi-chrome.js`, CustomizableUI widget
+placements — the furniture CSS cannot move), zero new Firefox patches:
 
 - Firefox already ships both rows, tabs above nav; the whole v4 layout is a
   flex `order` swap on `#navigator-toolbox`. The traffic lights come along
@@ -711,19 +723,33 @@ stylesheet — no script, no DOM moves, zero new Firefox patches:
 - Two prefs carry the rest (`prefs/firefox/chrome-ui.yaml`): bookmarks toolbar
   `never`, `browser.tabs.tabMinWidth` 100 — the spec's tab floor, which
   Firefox plumbs into layout itself.
-- The spacing system is documented at the top of `koi-chrome.css`: two 44px
-  rows, 12px of air between clusters, 4px between tab pills (Firefox's own
-  2px `--tab-overflow-clip-margin` per tab, free), edge margins written
-  `calc(12px - slack)` — visual gaps, not box gaps, re-deriving if Firefox's
-  paddings change. The page card's top gutter is the bottom row's
-  `padding-block-end`; the card's margin owns the other three edges — one
-  owner per edge. **Control sizing is Firefox's, untouched**: 16px glyphs in
-  32px boxes (8px `--toolbarbutton-padding-inner` slack), 16px favicons, the
-  24px close target, 36px pills in 44px rows (their tab strip math; the row
-  derives as pill + 2×4px) — Koi supplies layout and ink, Firefox supplies
-  control geometry. Deliberate deviations from the spec: the hairline
-  dividers are omitted for now, and Firefox's all-tabs button stands in for
-  the board button until ⇧⌘E ships.
+- The spacing system is documented at the top of `koi-chrome.css`. One pill
+  height (`--koi-pill-height`, 28 — judged by eye at 24/28/32/36; 28 is
+  Helium's control height, one breath of air above their total) drives every
+  row as pill + 2×4px air; **row heights are declared, never accumulated
+  from content** (a content-derived row grows by whatever Firefox puts in
+  it — TabsToolbar did). The page card owns all four of its edges
+  (`margin: var(--koi-gutter)`, koi-shell.css); no row carries batting for a
+  neighbour. Glyph geometry stays Firefox's 16px-in-32px boxes, and **every
+  small control glyph is 13px in a 20px radius-4 box, quiet ink, wash on
+  hover, 4px from its neighbours** — tab ×, tab speaker, card ×, card
+  speaker. The tab audio control is `.tab-audio-button`, a moz-button styled
+  through its variable API and `::part(button)`; `.tab-icon-overlay` is the
+  *pinned* tab's corner badge, a different element.
+- Back/forward/reload live in the tab row (they act on the page), moved by
+  `koi-chrome.js` via CustomizableUI. Two traps cost a day: the import URI is
+  `moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs`
+  (`resource:///modules/` fails to load — watch the terminal for the red
+  import error), and back/forward ship `removable="false"`, which makes
+  window build **silently evict** their placements — flip the attribute at
+  DOMContentLoaded, before toolbars build.
+- The stock all-tabs chevron is hidden; Koi's board button (`koi-board.js`)
+  sits in its seat. The strip's pre-tabs separator is killed at its token
+  (`--tabstrip-inner-border: none`) — an element-scoped rule provably could
+  not reach it; when a rule mysteriously misses, suspect the strip's
+  internal DOM and kill via the variable instead.
+- Deliberate deviations from the spec: the hairline dividers are omitted;
+  spacing carries the grouping.
 
 **The empty state is in (v5's noTabs card).** `src/koi/newtab/` — a chrome
 overlay, not a content page, because the design shows the wallpaper *through*
@@ -733,9 +759,14 @@ an empty tab and a web page can't do that:
   stamps `[koi-empty]` on `:root` while `gBrowser.selectedTab.isEmpty`
   (TabSelect + TabAttrModified + location changes — busy flips always
   dispatch TabAttrModified, which matters because a settled about:blank
-  emits no further progress events). Pins are the toolbar folder's first six
-  bookmarks, favicons via the `page-icon:` protocol, refetched on each
-  reveal.
+  emits no further progress events). Pins are the toolbar folder's
+  bookmarks — the folder the star saves to — capped at 24, wrapping to
+  centered rows; favicons via `page-icon:`, and a site with no stored
+  favicon gets a letter tile (its initial on one of six mock colours,
+  hashed from the host). Refetched on each reveal, staleness-guarded.
+- The overlay is `pointer-events: none` (pins opt back in): chrome sharing
+  the card's space — the findbar at its bottom edge — must stay clickable
+  through it.
 - The wallpaper path: `browser.tabs.allow_transparent_browser` makes blank
   browsers paint nothing (koi-shell.css's content-backdrop rule already
   excluded `[transparent="true"]`), and under `[koi-empty]` koi-newtab.css
@@ -773,12 +804,40 @@ What remains today: the open dropdown gets the near-opaque menu tint via
 a translucent film over out-of-process page content is unreadable, see the
 glass doctrine in koi-theme.css.
 
-**Not yet done:** the palette's ACTIONS/commands rows and footer hints (the
-view shows Firefox's stock providers for now), peek (⌘E), the board (⇧⌘E),
-spaces, the field-as-progress-bar tint, and tab-overflow scroll styling
-(stock arrowscrollbox buttons). `src/koi/moz.build` still has an empty `DIRS`
-until a feature ships JS modules (Koi scripts load via jar + browser.xhtml,
-not EXTRA_JS_MODULES). `prefs/koi/` does not exist yet.
+**The panel sweep is in.** `src/koi/panels/` dresses every arrow panel (app
+menu, downloads, identity, extensions, bookmark editor, tab preview,
+confirmation hints) through the `--panel-*` token API — one rule, near-opaque
+MENU tint, `color-scheme: dark`. Menupopups and plain panels stay native
+(macOS renders them with real vibrancy). The findbar gets the same tint; its
+field wears the address field's clothes, and its yellow open-blink is off by
+pref (`accessibility.typeaheadfind.flashBar`, chrome-ui.yaml).
+
+**Tab overflow is in.** No scroll arrows, no stock smudge: the outermost
+pills fade via a `mask-image` on the scrollbox (the only way to dissolve a
+pill into wallpaper the chrome doesn't paint), keyed on the arrowscrollbox's
+own `overflowing`/`scrolledtostart`/`scrolledtoend` attributes, stop lengths
+`@property`-registered so the fade's appearance fades.
+
+**The boards are in (⌘E peek, ⇧⌘E board).** `src/koi/board/` — one surface,
+two densities: peek is a row of tab cards over the float scrim, board the
+full grid over the board scrim; a `mode` attribute switches the layout.
+Cards = MENU-tint header (favicon, title, audio badge, ×) over a live
+thumbnail via `PageThumbs.captureTabPreviewThumbnail` (Firefox's own
+tab-hover capture; pending/blank tabs keep glass). Cards rebuild fresh per
+open; tab listeners bind only while shown. ⌘E deliberately reclaims
+find-selection; keys are capture-phase for now (impolite to pages — see the
+keyboard-citizenship item below). The board button (`#koi-board-button`,
+2×2-squares glyph at gecko's 1.5px ink) replaces the stock all-tabs chevron;
+`skipintoolbarset` keeps CUI from evicting it. A bookmarks mode shipped and
+was withdrawn — a flat grid loses folders; it can return designed.
+
+**Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to
+peek, keyboard citizenship (migrate ⌘E/⇧⌘E from capture-phase interception
+to dynamically-added XUL keys so pages get first refusal), a bookmarks
+surface with folders, the ⌘B/sidebar decision, and the palette's return.
+`src/koi/moz.build` still has an empty `DIRS` until a feature ships JS
+modules (Koi scripts load via jar + browser.xhtml, not EXTRA_JS_MODULES).
+`prefs/koi/` does not exist yet.
 
 **Startup errors — resolved and known.** The old `BrowserGlue.sys.mjs:447`
 `getIntPref` throw was a missing branding pref
@@ -796,10 +855,6 @@ not reach it, reporting is compiled out so nothing can ever be sent, and
 patching Firefox for a console line fails the patch-budget test. It prints
 red in `npm start`'s filtered log (scripts/koi-log.mjs); leave it.
 
-Known gap: the startup page is still Firefox's `about:home`.
-`browser.newtabpage.enabled` covers new tabs only; the start page is
-`browser.startup.homepage` / `browser.startup.page` and is unset. Decide what
-should be there — it is the first thing a user sees.
 
 `identity-icons-brand.svg` sits unused in `../koi-design/branding/`; it lives in
 `browser/themes/shared`, not in branding, so it needs a different mechanism.
