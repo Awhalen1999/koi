@@ -21,9 +21,13 @@
  *
  *   - name: browser.startup.homepage
  *     value: "about:blank"
- *     locked: true          # optional -> locked_pref
- *     sticky: true          # optional -> sticky_pref
- *     comment: why this is  # optional, emitted above the pref
+ *     locked: true   # optional -> locked_pref
+ *     sticky: true   # optional -> sticky_pref
+ *
+ * Why a pref is set is written as a `#` comment above it, which stays in the
+ * YAML where it is read. An `emit this into koi.js` field existed and went
+ * unused by every prefs file; unknown keys are now refused so a stray one
+ * cannot silently do nothing.
  */
 
 import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs'
@@ -38,6 +42,7 @@ const FIREFOX_JS = join(PROFILE_DIR, 'firefox.js')
 const INCLUDE_LINE = '#include koi.js'
 const ENGINE_GITIGNORE = join(ENGINE, '.gitignore')
 const IGNORE_ENTRY = 'browser/app/profile/koi.js'
+const KNOWN_KEYS = new Set(['name', 'value', 'locked', 'sticky'])
 
 function die(message) {
   console.error(`gen-prefs: ${message}`)
@@ -92,9 +97,14 @@ for (const file of files) {
   const lines = []
   for (const entry of parsed) {
     if (!entry || typeof entry !== 'object') die(`${file} has a malformed entry`)
-    const { name, value, locked, sticky, comment } = entry
+    const { name, value, locked, sticky } = entry
     if (typeof name !== 'string') die(`${file} has an entry with no name`)
     if (value === undefined) die(`pref "${name}" in ${file} has no value`)
+    for (const key of Object.keys(entry)) {
+      if (!KNOWN_KEYS.has(key)) {
+        die(`pref "${name}" in ${file} has unknown key "${key}"`)
+      }
+    }
 
     // A pref set twice silently takes whichever came last, so refuse it.
     if (seen.has(name)) {
@@ -103,8 +113,7 @@ for (const file of files) {
     seen.set(name, file)
 
     const fn = locked ? 'locked_pref' : sticky ? 'sticky_pref' : 'pref'
-    if (comment) lines.push(`// ${comment}`)
-    lines.push(`${fn}("${name}", ${literal(value, name)});`)
+    lines.push(`${fn}(${JSON.stringify(name)}, ${literal(value, name)});`)
     count++
   }
 

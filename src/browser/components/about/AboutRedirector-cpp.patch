@@ -1,0 +1,16 @@
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+index 48bbf4038d6fc000dff64f9d3e376ca2c4baf2a8..260566eeb7fc90593c157f8550ff89e2c0a39f7a 100644
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -93,9 +93,8 @@ static const RedirEntry kRedirMap[] = {
+     {"profiling",
+      "chrome://devtools/content/performance-new/aboutprofiling/index.html",
+      nsIAboutModule::ALLOW_SCRIPT | nsIAboutModule::IS_SECURE_CHROME_UI},
+-    {"rights", "https://www.mozilla.org/about/legal/terms/firefox/",
+-     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+-         nsIAboutModule::URI_MUST_LOAD_IN_CHILD},
++    {"rights", "chrome://browser/content/koi-about/koi-rights.html",
++     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT},
+     {"robots", "chrome://browser/content/aboutRobots.xhtml",
+      nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+          nsIAboutModule::ALLOW_SCRIPT},

@@ -3,12 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* Colour-codes `mach run` output so the chrome speaks and pages whisper.
- * Piped in by `npm start`; every line passes through, nothing is dropped —
- * the classes only change how loud a line reads:
+ * Piped in by `npm start`. Every line prints except a repeating page's
+ * console spam, which collapses into a single counter (see `run` below):
  *
- *   magenta  Koi's own files (anything koi-*) — the lines that are ours
- *   red      chrome/gecko JavaScript errors — the bug radar
- *   yellow   chrome/gecko JavaScript warnings
+ *   red      chrome JavaScript errors, Koi's own included — the bug radar
+ *   yellow   chrome JavaScript warnings
+ *   magenta  Koi's own files (anything koi-*) that are neither
  *   dim      page JavaScript (and its stack frames), known macOS/dev noise
  *   plain    everything else, mach's own output included
  *
@@ -90,10 +90,14 @@ createInterface({ input: process.stdin }).on("line", line => {
   }
   inPageStack = false;
   flushRun();
-  if (KOI_OWN.test(line)) {
-    emit(paint(MAGENTA, line));
-  } else if (CHROME_JS.test(line)) {
+  // Order is load-bearing: a Koi file is ours, but an error is an error
+  // first. Testing KOI_OWN ahead of this painted our own crashes magenta and
+  // kept the code most likely to be wrong off the radar. The filename in the
+  // line still says whose it is.
+  if (CHROME_JS.test(line)) {
     emit(paint(line.startsWith("JavaScript error") ? RED : YELLOW, line));
+  } else if (KOI_OWN.test(line)) {
+    emit(paint(MAGENTA, line));
   } else if (NOISE.some(marker => line.includes(marker))) {
     emit(paint(DIM, line));
   } else {

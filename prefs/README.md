@@ -17,10 +17,13 @@ A flat YAML list per file:
 
 - name: browser.startup.homepage
   value: "about:blank"
-  locked: true          # optional -> locked_pref
-  sticky: true          # optional -> sticky_pref
-  comment: why this is  # optional, emitted above the pref
+  locked: true   # optional -> locked_pref
+  sticky: true   # optional -> sticky_pref
 ```
+
+Any other key is a hard error, so a typo cannot silently do nothing. Why a
+pref is set goes in a `#` comment above it, where it stays next to the value
+a reader is checking.
 
 Defining the same pref in two files is a hard error — otherwise whichever
 loaded last would silently win.

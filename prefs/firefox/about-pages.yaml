@@ -1,0 +1,32 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Firefox's about: pages carry upsells that fetch from Mozilla services.
+# Nothing in Koi asks for attention, so each is switched off at its reader —
+# every pref below was checked to have one in the 154 tree, per README.md.
+
+# The Mozilla VPN promo, on about:privatebrowsing and as the VPN card on
+# about:protections (protections/content/vpn-card.mjs).
+- name: browser.vpn_promo.enabled
+  value: false
+
+# The Firefox Focus upsell on about:privatebrowsing (BrowserUtils.sys.mjs).
+- name: browser.promo.focus.enabled
+  value: false
+
+# about:addons' Recommendations pane, which fetches from AMO
+# (mozapps/extensions/content/aboutaddons-utils.mjs).
+- name: extensions.getAddons.showPane
+  value: false
+
+# The recommendation rows AMO injects into the add-on lists
+# (mozapps/extensions/content/aboutaddons.mjs).
+- name: extensions.htmlaboutaddons.recommendations.enabled
+  value: false
+
+# about:protections' mobile card, which brandShortName rebadges as "Koi
+# Browser for Android and iOS" — a product that does not exist — over links
+# to Mozilla's Firefox listings (protections/content/protections.mjs).
+- name: browser.contentblocking.report.show_mobile_app
+  value: false

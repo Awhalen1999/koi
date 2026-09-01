@@ -181,7 +181,7 @@
   opacity: 0;
   transition: opacity var(--koi-fade);
 
-  &.shown {
+  &:not(:empty) {
     opacity: 1;
   }
 }

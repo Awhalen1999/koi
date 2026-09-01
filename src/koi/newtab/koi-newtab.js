@@ -5,7 +5,8 @@
 /* Loaded into browser.xhtml, so the browser-window globals are real; the
  * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
  * they are declared here instead. */
-/* global gBrowser, openTrustedLinkIn, PrivateBrowsingUtils */
+/* global gBrowser, openTrustedLinkIn, PrivateBrowsingUtils,
+   isBlankPageURL, BrowserUIUtils */
 
 /* The empty state — Koi Shell v5's noTabs card.
  *
@@ -73,7 +74,7 @@
 
       const hostOf = uri => {
         try {
-          return new URL(uri).host || uri;
+          return (new URL(uri).host || uri).replace(/^www\./, "");
         } catch {
           return uri;
         }
@@ -82,9 +83,8 @@
       // Stable per-site colour: hash the www-less host into the small tile
       // palette (koi-newtab.css), so a site keeps its colour forever.
       const tileOf = uri => {
-        const host = hostOf(uri).replace(/^www\./, "");
         let hash = 0;
-        for (const ch of host) {
+        for (const ch of hostOf(uri)) {
           hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
         }
         return "koi-tile-" + (hash % 6);
@@ -141,8 +141,7 @@
           } else {
             // No favicon: the letter tile — the site's initial on its
             // hashed colour.
-            const host = hostOf(item.uri).replace(/^www\./, "");
-            const name = (item.title || "").trim() || host;
+            const name = (item.title || "").trim() || hostOf(item.uri);
             pin.classList.add(tileOf(item.uri));
             const letter = el("span", "koi-empty-pin-letter");
             letter.textContent = name ? name[0].toUpperCase() : "•";
@@ -156,22 +155,37 @@
           });
           pin.addEventListener("mouseenter", () => {
             pinLabel.textContent = hostOf(item.uri);
-            pinLabel.classList.add("shown");
           });
           pin.addEventListener("mouseleave", () => {
-            pinLabel.classList.remove("shown");
+            pinLabel.textContent = "";
           });
           pins.append(pin);
         });
       }
 
-      // tab.isEmpty is Firefox's own emptiness: a blank page, a clean
-      // origin, and not [busy] — the busy check matters because a settled
-      // about:blank emits no further progress events, while every busy flip
-      // dispatches TabAttrModified, so emptiness always comes with a wake-up
-      // call.
+      // Firefox's tab.isEmpty means "safe to close", so it also demands no
+      // session history; a tab navigated to a blank URL — typing about:newtab,
+      // or the Home command — fails it and would sit there cardless. This asks
+      // the narrower question, showing nothing, the same split browser.js makes
+      // in onLocationChange to decide whether Reload is disabled.
+      //
+      // checkEmptyPageOrigin is the guard: a page that navigates itself to
+      // about:blank keeps the site's principal and fails it, so content can
+      // never summon the pins. about:home is excluded because Koi serves it the
+      // activity stream, blank list or not (see AboutNewTabRedirector).
+      const showsNothing = tab => {
+        const browser = tab.linkedBrowser;
+        const url = browser.currentURI.spec;
+        return (
+          !tab.hasAttribute("busy") &&
+          isBlankPageURL(url) &&
+          url !== "about:home" &&
+          BrowserUIUtils.checkEmptyPageOrigin(browser)
+        );
+      };
+
       const update = () => {
-        const empty = gBrowser.selectedTab.isEmpty;
+        const empty = showsNothing(gBrowser.selectedTab);
         const was = document.documentElement.hasAttribute("koi-empty");
         document.documentElement.toggleAttribute("koi-empty", empty);
         if (empty && !was) {
@@ -180,6 +194,9 @@
       };
 
       gBrowser.tabContainer.addEventListener("TabSelect", update);
+      // A settled about:blank emits no further progress events, but every
+      // busy flip dispatches TabAttrModified — so emptiness always arrives
+      // with a wake-up call.
       gBrowser.tabContainer.addEventListener("TabAttrModified", event => {
         if (event.target === gBrowser.selectedTab) {
           update();

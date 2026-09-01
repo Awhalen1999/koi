@@ -1,0 +1,81 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* about:rights — a chrome document rendering inside the page card, as every
+ * about: page is, so light-dark() here resolves off the chrome scheme rather
+ * than the content one (browser.theme.toolbar-theme moves it; content-theme
+ * does not). koi-theme.css is deliberately not loaded: its ink is white at
+ * three opacities, right on wallpaper and wrong on a white card. The
+ * background mirrors .browserContainer's underpaint in koi-shell.css so the
+ * card does not seam while the page loads; keep the two in step. */
+
+:root {
+  color-scheme: light dark;
+
+  --koi-rights-bg: light-dark(#fff, #1c1c1e);
+  --koi-rights-ink: light-dark(#16181c, #f2f3f5);
+  --koi-rights-ink-2: light-dark(
+    rgba(22, 24, 28, 0.58),
+    rgba(242, 243, 245, 0.56)
+  );
+}
+
+body {
+  margin: 0;
+  background: var(--koi-rights-bg);
+  color: var(--koi-rights-ink);
+  font: 15px/1.65 -apple-system, system-ui, sans-serif;
+}
+
+/* A 32rem measure holds the text near 65 characters a line. The top space is
+ * deliberate: the page opens quiet, with nothing against the card's edge. */
+main {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 88px 32px 120px;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  margin: 0 0 40px;
+  color: var(--koi-rights-ink-2);
+}
+
+section {
+  margin-top: 32px;
+}
+
+/* Labels rather than headings: small and quiet, doing the work a hairline
+ * divider would otherwise do. The chrome omits its dividers for this reason
+ * too. */
+h2 {
+  margin: 0 0 4px;
+  color: var(--koi-rights-ink-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+p {
+  margin: 0;
+}
+
+/* Koi's one colour is the user's own accent — see the accent note in
+ * koi-theme.css. */
+a {
+  color: AccentColor;
+  text-decoration-color: color-mix(in srgb, AccentColor 40%, transparent);
+  text-underline-offset: 2px;
+
+  &:hover {
+    text-decoration-color: AccentColor;
+  }
+}

@@ -1,0 +1,77 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!-- about:rights. Firefox 154 made this a redirect to Mozilla's Terms of Use,
+   - which do not govern Koi; AboutRedirector.cpp points here instead. Local so
+   - the terms travel with the build that shipped them, static so the
+   - redirector can withhold ALLOW_SCRIPT. -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src chrome:; object-src 'none'"
+    />
+    <meta name="color-scheme" content="light dark" />
+    <title>Your rights</title>
+    <link rel="icon" href="chrome://browser/content/koi-common/koi-mark.svg" />
+    <link
+      rel="stylesheet"
+      href="chrome://browser/content/koi-about/koi-rights.css"
+    />
+  </head>
+
+  <body>
+    <main>
+      <h1>Your rights</h1>
+      <p class="lead">
+        Koi is a free, open-source browser built on Firefox. This is the short
+        version; <a href="about:license">about:license</a> carries the full
+        legal text.
+      </p>
+
+      <section>
+        <h2>License</h2>
+        <p>
+          Koi is released under the Mozilla Public License, Version 2.0. You
+          are free to use it, study it, modify it and pass it on, provided you
+          do so under the same terms.
+        </p>
+      </section>
+
+      <section>
+        <h2>Built on Firefox</h2>
+        <p>
+          Koi is an independent fork of Firefox, which is developed by Mozilla
+          and released under the same license. Koi is not affiliated with,
+          endorsed by, or supported by Mozilla, and Mozilla is not responsible
+          for it. Firefox and Mozilla are trademarks of the Mozilla Foundation.
+          Anything that goes wrong here is Koi's to answer for — report it to
+          Koi, not to Mozilla.
+        </p>
+      </section>
+
+      <section>
+        <h2>No warranty</h2>
+        <p>
+          Koi is provided as is, without warranty of any kind, express or
+          implied, to the extent permitted by law. You run it at your own risk.
+        </p>
+      </section>
+
+      <section>
+        <h2>Your data</h2>
+        <p>
+          Koi has no telemetry, no crash reporting and no studies. That code is
+          not switched off in a setting — it is left out of the build, so there
+          is nothing to turn back on. Features Koi inherits from Firefox, such
+          as search suggestions and safe-browsing protection, still reach their
+          own providers; both can be turned off in Settings.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

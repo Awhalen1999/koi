@@ -102,6 +102,29 @@ A dir under `src/koi/` only needs to appear in `src/koi/moz.build`'s `DIRS` if i
 has its own `moz.build` (i.e. ships JS modules via `EXTRA_JS_MODULES`). Pure
 CSS/content dirs just need their `jar.inc.mn` included.
 
+### Decided, deliberately not built yet
+
+- **Shared JS, when it is needed.** Every Koi script is an IIFE behind a
+  `<script>` tag, so they share the window and nothing is importable. When that
+  stops being enough the answer is an `.mjs` under `src/koi/common/modules/`,
+  shipped by the existing common `jar.inc.mn` and pulled in with
+  `ChromeUtils.importESModule("chrome://browser/content/koi-common/…mjs")` — no
+  `moz.build` change, no `EXTRA_JS_MODULES`, no patch. Zen does exactly this
+  (`src/zen/common/modules/`). The trigger is a third copy: `el()` and the XHTML
+  constant are duplicated across koi-newtab.js and koi-board.js today, and two
+  copies cost less than the indirection.
+- **`src/koi/about/` is the content-page dir**, and content pages play by four
+  rules no chrome dir has: koi-theme.css is not loaded (its ink is chrome ink),
+  the page carries its own `default-src chrome:` CSP, it reaches chrome://
+  assets only because `content browser` is `contentaccessible=yes`, and
+  `light-dark()` resolves off the *chrome* scheme because an about: page is a
+  chrome document.
+- **koi-theme.css splits when the second content page lands.** It mixes
+  chrome-only ink with a universal scale/type/radii vocabulary, which is why
+  koi-rights.css hand-rolls its spacing rather than using the tokens. One page
+  does not justify the surgery; by the third the scale will have been
+  re-derived by hand twice.
+
 ### jar.inc.mn: the `*` flag is a promise
 
 A leading `*` on a jar entry means "run this file through the mozbuild
@@ -158,10 +181,19 @@ wrapper is not decoration, it is the workaround.
 sidebar browser, the AI window, picture-in-picture and devtools panels. Anchor
 it under `.browserSidebarContainer` when you mean tab content.
 
-**Guard chrome rules three ways**, as Zen does:
-`:root:not([inDOMFullscreen="true"]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])`.
-Dropping the `location` guard leaves `window.open` popups styled as if they
-were browser windows.
+**Guard what assumes the wallpaper is there** — not chrome rules in general.
+The guard is
+`:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])`,
+and it belongs on rules whose geometry only makes sense with desktop behind
+the window: a fullscreen space has no wallpaper to frame a card with, and a
+chrome-less `window.open` popup is not a browser window.
+
+Koi applies it to exactly one rule, the page card in koi-shell.css. The other
+rules in that sheet — the body film, the transparency set, the page ground —
+are deliberately unguarded, and koi-chrome.css guards nothing across its 43
+selectors, correctly: restyling a control does not assume a wallpaper. An
+earlier version of this note said to guard chrome rules generally, which
+would have added four clauses to every selector in the tree for nothing.
 
 **`src/-stylelintrc-js.patch` turns off `use-design-tokens`.** Koi has its own
 token system; linting against Mozilla's buried real errors under noise. Our CSS
@@ -205,6 +237,16 @@ nothing, and an entire wrong explanation was built on top of it.
   which sessionstore records as a crash (sessionCheckpoints.json ends with no
   shutdown entries); two in a row and startup lands on about:sessionrestore's
   "trouble getting your pages back". Not a bug — a dev-loop artifact.
+- **A running Koi absorbs the next `mach run`.** A second launch hands its URL
+  to the existing instance rather than starting the new build, so a change can
+  look like it did not take when it simply is not loaded. Compare the process
+  start time against the file mtime before debugging the code.
+- **Koi opens on its own macOS Space**, so `screencapture -R <rect>` grabs
+  whatever app is on the *visible* Space, not Koi. Capture by window id
+  instead — `CGWindowListCopyWindowInfo([], …)` (an empty option set;
+  `optionOnScreenOnly` hides other Spaces) filtered to owner `Koi`, then
+  `screencapture -l<id>`. Headless `--screenshot` stays the better tool for
+  page content, but it cannot see chrome.
 - `npm start` pipes through `scripts/koi-log.mjs`: magenta = Koi's own files,
   red/yellow = chrome errors/warnings (the bug radar), gray = page JS and
   macOS noise, with same-host page spam collapsed to a counter. The JS-error
@@ -566,8 +608,10 @@ modification:
 That is surfer's addon step appending `DIRS += []` with `addons: {}` empty — a
 no-op that reappears on every download.
 
-After `npm run import`, ten modifications plus one untracked directory, all
-attributable:
+After `npm run import`, the engine's working tree shows one modification per
+patch plus the generated-file edits below. The count tracks the patch count, so
+check the list rather than a number — today it is 18 modifications and one
+untracked directory, all attributable:
 
 | Path | Source |
 |---|---|
@@ -678,7 +722,7 @@ under it, so the wallpaper frames the page on all four sides. 10 patches.
 - `body`'s `will-change: background-color` is a dead compositor hint once the
   colour is pinned; set to `auto`.
 
-**Tokens: 58.** Added accent (the CSS `AccentColor` system keyword — the
+**Tokens: 48.** Added accent (the CSS `AccentColor` system keyword — the
 user's macOS accent, live from System Settings; Koi imposes no colour of its
 own — plus two `color-mix` variants), the mono
 stack, an 8-size type scale, and the three glass **tints** — the blur values
@@ -756,10 +800,19 @@ overlay, not a content page, because the design shows the wallpaper *through*
 an empty tab and a web page can't do that:
 
 - `koi-newtab.js` builds `#koi-empty-state` inside `#tabbrowser-tabbox` and
-  stamps `[koi-empty]` on `:root` while `gBrowser.selectedTab.isEmpty`
+  stamps `[koi-empty]` on `:root` while the selected tab shows nothing
   (TabSelect + TabAttrModified + location changes — busy flips always
   dispatch TabAttrModified, which matters because a settled about:blank
-  emits no further progress events). Pins are the toolbar folder's
+  emits no further progress events). "Shows nothing" is Firefox's
+  `tab.isEmpty` **minus its no-session-history clause**: that getter answers
+  "safe to close", so a tab *navigated* to a blank URL — typing about:newtab,
+  or the Home command — failed it and sat there featureless. Firefox draws
+  the same distinction itself in browser.js's `onLocationChange`.
+  `checkEmptyPageOrigin` stays and is the guard: a page that navigates itself
+  to about:blank inherits the site principal and fails it, so content can
+  never summon the pins. about:home is excluded — it is in Firefox's blank
+  list but is not blank here (see the seam below), and the card needs a
+  transparent browser to show wallpaper, which a real document is not. Pins are the toolbar folder's
   bookmarks — the folder the star saves to — capped at 24, wrapping to
   centered rows; favicons via `page-icon:`, and a site with no stored
   favicon gets a letter tile (its initial on one of six mock colours,
@@ -830,6 +883,52 @@ keyboard-citizenship item below). The board button (`#koi-board-button`,
 2×2-squares glyph at gecko's 1.5px ink) replaces the stock all-tabs chevron;
 `skipintoolbarset` keeps CUI from evicting it. A bookmarks mode shipped and
 was withdrawn — a flat grid loses folders; it can return designed.
+
+**The about: pages are handled.** `about:about` lists every registered about
+module without `HIDE_FROM_ABOUTABOUT`, drawn from three registries:
+`docshell/base/nsAboutRedirector.cpp`, `browser/components/about/AboutRedirector.cpp`,
+and components registering `about;1?what=` (cache, compat, debugging,
+sync-log, home/newtab). Koi's list is Zen's minus `about:studies` — that
+entry is `#ifdef MOZ_NORMANDY`, so switching Normandy off deleted the page
+rather than hiding it, exactly as `#ifdef MOZ_CRASHREPORTER` did for
+`about:crashes`. Hiding a page that *does* exist means editing a C++ flag,
+which is why nothing is hidden.
+
+- **`about:rights` is Koi's own page** (`src/koi/about/`; 11 patches). 154
+  turned that entry into a redirect to Mozilla's Firefox Terms of Use — terms
+  that do not govern Koi, and the only page in the build making a false
+  statement. No local rights page survives in the tree to point at, so Koi
+  ships one: static HTML + CSS as whole files, plus a 2-line patch
+  retargeting the map entry. Flags copy `about:robots` (the static-chrome-page
+  precedent two entries below) minus `ALLOW_SCRIPT` — the page has no script
+  and is granted none; `URI_MUST_LOAD_IN_CHILD` left with the remote URL.
+- It can reach its own stylesheet because `browser/base/jar.mn` declares
+  `content browser` as `contentaccessible=yes`. That is the mechanism for any
+  future Koi content page: chrome:// assets under `content/browser/koi-*`,
+  plus the page's own `default-src chrome:` CSP.
+- The page is a **chrome document**, like every about: page —
+  `browser.theme.toolbar-theme` flips its scheme, `browser.theme.content-theme`
+  does not, so `light-dark()` there resolves off the chrome scheme. koi-theme.css
+  is still deliberately not loaded: its ink is white at three opacities, right
+  over wallpaper and wrong on a white card. Its background mirrors
+  `.browserContainer`'s underpaint, which keys off the *content* scheme instead
+  — so Website Appearance set opposite the system yields one frame of the wrong
+  ground while loading, as it does on Firefox's own in-content pages.
+- `prefs/firefox/about-pages.yaml` switches off every upsell that reaches a
+  Koi about page: `browser.vpn_promo.enabled` (two surfaces —
+  about:privatebrowsing's promo and about:protections' VPN card),
+  `browser.promo.focus.enabled`, and AMO's two recommendation feeds in
+  about:addons.
+
+**Deliberately left alone:** `about:credits` still points at mozilla.org —
+Gecko is Mozilla's work and crediting them is honest; Zen redirects theirs
+for brand reasons Koi does not have. `about:home` still loads the activity
+stream: `AboutNewTabRedirector.sys.mjs` gates only `about:newtab` on
+`browser.newtabpage.enabled` and takes `defaultURL` unconditionally for
+`about:home`. Typed-only (Koi's chrome has no Home button), so it does not
+earn a patch to a Mozilla module. Restyling preferences/addons/reader, and
+hiding firefoxview or telemetry from the list, are cosmetic and want a
+design first.
 
 **Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to
 peek, keyboard citizenship (migrate ⌘E/⇧⌘E from capture-phase interception

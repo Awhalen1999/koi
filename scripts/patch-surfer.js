@@ -28,6 +28,11 @@ const targets = [
   {
     file: 'node_modules/@zen-browser/surfer/dist/commands/patches/branding-patch.js',
     why: "surfer's hardcoded Zen URLs",
+    // The edits below only know the URLs surfer had when they were written. A
+    // URL a later surfer ADDS would sail past them, and this file's whole
+    // reason for existing is that such a URL stays invisible until it is in a
+    // shipped build. So the pass is only complete if none survive it.
+    forbid: /zen-browser\.app/,
     edits: [
       // Nothing should open on first run, so the welcome flow is emptied
       // rather than pointed at a Koi page.
@@ -71,7 +76,7 @@ const targets = [
 let changed = 0
 let skipped = 0
 
-for (const { file, why, edits } of targets) {
+for (const { file, why, edits, forbid } of targets) {
   if (!existsSync(file)) {
     console.warn(`patch-surfer: ${file} not present, skipping (${why})`)
     continue
@@ -95,6 +100,16 @@ for (const { file, why, edits } of targets) {
       )
       process.exit(1)
     }
+  }
+
+  if (forbid?.test(contents)) {
+    console.error(
+      `\npatch-surfer: INCOMPLETE on ${file}\n` +
+        `  Still contains ${forbid} after patching. The dependency gained a\n` +
+        `  URL this script does not know about. Add it to the edits above —\n` +
+        `  shipping it would bake someone else's brand into a Koi build.\n`
+    )
+    process.exit(1)
   }
 
   if (contents === original) {

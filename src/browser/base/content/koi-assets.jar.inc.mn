@@ -13,3 +13,4 @@
 #include ../../../koi/panels/jar.inc.mn
 #include ../../../koi/board/jar.inc.mn
 #include ../../../koi/newtab/jar.inc.mn
+#include ../../../koi/about/jar.inc.mn

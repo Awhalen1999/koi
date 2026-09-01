@@ -73,6 +73,21 @@ body {
   box-shadow: var(--koi-shadow-page), 0 0 0 0.5px var(--koi-page-ring);
 }
 
+/* The page ground: what shows behind a page that has not painted yet, and
+ * behind one that paints no background of its own. The two rules below need it
+ * keyed two different ways — `.browserContainer` inherits the chrome's scheme
+ * so it needs the content-scheme query, while `browser[type="content"]` gets
+ * the content scheme and can use light-dark(). Same pair either way, so it is
+ * named once here rather than written out four times.
+ *
+ * Local to this sheet on purpose: koi-theme.css is the chrome's vocabulary and
+ * this is the page's. koi-rights.css repeats the literals because a content
+ * document cannot reach these — keep that file in step. */
+:root {
+  --koi-ground-light: #fff;
+  --koi-ground-dark: #1c1c1e;
+}
+
 /* `.browserContainer` is what actually fills the card, and Firefox paints
  * `--tabpanel-background-color` on it (content-area.css:205) — #f9f9fb
  * normally, a purple gradient in private windows. It is visible whenever the
@@ -88,10 +103,10 @@ body {
 #tabbrowser-tabpanels
   .browserSidebarContainer
   .browserContainer {
-  background: #fff;
+  background: var(--koi-ground-light);
 
   @media (-moz-content-prefers-color-scheme: dark) {
-    background: #1c1c1e;
+    background: var(--koi-ground-dark);
   }
 }
 
@@ -103,5 +118,5 @@ body {
 #tabbrowser-tabpanels
   .browserSidebarContainer
   browser[type="content"]:not([transparent="true"]) {
-  background: light-dark(#fff, #1c1c1e);
+  background: light-dark(var(--koi-ground-light), var(--koi-ground-dark));
 }
