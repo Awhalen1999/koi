@@ -1,0 +1,6 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!-- Koi: the bare mark as the browser's own glyph, replacing Firefox's fox. context-fill so
+   - consumers colour it like any other icon (Settings default-browser card, and four others). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="context-fill"><g transform="translate(3.37 2) scale(0.04297)"><path d="M202 128.39A128 128 0 0 1 202 383.61Q192 384 192 374L192 330Q192 320 201.96 319.22A64 64 0 0 0 201.96 192.78Q192 192 192 182L192 138Q192 128 202 128.39ZM182 447.74A192 192 0 0 1 182 64.26Q192 64 192 74L192 118Q192 128 182 128.39A128 128 0 0 0 182 383.61Q192 384 192 394L192 438Q192 448 182 447.74ZM202 0.2A256 256 0 0 1 202 511.8Q192 512 192 502L192 458Q192 448 202 447.74A192 192 0 0 0 202 64.26Q192 64 192 54L192 10Q192 0 202 0.2Z"/></g></svg>

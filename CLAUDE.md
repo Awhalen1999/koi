@@ -531,12 +531,16 @@ either derived from them or copied from Firefox's `unofficial` branding.
   `firefox64.ico`. The two `.ico` files are required **even though Koi is
   macOS-only.**
 - Required by `setupImages`: `logo{16,22,24,32,48,64,128,256,512}.png`
-- Optional, copied verbatim: anything else at the top level, plus `content/`
-  (`about-logo.svg`, `about-wordmark.svg`, `firefox-wordmark.svg`,
-  `identity-icons-brand.svg`, `MacOSInstaller.svg`)
+- Optional, copied verbatim: anything else at the top level, plus `content/`.
+  Koi supplies `about-logo.svg`, `about-wordmark.svg`, `firefox-wordmark.svg`,
+  and five PNGs: `about-logo{,@2x}.png` (the header mark on Settings and
+  Add-ons via toolkit's `moz-page-nav`, shown at 32px), `about.png`
+  (`about:logo`), and `about-logo-private{,@2x}.png` (the mark on
+  about:privatebrowsing). The private set is the **app icon** — mark on its
+  dark tile — so "private" has one look from favicon to about-page.
 
 Derived, so never hand-edit: `default{N}.png` (copies of `logo{N}.png`),
-`content/about-logo{,@2x}.png` (sharp resizes of `logo.png`), `firefox.icns`
+`firefox.icns`
 (async-icns from `logo-mac.png`), `branding.nsi`, `configure.sh`,
 `pref/firefox-branding.js`, `locales/en-US/brand.{ftl,dtd,properties}`, and the
 `--theme-bg` substitution into `content/aboutDialog.css` +
@@ -544,6 +548,23 @@ Derived, so never hand-edit: `default{N}.png` (copies of `logo{N}.png`),
 
 To tell input from output in a generated dir, diff it against
 `engine/browser/branding/unofficial/` — identical means it came from Mozilla.
+
+**`content/about-logo{,@2x}.png` is supplied, not derived.** Surfer's
+`setupImages` does write them (sharp resizes of `logo.png`) but
+`addOptionalIcons` runs *after* it and copies `content/` verbatim, so a file
+of the same name in the inputs wins. This matters because `logo.png` is the
+**app icon** — the mark inside a tile — so the derived version showed the
+mark at half size on a dark tile and vanished at 32px. The fix was never
+stroke weight (the empty state renders the same thin geometry at 31.5×36
+crisply); it was the container. The supplied file is the bare mark filling
+the canvas at `#889098`, a tone that holds on both `#fff` and `#1c1c1e`,
+because `moz-page-nav` paints one bitmap with no light/dark variant.
+
+Still Mozilla's, deliberately: `background.png`, `dsstore`, `disk.icns`
+(the DMG's background, layout and volume icon — no release to package yet),
+`document.icns` (the file-type icon; matters once Koi is someone's default),
+`document_pdf.svg`. Zen ships none of `about.png` either, so their
+`about:logo` shows Mozilla's globe; Koi's does not.
 
 After a design change: regenerate rasters from `../koi-design/branding/`, then
 `npm run import`.
@@ -610,7 +631,7 @@ no-op that reappears on every download.
 
 After `npm run import`, the engine's working tree shows one modification per
 patch plus the generated-file edits below. The count tracks the patch count, so
-check the list rather than a number — today it is 18 modifications and one
+check the list rather than a number — today it is 26 modifications and one
 untracked directory, all attributable:
 
 | Path | Source |
@@ -630,6 +651,10 @@ untracked directory, all attributable:
 The last three of those — `shared.nsh`, `application.ini.in` and
 `branding/release/` — are precisely what attempt #1 had baked into its
 baseline. Seeing them as working-tree changes is the correct state.
+
+Eight more rows read ` T ` rather than ` M `: the three glyphs and five kit
+illustrations listed under Branding — tracked Mozilla files replaced by
+symlinks into `src/`.
 
 ---
 
@@ -920,6 +945,20 @@ which is why nothing is hidden.
   `browser.promo.focus.enabled`, and AMO's two recommendation feeds in
   about:addons.
 
+**In-content pages keep Firefox's accent, deliberately.** Settings, Add-ons
+and every in-content page are coloured Firefox's brand cyan/blue
+(`tokens-shared.css:225`), not the user's system accent that Koi's chrome
+uses. The lever exists and was traced: `browser.theme.native-theme` (false on
+macOS, true on GTK) gates `-moz-native-theme`; `tokens-platform.css`, which
+Settings loads via `global.css`, sets `--color-accent-primary: AccentColor`
+in the foundation layer and Firefox's cyan lives only under
+`not (-moz-native-theme)`. One pref would flip every page to the Mac accent.
+Not done, by decision — those are Firefox's pages until Koi owns them. If
+revisited: `browser-shared.css:276` paints a native titlebar material on
+`#navigator-toolbox::after` under that pref, between the vibrancy view and
+the chrome, and would need a specificity-matched neutraliser in
+koi-shell.css.
+
 **Deliberately left alone:** `about:credits` still points at mozilla.org —
 Gecko is Mozilla's work and crediting them is honest; Zen redirects theirs
 for brand reasons Koi does not have. `about:home` still loads the activity
@@ -955,8 +994,59 @@ patching Firefox for a console line fails the patch-budget test. It prints
 red in `npm start`'s filtered log (scripts/koi-log.mjs); leave it.
 
 
-`identity-icons-brand.svg` sits unused in `../koi-design/branding/`; it lives in
-`browser/themes/shared`, not in branding, so it needs a different mechanism.
+### Replacing a Mozilla asset outright — the third mechanism
+
+Some Firefox brand glyphs live in Mozilla's *theme* dirs, not in branding, so
+no branding input reaches them. Surfer's `copyManual` does: any non-`.patch`
+file under `src/<mozilla path>` has Mozilla's file removed, Koi's symlinked in
+its place, and the path appended to `engine/.gitignore`. Zero patches. Zen
+does this for exactly two files; Koi does it for eight:
+
+- `src/browser/themes/shared/sidebar/firefox.svg` — Firefox's monochrome
+  "this browser" glyph: the **About Koi** nav item, the about-pane header and
+  the browser-icon subpage header in Settings. Now the bare mark,
+  `fill="context-fill"` like the original so consumers colour it as any icon.
+  (It is *not* the fox illustration on the default-browser card — see below.
+  That misattribution cost a build cycle.) Zen leaves the fox.
+- `src/browser/themes/shared/privatebrowsing/favicon.svg` and
+  `src/toolkit/themes/shared/icons/indicator-private-browsing.svg` — the
+  purple mask on private tabs and the "Private browsing" pill. Now the app
+  icon with its viewBox trimmed to the tile.
+- `src/toolkit/themes/shared/illustrations/kit-{concerned,happy,confetti,
+  holding-lock,in-circle}.svg` — Firefox's five full-colour fox-kit
+  illustrations, one Koi file under five names. Every consumer is a
+  `moz-promo`: the default-browser card (`main.js`, concerned/happy — the
+  orange fox in Settings), the Appearance → browser-icon subpage
+  (`browser-icon.mjs`, confetti/holding-lock) and about:pdf's promo
+  (`aboutPDF.html`, in-circle). Four of the five render
+  `imagedisplay="cover"` — `object-fit: cover`, anchored bottom-right,
+  cropped to the card's text height — which rules out the tile (its corners
+  get cut). So: the bare mark at 40% on a transparent square, centred,
+  `context-fill`. 40% not 50% because a one-line card crops the top ~30% and
+  a 50% mark lost its outer arc there; 40% spans 30–70% and clears it while
+  still reading at 32px under contain. Verified on the default-browser card;
+  the subpage and the about:pdf promo (which is `hidden` until its nudge
+  applies) carry identical packaged files but were not seen rendered.
+
+Two things to know. A replaced file is *tracked*, so `.gitignore` does not
+hide it: it shows as ` T ` (typechange to symlink) in `git -C engine status`
+— that is the expected signature, not contamination. And it is a silent
+override: if Mozilla changes the original, nothing tells you. Use it for
+static assets only, never for anything with logic.
+
+`identity-icons-brand.svg` in `../koi-design/branding/` is dead — the file it
+targeted no longer exists in 154. `sidebar/firefox.svg` is its modern home.
+
+Fox glyphs still inherited, each behind a product decision rather than a
+branding one: `preferences/fox-ai.svg` (AI controls), `sidebar/foxy.svg`
+(sidebar promo), `fxa/avatar-fox*.svg` (account avatar placeholder),
+`privatebrowsing/fox-tail.svg` (the private page, itself a deferred round),
+and `icons/firefox-view.svg`, reachable only through the urlbar quick action.
+
+A different class of leftover, not assets: **strings that name Firefox
+literally** rather than through `-brand-short-name`. Seen so far: "Firefox
+Labs" (`settings-pane-labs-title2`) in Settings' sidebar. Untouched; a
+strings pass is its own job.
 
 Deliberately deferred (Zen has it, Koi does not need it yet): crowdin and
 multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
