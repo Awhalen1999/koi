@@ -11,7 +11,7 @@
  * blurred, and a translucent film is unreadable there (koi-theme.css on
  * glass).
  *
- * Dressed through the panel token API alone: toolkit paints every panel's
+ * Dressed through the panel token API: toolkit paints every panel's
  * ::part(content) from --panel-* (toolkit/themes/shared/popup.css), so one
  * rule covers them all, and the dark color-scheme resolves their inner
  * light-dark() colours to match the tint whatever the OS theme says. The
@@ -25,6 +25,11 @@ panel[type="arrow"] {
   --panel-text-color: var(--koi-fg);
   --panel-border-color: var(--koi-hair);
   color-scheme: dark;
+  /* No entrance slide: Firefox parks every arrow panel 70px above its seat
+   * and eases it down over 0.18s (popup.css); a macOS menu is simply there.
+   * Not swapped for a fade — Firefox skips -moz-window-opacity on Big Sur+
+   * because the window shadow vanishes mid-fade (bug 1672091). */
+  -moz-window-transform: none;
 }
 
 /* The findbar rides the bottom edge of the page card, over content: same

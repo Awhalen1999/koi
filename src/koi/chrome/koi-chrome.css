@@ -62,6 +62,10 @@
   /* Inside the pill: 10px inset, 8px favicon-to-label. */
   --tab-inline-padding: 10px;
   --tab-icon-end-margin: var(--koi-space-8);
+
+  /* Keyboard focus rings in the system accent, as the board's ring already
+   * is; Firefox's default is its own brand blue. */
+  --focus-outline-color: var(--koi-accent);
 }
 
 /* Nav above tabs — Firefox ships them inverted. */
@@ -215,8 +219,9 @@
   color: var(--koi-fg);
   padding: 0 var(--koi-chrome-pad);
 
-  /* Bookmarks wear small pills: quiet ink, the wash on hover, the tabs'
-   * favicon tile and 8px icon-to-label rhythm one size down. */
+  /* Bookmarks wear small pills: quiet ink, the toolbar buttons' wash on
+   * hover (toolbarbuttons.css paints .bookmark-item from the same tokens),
+   * the tabs' favicon tile and 8px icon-to-label rhythm one size down. */
   & #PlacesToolbarItems > .bookmark-item {
     padding: var(--koi-space-4) var(--koi-space-8);
     border-radius: var(--koi-radius-pill);
@@ -228,7 +233,6 @@
 
     &:hover {
       color: var(--koi-fg);
-      background-color: var(--koi-glass-wash);
     }
 
     & .toolbarbutton-icon {
@@ -246,25 +250,40 @@
 }
 
 /* Toolbar buttons ------------------------------------------------------------
- * Both rows: quiet glyphs, ink shifts on hover, no wash behind them. The
- * wash hover belongs to the + button alone (below). Geometry is Firefox's
- * own (16px glyphs, 32px boxes); only the ink and hover behaviour are Koi's. */
+ * Both rows: quiet glyphs that answer the pointer the way every Koi control
+ * does — the ink lifts, the WASH appears behind it, and pressed or open sits
+ * one rung up. Firefox's own state machine paints it (toolbarbuttons.css
+ * draws :hover, :hover:active, [open] and [checked] from these two tokens),
+ * so the menu button stays lit while its panel is open and the board
+ * button, a .toolbarbutton-1, needs nothing of its own. The box is the
+ * pill: 16px glyph plus 6px, 28px tall like a tab, on the pill radius.
+ * Firefox gives the tab row that geometry itself above 900px; declared on
+ * the toolbox, the top row's extensions, downloads and menu light up at the
+ * same size as reload. Disabled dulls Firefox's way — the whole button at
+ * --toolbarbutton-opacity-disabled, half the resting ink — unmistakably out
+ * of reach. */
 
 #navigator-toolbox {
-  --toolbarbutton-background-color-hover: transparent;
-  --toolbarbutton-background-color-active: transparent;
+  --toolbarbutton-background-color-hover: var(--koi-glass-wash);
+  --toolbarbutton-background-color-active: var(--koi-glass-hover);
+  --toolbarbutton-border-radius: var(--koi-radius-pill);
+  --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - 16px) / 2);
+  /* Glyphs are drawn in the button's own ink. Firefox fills them from this
+   * token, and its browser-theme layer pins it to a fixed grey (gray-0 in
+   * dark, gray-70 in light — tokens-platform.css), so a color rule on the
+   * button never reached the glyph and every ink state below was invisible. */
+  --toolbarbutton-icon-fill: currentColor;
 
   & .toolbarbutton-1 {
     color: var(--koi-fg-2);
     transition: color var(--koi-fade);
 
-    &:hover {
+    &:not([disabled]):hover {
       color: var(--koi-fg);
     }
 
-    &[disabled] {
-      color: var(--koi-fg-3);
-      opacity: 1;
+    & > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+      transition: background-color var(--koi-fade);
     }
   }
 }
@@ -299,6 +318,16 @@
    * active design-token branch. Pinned to 0 so the open surface is the
    * popover, which --urlbar-margin-inline: 0px (above) pins to the pill. */
   --urlbar-background-inset-breakout: 0px;
+  /* The star, and the lock when Firefox gives it a chip (chromeUI, not
+   * secure, extension pages): nothing at rest or on focus — the pill has
+   * no chips — then the same wash and rung-up as every other control.
+   * Firefox's defaults fork on the colour scheme (an opaque button grey in
+   * light, a currentColor mix in dark); Koi's pill is one translucent
+   * surface in both. */
+  --urlbar-box-background-color: transparent;
+  --urlbar-box-background-color-focus: transparent;
+  --urlbar-box-background-color-hover: var(--koi-glass-wash);
+  --urlbar-box-background-color-active: var(--koi-glass-hover);
   margin-inline: 0;
   color: var(--koi-fg);
 
@@ -342,6 +371,13 @@
   & .urlbar-go-button {
     display: none;
   }
+
+  /* Suggestion rows arrive whole. Firefox slides each row's action label in
+   * from the side over 350ms (view-proton.css) — a flourish on a list that
+   * repaints on every keystroke. */
+  & .urlbarView-action[slide-in] {
+    animation: none;
+  }
 }
 
 /* The tab strip ---------------------------------------------------------------
@@ -369,6 +405,13 @@
   /* Firefox's 16px favicon, on the spec's 4px-radius tile. */
   & .tab-icon-image {
     border-radius: var(--koi-radius-favicon);
+  }
+
+  /* No load burst. Firefox pulses a ring out from the favicon across the
+   * pill when a page finishes loading (tabs.css); a page arriving is not an
+   * event, and the strip never asks for attention. */
+  & .tab-loading-burst[bursting]::before {
+    animation: none;
   }
 
   /* Empty pages fly the brand's own colours: Firefox stamps the branding
@@ -442,24 +485,14 @@
   }
 }
 
-/* The + button: the one control that earns a wash on hover. It rides inside
- * the strip right after the last tab (#tabs-newtab-button) until the strip
- * overflows, then #new-tab-button pins it beside the strip — both get the
- * same clothes. */
+/* The + button rides inside the strip right after the last tab
+ * (#tabs-newtab-button) until the strip overflows, then #new-tab-button pins
+ * it beside the strip. Both dress as toolbar buttons (above); only the
+ * spacing is its own. */
 :is(#tabs-newtab-button, #new-tab-button) {
-  --toolbarbutton-background-color-hover: var(--koi-glass-wash);
-  color: var(--koi-fg-3);
   /* The same 4px the pills keep between themselves: the last tab's 2px clip
    * padding plus this. */
   margin-inline-start: calc(var(--koi-space-4) - var(--tab-overflow-clip-margin));
-
-  &:hover {
-    color: var(--koi-fg);
-  }
-
-  & .toolbarbutton-icon {
-    border-radius: var(--koi-radius-pill);
-  }
 }
 
 /* Overflow --------------------------------------------------------------------

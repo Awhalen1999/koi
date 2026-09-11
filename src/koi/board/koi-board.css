@@ -71,6 +71,15 @@
   background: var(--koi-glass-menu);
   box-shadow: var(--koi-shadow-menu), 0 0 0 0.5px var(--koi-hair);
   color-scheme: dark;
+  transition: box-shadow var(--koi-fade);
+
+  /* The pointer is acknowledged, not chased: the hairline steps up to a
+   * quiet 1px ring, so rest, hovered and chosen read as a ladder with the
+   * accent ring on top. Nothing moves — the board's one spring is its
+   * entrance. */
+  &:hover {
+    box-shadow: var(--koi-shadow-menu), 0 0 0 1px var(--koi-fg-3);
+  }
 
   &:is(.koi-card-current, :focus-visible) {
     outline: 2px solid var(--koi-accent);

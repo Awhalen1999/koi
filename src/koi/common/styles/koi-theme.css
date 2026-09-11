@@ -196,8 +196,14 @@
   /* Motion ------------------------------------------------------------------
    * Two speeds, chosen by what is changing rather than by which component is
    * changing. Anything that moves or resizes springs; anything that only
-   * changes colour or opacity fades. Only the thing you touch ever moves. */
-  --koi-spring: 380ms cubic-bezier(0.32, 1.36, 0.5, 1);
+   * changes colour or opacity fades. Only the thing you touch ever moves.
+   *
+   * The spring is macOS's, not the spec's. The spec's 380ms/1.36 curve
+   * overshoots by 4% and lingers, which reads as a browser animating; this
+   * one lands at 60% of its 300ms with about 1% of overshoot and settles —
+   * felt as weight, never seen as bounce. (Firefox's own token, --animation-
+   * easing-function, is the same family with the overshoot removed.) */
+  --koi-spring: 300ms cubic-bezier(0.22, 1.2, 0.36, 1);
   --koi-fade: 150ms linear;
 }
 

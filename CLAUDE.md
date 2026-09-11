@@ -79,7 +79,8 @@ values, never the markup. What they settle:
   (board) and `rgba(8,10,14,.28)`+2px (palette).
 - Motion is **two speeds**: spring `380ms cubic-bezier(.32,1.36,.5,1)` for
   anything that moves or resizes, fade `150ms linear` for anything that only
-  changes colour. Keyframes `koiDrop`, `koiFade`, `koiRise`, `koiPop`.
+  changes colour. Keyframes `koiDrop`, `koiFade`, `koiRise`, `koiPop`. The
+  spring shipped tamed — see the motion pass in Current state.
 - Peek and the board are built (Current state); the board keeps the spec's ⇧⌘E,
   peek's ⌘E was dropped — see Shortcuts there. Spaces are still ahead.
 
@@ -785,6 +786,26 @@ placements — the furniture CSS cannot move), zero new Firefox patches:
   memorable ones are gone: `--toolbarbutton-inner-padding` is now
   `--toolbarbutton-padding-inner`, hover is
   `--toolbarbutton-background-color-hover`.
+- **Every control answers the pointer the same way:** ink lifts, the WASH
+  appears behind it, pressed or open sits one rung up (`--koi-glass-hover`),
+  colour over `--koi-fade`. Toolbar buttons get it through Firefox's own
+  state machine — `--toolbarbutton-background-color-hover/-active` on the
+  toolbox, and toolbarbuttons.css paints `:hover`, `:hover:active`, `[open]`
+  and `[checked]` from them, so the menu button lit while its panel is open
+  comes free and the board button needs nothing of its own. The pill's star
+  and lock go through `--urlbar-box-background-color-*` (rest and focus
+  transparent — the pill has no chips; Firefox's defaults fork on the colour
+  scheme). Bookmarks ride the toolbarbutton tokens too. Focus rings take
+  `--focus-outline-color: var(--koi-accent)`. An earlier round zeroed the
+  toolbar hover as "quiet glyphs, no wash"; it read as dead controls — the
+  reload tooltip appeared over nothing — and was reversed. **A `color` rule
+  on `.toolbarbutton-1` does not reach the glyph** unless
+  `--toolbarbutton-icon-fill` is `currentColor`: Firefox's browser-theme
+  layer pins that token to a fixed grey for every non-lwtheme window, so
+  Koi's ink states (rest fg-2, hover fg, disabled fg-3) were invisible for
+  months while the captures showed full-white glyphs. The toolbox now sets
+  the token, and disabled is left to Firefox (`opacity:
+  var(--toolbarbutton-opacity-disabled)`, 0.5) rather than overridden.
 - The urlbar input is `.urlbar-input` (a class; `#urlbar-input` no longer
   exists), the pill is `.urlbar-background` and is painted entirely by
   variables, and focus state is `#urlbar[focused]`.
@@ -800,9 +821,11 @@ placements — the furniture CSS cannot move), zero new Firefox patches:
   from content** (a content-derived row grows by whatever Firefox puts in
   it — TabsToolbar did). The page card owns all four of its edges
   (`margin: var(--koi-gutter)`, koi-shell.css); no row carries batting for a
-  neighbour. Glyph geometry stays Firefox's 16px-in-32px boxes, and **every
-  small control glyph is 13px in a 20px radius-4 box, quiet ink, wash on
-  hover, 4px from its neighbours** — tab ×, tab speaker, card ×, card
+  neighbour. Toolbar glyphs are Firefox's 16px in a 28px pill-radius box —
+  the pill height, Firefox's own compact geometry, declared once on the
+  toolbox so both rows' hover backdrops match — and **every small control
+  glyph is 13px in a 20px radius-4 box, quiet ink, wash on hover, 4px from
+  its neighbours** — tab ×, tab speaker, card ×, card
   speaker. The tab audio control is `.tab-audio-button`, a moz-button styled
   through its variable API and `::part(button)`; `.tab-icon-overlay` is the
   *pinned* tab's corner badge, a different element.
@@ -853,9 +876,8 @@ an empty tab and a web page can't do that:
   untouched — they sit on `.browserContainer`, which still paints.
 - Startup lands on about:blank too (`browser.startup.homepage`), which
   resolves the "what is the startup page" gap: the empty state is.
-- `koiRise`, `koiDrop` and `koiFade` live in koi-theme.css with the motion
-  tokens; `koiPop` joins when something needs the spec's transform-centered
-  drop.
+- `koiRise` and `koiFade` live in koi-theme.css with the motion tokens;
+  `koiDrop` and `koiPop` join when something needs them.
 
 **The palette (v5's cmdOpen surface) was built, shipped, and shelved for
 now** — the pill is a plain editable field again, and search may return as a
@@ -891,6 +913,35 @@ MENU tint, `color-scheme: dark`. Menupopups and plain panels stay native
 field wears the address field's clothes, and its yellow open-blink is off by
 pref (`accessibility.typeaheadfind.flashBar`, chrome-ui.yaml).
 
+**The motion pass is in.** Taste is macOS's: nothing slides in, nothing
+pulses, the one spring is felt rather than seen. Three decisions, all CSS,
+nothing new added:
+
+- `--koi-spring` is `300ms cubic-bezier(0.22, 1.2, 0.36, 1)` — a deliberate
+  deviation from the spec's 380ms/1.36, which overshoots 4% and lingers.
+  This one lands at 60% of its run with ~1% of overshoot: the weight of a
+  native surface without the bounce. Every Koi transform and entrance
+  (board, empty-state card) rides it.
+- Arrow panels no longer slide: `-moz-window-transform: none` on
+  `panel[type="arrow"]` (koi-panels.css) cancels Firefox's 70px/0.18s drop
+  (popup.css). Not swapped for a fade — Firefox skips `-moz-window-opacity`
+  on Big Sur+ because the window shadow vanishes mid-fade (bug 1672091).
+  Safe to cancel: `panel.js` clears `animating` on `popupshown`, not on
+  `transitionend`.
+- Two attention animations are off in koi-chrome.css: the tab load burst
+  (`.tab-loading-burst[bursting]::before`) and the urlbar row's action
+  slide-in (`.urlbarView-action[slide-in]`). Kept as Firefox ships them:
+  the tab width transition (100ms — the strip re-flowing) and the findbar's
+  150ms slide (a surface arriving). The app menu's update-banner pulse is
+  ignored; Koi has no update channel to show it.
+
+Verifying `-moz-window-transform` is awkward: it is `enabled_in = "chrome"`,
+so it parses in Koi's sheets, but `CSS.supports` and `getComputedStyle` both
+return nothing for it. Read the parsed rule's `cssText` off
+`document.styleSheets` and the cascade order off
+`InspectorUtils.getMatchingCSSRules(panel)` instead — Koi's rule listed after
+popup.css's means Koi's wins.
+
 **Tab overflow is in.** No scroll arrows, no stock smudge: the outermost
 pills fade via a `mask-image` on the scrollbox (the only way to dissolve a
 pill into wallpaper the chrome doesn't paint), keyed on the arrowscrollbox's
@@ -903,7 +954,8 @@ scrim, board the full grid over the board scrim; a `mode` attribute switches
 the layout. Cards = MENU-tint header (favicon, title, audio badge, ×) over a
 live thumbnail via `PageThumbs.captureTabPreviewThumbnail` (Firefox's own
 tab-hover capture; pending/blank tabs keep glass). Cards rebuild fresh per
-open; tab listeners bind only while shown. The board button
+open; tab listeners bind only while shown. A hovered card brightens its
+hairline to a 1px ring over the fade — acknowledged, never moved. The board button
 (`#koi-board-button`, 2×2-squares glyph at gecko's 1.5px ink) replaces the
 stock all-tabs chevron; `skipintoolbarset` keeps CUI from evicting it. A
 bookmarks mode shipped and was withdrawn — a flat grid loses folders; it can
