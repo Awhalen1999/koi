@@ -80,7 +80,8 @@ values, never the markup. What they settle:
 - Motion is **two speeds**: spring `380ms cubic-bezier(.32,1.36,.5,1)` for
   anything that moves or resizes, fade `150ms linear` for anything that only
   changes colour. Keyframes `koiDrop`, `koiFade`, `koiRise`, `koiPop`.
-- Still ahead of the implementation: peek (⌘E), the board (⇧⌘E), and spaces.
+- Peek and the board are built (Current state); the board keeps the spec's ⇧⌘E,
+  peek's ⌘E was dropped — see Shortcuts there. Spaces are still ahead.
 
 ### The four-hop bridge
 
@@ -896,18 +897,47 @@ pill into wallpaper the chrome doesn't paint), keyed on the arrowscrollbox's
 own `overflowing`/`scrolledtostart`/`scrolledtoend` attributes, stop lengths
 `@property`-registered so the fade's appearance fades.
 
-**The boards are in (⌘E peek, ⇧⌘E board).** `src/koi/board/` — one surface,
-two densities: peek is a row of tab cards over the float scrim, board the
-full grid over the board scrim; a `mode` attribute switches the layout.
-Cards = MENU-tint header (favicon, title, audio badge, ×) over a live
-thumbnail via `PageThumbs.captureTabPreviewThumbnail` (Firefox's own
+**The boards are in (⇧⌘E board; peek awaits its gesture).** `src/koi/board/`
+— one surface, two densities: peek is a row of tab cards over the float
+scrim, board the full grid over the board scrim; a `mode` attribute switches
+the layout. Cards = MENU-tint header (favicon, title, audio badge, ×) over a
+live thumbnail via `PageThumbs.captureTabPreviewThumbnail` (Firefox's own
 tab-hover capture; pending/blank tabs keep glass). Cards rebuild fresh per
-open; tab listeners bind only while shown. ⌘E deliberately reclaims
-find-selection; keys are capture-phase for now (impolite to pages — see the
-keyboard-citizenship item below). The board button (`#koi-board-button`,
-2×2-squares glyph at gecko's 1.5px ink) replaces the stock all-tabs chevron;
-`skipintoolbarset` keeps CUI from evicting it. A bookmarks mode shipped and
-was withdrawn — a flat grid loses folders; it can return designed.
+open; tab listeners bind only while shown. The board button
+(`#koi-board-button`, 2×2-squares glyph at gecko's 1.5px ink) replaces the
+stock all-tabs chevron; `skipintoolbarset` keeps CUI from evicting it. A
+bookmarks mode shipped and was withdrawn — a flat grid loses folders; it can
+return designed.
+
+**Shortcuts.** Koi binds as little as possible, and what it binds is a XUL
+`<key>` in a keyset of its own appended to the document — the WebExtension
+pattern (`ExtensionShortcuts.sys.mjs`) — so `mainKeyset` is untouched and
+Firefox arbitrates the key as it does its own: with `reserved` unset, the
+page sees it first unless the user has denied that site shortcut overrides.
+There is no window-level key listener anywhere in Koi. The board is ⇧⌘E —
+free in the keyset, free in Firefox's macOS system actions, no platform
+meaning. Peek's ⌘E was dropped: it is macOS-wide "Use Selection for Find"
+and Firefox honours it (`key_findSelection`), so taking it shadowed a live
+binding and left the Edit menu labelling ⌘E as something it no longer did;
+the old capture listener also matched `event.code`, the physical key, the
+wrong letter on non-QWERTY layouts. Peek has no key — one surface, one
+shortcut; its trigger is hold-a-tab when built. Esc is handled on the
+surface, where focus lives while it is open.
+
+**Auditing a shortcut means three places, not one.** The keyset
+(`browser-sets.inc.xhtml`) is only where XUL keys live. Firefox also handles
+chords in JS — `ShortcutUtils.getSystemActionForEvent`, run from
+`tabbrowser.js`'s `on_keypress`, classifies Ctrl+Tab, Ctrl+PageUp/Down,
+⌘⌥-arrows and, on macOS, **⌘{ / ⌘} by keypress charCode** as tab switches and
+`preventDefault`s them — and in C++ (`ShortcutKeyDefinitions.cpp`, the
+`internal="true"` keys). ⇧⌘\ (Safari's Show All Tabs) was tried first because
+the keyset showed it free: Gecko received it (`key=\ code=Backslash`), the
+tab switched to the previous one, and the `<key>` never fired — a
+default-prevented keypress never reaches a XUL key. Cmd+Shift+punctuation
+charCodes on macOS are layout-dependent; letters are what the matcher handles
+robustly. Firefox's `key_showAllTabs` (Ctrl+Shift+Tab) is label-only; View ›
+Show All Tabs still opens Firefox's all-tabs panel, and re-pointing it at the
+board is a small follow-up.
 
 **The about: pages are handled.** `about:about` lists every registered about
 module without `HIDE_FROM_ABOUTABOUT`, drawn from three registries:
@@ -970,9 +1000,9 @@ hiding firefoxview or telemetry from the list, are cosmetic and want a
 design first.
 
 **Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to
-peek, keyboard citizenship (migrate ⌘E/⇧⌘E from capture-phase interception
-to dynamically-added XUL keys so pages get first refusal), a bookmarks
-surface with folders, the ⌘B/sidebar decision, and the palette's return.
+peek (peek has no trigger until it lands), re-pointing View › Show All Tabs
+at the board, a bookmarks surface with folders, the ⌘B/sidebar decision, and
+the palette's return.
 `src/koi/moz.build` still has an empty `DIRS` until a feature ships JS
 modules (Koi scripts load via jar + browser.xhtml, not EXTRA_JS_MODULES).
 `prefs/koi/` does not exist yet.

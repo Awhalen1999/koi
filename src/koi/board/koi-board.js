@@ -5,15 +5,18 @@
 /* Loaded into browser.xhtml, so the browser-window globals are real; the
  * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
  * they are declared here instead. */
-/* global gBrowser, PageThumbs */
+/* global gBrowser, PageThumbs, ShortcutUtils */
 
-/* The board (⇧⌘E) and peek (⌘E) — every tab as a card.
+/* The board (⇧⌘E) and peek — every tab as a card.
  *
  * One surface, two densities: peek is a single row of cards over a light
  * scrim, the board is the full grid over the heavy one. Same cards, same
- * keys, same data — the mode attribute only changes the layout
- * (koi-board.css). ⌘E reclaims Firefox's find-selection binding, by design.
- * (A bookmarks mode existed briefly and was withdrawn: a flat grid loses
+ * data — the mode attribute only changes the layout (koi-board.css). The
+ * board's key is ⇧⌘E: free in Firefox's keyset and in its macOS system
+ * actions, with no platform meaning of its own. Peek has no key: one
+ * surface, one shortcut — its trigger is the
+ * hold-a-tab gesture, not yet built, so today only the board opens. (A
+ * bookmarks mode existed briefly and was withdrawn: a flat grid loses
  * bookmark folders, and a surface that hides structure is worse than none.
  * It can return once folders have a design.)
  *
@@ -206,8 +209,15 @@
       });
 
       // Cards are role=button divs, so Enter/Space activate by hand; arrows
-      // walk the cards — Left/Right linearly, Up/Down by rendered row.
+      // walk the cards — Left/Right linearly, Up/Down by rendered row. Esc
+      // dismisses, handled here rather than on the window: focus lives on a
+      // card whenever the surface is open.
       surface.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeSurface();
+          return;
+        }
         const cards = [...grid.children];
         const index = cards.indexOf(document.activeElement);
         if (index < 0) {
@@ -232,33 +242,27 @@
         }
       });
 
-      // ⌘E peek, ⇧⌘E board, Esc dismiss. Capture phase, ahead of Firefox's
-      // key handling — ⌘E is find-selection upstream, reclaimed by design.
-      window.addEventListener(
-        "keydown",
-        event => {
-          if (
-            event.metaKey &&
-            !event.ctrlKey &&
-            !event.altKey &&
-            event.code === "KeyE"
-          ) {
-            event.preventDefault();
-            event.stopPropagation();
-            openSurface(event.shiftKey ? "board" : "peek");
-            return;
-          }
-          if (openMode && event.key === "Escape") {
-            event.preventDefault();
-            event.stopPropagation();
-            closeSurface();
-          }
-        },
-        true
-      );
+      // The shortcut is a XUL <key> in a keyset of Koi's own, appended to the
+      // document the way every WebExtension's is (ExtensionShortcuts.sys.mjs):
+      // Firefox's mainKeyset is untouched, and a bare <key> fires `command` on
+      // itself. `reserved` is left unset, so Firefox arbitrates it as it does
+      // its own keys — the page sees the keystroke first unless the user has
+      // denied that site shortcut overrides. A letter, deliberately: Firefox
+      // on macOS turns ⌘{ and ⌘} into previous/next tab by keypress charCode
+      // (ShortcutUtils.getSystemActionForEvent, from tabbrowser's on_keypress)
+      // and Cmd+Shift+punctuation charCodes are layout-dependent — ⇧⌘\ was
+      // consumed as previous-tab before this key ever saw it.
+      const key = document.createXULElement("key");
+      key.id = "key_koiBoard";
+      key.setAttribute("key", "E");
+      key.setAttribute("modifiers", "accel,shift");
+      key.addEventListener("command", () => openSurface("board"));
+      const keyset = document.createXULElement("keyset");
+      keyset.append(key);
+      document.documentElement.append(keyset);
 
       // The board button: the strip's leading control, the mock's 2×2
-      // squares, opening exactly what ⇧⌘E opens. skipintoolbarset keeps
+      // squares, opening exactly what the key opens. skipintoolbarset keeps
       // CustomizableUI's area rebuilds off a node it does not manage;
       // koi-chrome.css seats it and hides the stock all-tabs chevron it
       // replaces.
@@ -270,7 +274,10 @@
         "image",
         "chrome://browser/content/koi-common/koi-board.svg"
       );
-      boardButton.setAttribute("tooltiptext", "Board (⇧⌘E)");
+      boardButton.setAttribute(
+        "tooltiptext",
+        `Board (${ShortcutUtils.prettifyShortcut(key)})`
+      );
       boardButton.addEventListener("command", () => openSurface("board"));
       gBrowser.tabContainer.before(boardButton);
     },
