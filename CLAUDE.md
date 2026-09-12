@@ -197,9 +197,25 @@ selectors, correctly: restyling a control does not assume a wallpaper. An
 earlier version of this note said to guard chrome rules generally, which
 would have added four clauses to every selector in the tree for nothing.
 
-**`src/-stylelintrc-js.patch` turns off `use-design-tokens`.** Koi has its own
-token system; linting against Mozilla's buried real errors under noise. Our CSS
-passes `mach lint -l stylelint` with zero problems — keep it that way.
+**`src/-stylelintrc-js.patch` turns off `use-design-tokens`** — with `null`,
+the only "off" stylelint accepts. It shipped as `false`, which stylelint
+rejects as an invalid option and exits without running a rule, and `mach lint`
+gave no sign: its prettier pass runs separately and still reported, so the CSS
+looked linted while no stylelint rule had ever run on it. Koi has its own
+token system; linting against Mozilla's buried real errors under noise. Koi's
+CSS and JS pass Firefox's stylelint, eslint and prettier with zero problems —
+keep it that way, with **`npm run lint`**, never by pointing `mach lint` at
+`engine/koi/`. Those are symlinks whose targets resolve outside the tree, and
+`mach lint -l eslint` silently drops such paths while prettier refuses them —
+each reports success over **zero files**. A planted `curly` error on the
+symlinked path produced no output at all; the same file copied into the tree
+produced the error. `scripts/lint.js` copies `src/koi/` to `engine/koi-lint/`,
+lints there, and removes it. The copy's name has no dot in it: Firefox's
+`.prettierignore` ignores `*.*` and un-ignores the file types it formats, so a
+directory called `.lint` matched and took everything under it with it — the
+script's first version passed prettier and stylelint over empty air. **A clean
+lint run proves nothing on its own; plant an error to prove the linter saw the
+file.**
 
 ### Debugging chrome
 
@@ -232,6 +248,8 @@ nothing, and an entire wrong explanation was built on top of it.
 - `npm start` runs `mach run --noprofile` so it uses the real profile at
   `~/Library/Application Support/Koi`, not a throwaway one in the objdir
 - Prefer whole files in `src/koi/` over patches to Firefox source, always
+- `npm run lint` before committing chrome work (`-- --fix` to let the tools
+  rewrite). See Chrome CSS for why it must not be `mach lint` on `engine/koi/`.
 - mozbuild hides build output when it sees `CLAUDECODE` in the env, which makes
   failures invisible. To see real errors:
   `cd engine && env -u CLAUDECODE ./mach configure` (or `./mach build`)
@@ -423,6 +441,12 @@ does, so local dev builds stay fast. Attempt #1 had `--enable-release
 `#include koi.js` appended to Firefox's `firefox.js`. Generated at import time by
 a Node script in `scripts/`, chained ahead of `surfer import` in the `import`
 npm script. **No patch to `firefox.js` is needed** — this is why Zen has none.
+`gen-prefs` also refuses any name that nothing reads (a `git grep` of the
+engine, tests excluded, plus one of `src/koi/` — Koi's own scripts are
+gitignored symlinks in the engine, so a `koi.*` pref read only by them would
+otherwise be refused): a default for a pref Firefox never reads is a silent
+no-op, the prefs twin of a mistyped CSS variable. It cannot see a reader
+compiled out by a build flag, so still look at the hits (prefs/README.md).
 
 Format follows Zen's: flat YAML lists of `name` / `value`, split by origin —
 `prefs/firefox/` overrides Mozilla defaults, `prefs/koi/` defines Koi's own.
@@ -805,7 +829,23 @@ placements — the furniture CSS cannot move), zero new Firefox patches:
   Koi's ink states (rest fg-2, hover fg, disabled fg-3) were invisible for
   months while the captures showed full-white glyphs. The toolbox now sets
   the token, and disabled is left to Firefox (`opacity:
-  var(--toolbarbutton-opacity-disabled)`, 0.5) rather than overridden.
+  var(--toolbarbutton-opacity-disabled)`, 0.5) rather than overridden. The
+  small controls press one rung up too — tab ×, tab speaker (through
+  moz-button's `--button-background-color-ghost-hover/-active`), card × and
+  speaker; pins settle their hover lift instead, a letter tile's colour being
+  its identity. Every Koi-authored control takes Firefox's focus tokens
+  (`--focus-outline`, `--focus-outline-inset/-offset`) for its ring.
+- **Customize mode is locked out.** The layout is opinionated and there is no
+  UI to change it: koi-chrome.css hides every entry point (five, all but one
+  via `[command="cmd_CustomizeToolbars"]`; the toolbar context item
+  `observes` it) with the divider that introduced each, and koi-chrome.js
+  disables the command. "Remove from Toolbar" goes too, in both context
+  menus — with no customize mode it was one-way. Pin-to-overflow stays: the »
+  panel it creates is where it is undone. Back and forward are flipped
+  `removable="true"` only for the window build (CUI evicts a non-removable
+  widget whose node sits *outside* its area) and flipped back on
+  `onAreaNodeRegistered`, once seated — so Firefox's own menu disables their
+  removal, as it does for its non-removables.
 - The urlbar input is `.urlbar-input` (a class; `#urlbar-input` no longer
   exists), the pill is `.urlbar-background` and is painted entirely by
   variables, and focus state is `#urlbar[focused]`.
@@ -930,7 +970,13 @@ nothing new added:
   `transitionend`.
 - Two attention animations are off in koi-chrome.css: the tab load burst
   (`.tab-loading-burst[bursting]::before`) and the urlbar row's action
-  slide-in (`.urlbarView-action[slide-in]`). Kept as Firefox ships them:
+  slide-in (`.urlbarView-action[slide-in]`). The burst is hidden with
+  `visibility: hidden`, **not** `animation: none`: Firefox removes `bursting`
+  only in its `animationend` handler (tab.js), so cancelling the animation
+  left the attribute stuck and the burst's blue disc parked behind the
+  favicon of every tab that had finished a load. Before cancelling any
+  Firefox animation, find what clears its state — the panel case below is
+  safe for exactly that reason. Kept as Firefox ships them:
   the tab width transition (100ms — the strip re-flowing) and the findbar's
   150ms slide (a surface arriving). The app menu's update-banner pulse is
   ignored; Koi has no update channel to show it.
@@ -955,7 +1001,20 @@ the layout. Cards = MENU-tint header (favicon, title, audio badge, ×) over a
 live thumbnail via `PageThumbs.captureTabPreviewThumbnail` (Firefox's own
 tab-hover capture; pending/blank tabs keep glass). Cards rebuild fresh per
 open; tab listeners bind only while shown. A hovered card brightens its
-hairline to a 1px ring over the fade — acknowledged, never moved. The board button
+hairline to a 1px ring over the fade — acknowledged, never moved. The surface is
+a modal (`role=dialog`, `aria-modal`): Tab wraps within it, Escape lives on it,
+and focus leaving for something real (the urlbar) dismisses without stealing
+the keyboard back — `xul.css` makes XUL chrome `-moz-user-focus: ignore`, so a
+toolbar click never blurs a card, and a window blur has no `relatedTarget` and
+does nothing. While open, one `reconcile()` on TabOpen/Close/Move/Hide/Show
+keeps the grid the strip (Firefox invalidates `visibleTabs` before each of those
+fires — verified per event); label/image/audio changes redraw in place.
+Thumbnails run four at a time through a queue and skip cards that have gone.
+Three marks, none shared: hover 1px ring, current = the strip's selected clothes
+(RAISED header, 500 title), keyboard = the accent ring. Both overlays anchor to
+`#tabbrowser-tabbox { position: relative }` in koi-shell.css — Firefox's
+`translate: 0` on it (sidebar.css, a bug-1930674 workaround) also forms a
+containing block, and the shell deliberately does not borrow it. The board button
 (`#koi-board-button`, 2×2-squares glyph at gecko's 1.5px ink) replaces the
 stock all-tabs chevron; `skipintoolbarset` keeps CUI from evicting it. A
 bookmarks mode shipped and was withdrawn — a flat grid loses folders; it can
@@ -1053,8 +1112,10 @@ design first.
 
 **Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to
 peek (peek has no trigger until it lands), re-pointing View › Show All Tabs
-at the board, a bookmarks surface with folders, the ⌘B/sidebar decision, and
-the palette's return.
+at the board, a bookmarks surface with folders, the ⌘B/sidebar decision, the
+palette's return, and **tab groups** — `browser.tabs.groups.enabled` is off
+(chrome-ui.yaml) until the strip has a design for a group label; Firefox's own
+is ~250 lines of tabs.css Koi styles nowhere.
 `src/koi/moz.build` still has an empty `DIRS` until a feature ships JS
 modules (Koi scripts load via jar + browser.xhtml, not EXTRA_JS_MODULES).
 `prefs/koi/` does not exist yet.

@@ -15,17 +15,17 @@
 
   --koi-rights-bg: light-dark(#fff, #1c1c1e);
   --koi-rights-ink: light-dark(#16181c, #f2f3f5);
-  --koi-rights-ink-2: light-dark(
-    rgba(22, 24, 28, 0.58),
-    rgba(242, 243, 245, 0.56)
-  );
+  --koi-rights-ink-2: light-dark(rgba(22, 24, 28, 0.58), rgba(242, 243, 245, 0.56));
 }
 
 body {
   margin: 0;
   background: var(--koi-rights-bg);
   color: var(--koi-rights-ink);
-  font: 15px/1.65 -apple-system, system-ui, sans-serif;
+  font:
+    15px/1.65 -apple-system,
+    system-ui,
+    sans-serif;
 }
 
 /* A 32rem measure holds the text near 65 characters a line. The top space is

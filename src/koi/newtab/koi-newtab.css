@@ -26,10 +26,6 @@
   }
 }
 
-:root[koi-empty] #tabbrowser-tabbox {
-  position: relative;
-}
-
 #koi-empty-state {
   display: none;
 }
@@ -98,7 +94,7 @@
   &:empty {
     display: none;
 
-    + .koi-empty-pin-label {
+    & + .koi-empty-pin-label {
       display: none;
     }
   }
@@ -126,6 +122,19 @@
     transform: translateY(-2px);
     background: var(--koi-glass-hover);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  }
+
+  /* Pressed, the lift settles back to rest — the pin is pushed, not lit: a
+   * letter tile's colour is its identity and holds under the press. */
+  &:hover:active {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+
+  /* The keyboard's pin: the accent ring, outside the tile like a key cap. */
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-outline-offset);
   }
 }
 

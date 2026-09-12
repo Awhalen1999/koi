@@ -30,12 +30,15 @@ loaded last would silently win.
 
 ## Adding a pref
 
-Confirm the pref actually exists before adding it. A default pref for a name
-Firefox never reads looks like it works and does nothing:
+The pref has to exist. A default for a name Firefox never reads looks like it
+works and does nothing, so `npm run prefs` refuses any name it cannot find
+read somewhere in the engine or in `src/koi/` (one `git grep` of each, tests
+excluded). What it cannot
+see is a reader compiled out by our build flags — `MOZ_TELEMETRY_REPORTING`,
+`MOZ_NORMANDY` and friends — so still look at the hits before adding one:
 
 ```
-grep -rl '"the.pref.name"' engine/browser/app/profile/firefox.js \
-  engine/modules/libpref/init/ engine/browser/extensions/newtab/
+git -C engine grep -l -F 'the.pref.name' -- . ':!**/test/**' ':!**/tests/**' ':!testing'
 ```
 
-If the only hits are tests, or code excluded by our build flags, leave it out.
+If the only readers are behind a flag we switch off, leave the pref out.

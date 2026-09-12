@@ -59,8 +59,10 @@
   --koi-gutter: var(--koi-space-4);
 
   /* The address pill is centered and capped. The cap deliberately outgrows
-   * the spec's 520: the field is the top row's centrepiece, so it tracks the
-   * window — 60% of its width, floored at 640, capped at 1200. Tabs are all
+   * the spec's 520: the field is the top row's centrepiece, so its ceiling
+   * tracks the window — 60% of its width, itself held between 640 and 1200.
+   * It is a ceiling only: in a narrow row the field shrinks below it as the
+   * springs run out, so the clusters never crowd. Tabs are all
    * exactly as wide as each other: they narrow together from this ceiling to
    * a 100px floor, then the strip scrolls instead. The floor is
    * browser.tabs.tabMinWidth (prefs/firefox/chrome-ui.yaml) — Firefox plumbs

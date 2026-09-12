@@ -98,15 +98,17 @@
    * boundary is the page card's gutter. */
   border-top-style: none;
   color: var(--koi-fg);
-  /* The top row is the titlebar. TabBarVisibility keeps .browser-titlebar on
-   * the tab strip, so the drag region is declared here instead. */
+  /* The top row is the titlebar, so it drags the window. Firefox's only drag
+   * region is .browser-titlebar, which tabbrowser.js puts on nav-bar only
+   * while the tab strip is hidden; with tabs shown it sits on the tab row and
+   * this row would not drag at all. Controls opt out themselves — xul.css
+   * makes buttons and inputs no-drag. */
   -moz-window-dragging: drag;
 
   /* osx/browser.css gives the lights a 12px lead margin and no trailing one;
    * the trailing margin meets the back button's slack. */
   & .titlebar-buttonbox {
-    margin-inline: var(--koi-space-12)
-      calc(var(--koi-space-12) - var(--toolbarbutton-padding-inner));
+    margin-inline: var(--koi-space-12) calc(var(--koi-space-12) - var(--toolbarbutton-padding-inner));
   }
 
   /* The 40px pre/post spacers are titlebar padding for the row the lights no
@@ -148,6 +150,24 @@
  * ipprotection-button into nav-bar's default placements at startup.) */
 #fxa-toolbar-menu-button,
 #ipprotection-button {
+  display: none;
+}
+
+/* Customize mode has no seat in Koi: the layout is opinionated and
+ * koi-chrome.js enforces it (and disables the command these run). Every
+ * entry point goes — app menu ▸ More tools, View ▸ Toolbars, the toolbar
+ * and panel context menus, the overflow panel's footer. All but the toolbar
+ * context item run the one command; that one observes it. Each divider
+ * that introduced an entry goes with it, so no menu ends on a rule.
+ *
+ * With no customize mode there is no way back from "Remove from Toolbar",
+ * so the two of those go too. Pinning to the overflow menu stays: the »
+ * panel it creates is where it is undone. */
+[command="cmd_CustomizeToolbars"],
+#toolbar-context-customize,
+:is(menuseparator, toolbarseparator):has(+ :is([command="cmd_CustomizeToolbars"], #toolbar-context-customize)),
+#toolbar-context-remove-from-toolbar,
+#customizationPanelItemContextMenuRemove {
   display: none;
 }
 
@@ -348,7 +368,9 @@
 
     & > .urlbar-background {
       background-color: var(--koi-glass-menu);
-      box-shadow: var(--koi-shadow-menu), inset 0 0 0 0.5px var(--koi-hair);
+      box-shadow:
+        var(--koi-shadow-menu),
+        inset 0 0 0 0.5px var(--koi-hair);
     }
   }
 
@@ -409,9 +431,13 @@
 
   /* No load burst. Firefox pulses a ring out from the favicon across the
    * pill when a page finishes loading (tabs.css); a page arriving is not an
-   * event, and the strip never asks for attention. */
+   * event, and the strip never asks for attention. Hidden, not cancelled:
+   * Firefox clears `bursting` in its animationend handler (tab.js), so
+   * `animation: none` left the attribute set and the ring parked at frame
+   * zero — a solid blue disc behind the favicon of every loaded tab. The
+   * keyframes animate only opacity and transform, so visibility holds. */
   & .tab-loading-burst[bursting]::before {
-    animation: none;
+    visibility: hidden;
   }
 
   /* Empty pages fly the brand's own colours: Firefox stamps the branding
@@ -422,8 +448,7 @@
   & .tab-icon-image[src="chrome://branding/content/icon32.png"] {
     box-sizing: border-box;
     padding-inline-start: 16px;
-    background: url("chrome://browser/content/koi-common/koi-mark.svg")
-      center / contain no-repeat;
+    background: url("chrome://browser/content/koi-common/koi-mark.svg") center / contain no-repeat;
   }
 
   /* The × belongs to the hovered tab — any tab, the selected one included —
@@ -457,31 +482,39 @@
       color: var(--koi-fg);
       background-color: var(--koi-glass-wash);
     }
+
+    /* Pressed sits one rung up, as every Koi control does. (Firefox's own
+     * close-icon.css presses to a currentColor mix, which is off the
+     * ladder.) */
+    &:hover:active {
+      background-color: var(--koi-glass-hover);
+    }
   }
 }
 
 /* The audio button follows the ×'s convention: 20px box, 13px glyph,
- * favicon radius, quiet ink over the wash on hover. It is a moz-button —
- * the glyph lives in its shadow ::part(button) — so geometry rides its
- * variable API and ink rides the part. (Not .tab-icon-overlay — that is
- * the pinned tab's corner badge, a different element that keeps Firefox's
- * geometry.) */
+ * favicon radius, quiet ink over the wash on hover, one rung up pressed.
+ * It is a moz-button — the glyph lives in its shadow ::part(button) — so
+ * geometry and backgrounds ride its variable API and ink rides the part.
+ * (Not .tab-icon-overlay — that is the pinned tab's corner badge, a
+ * different element that keeps Firefox's geometry.) */
 .tab-audio-button {
   --button-size-icon-small: 20px;
   --button-min-height-small: 20px;
   --icon-size: 13px;
   --button-border-radius: var(--koi-radius-favicon);
+  /* A ghost moz-button paints its hovered and pressed backgrounds from
+   * these two (moz-button.css): the wash, then one rung up. */
+  --button-background-color-ghost-hover: var(--koi-glass-wash);
+  --button-background-color-ghost-active: var(--koi-glass-hover);
 
   &::part(button) {
     fill: var(--koi-fg-2);
-    transition:
-      background-color var(--koi-fade),
-      fill var(--koi-fade);
+    transition: fill var(--koi-fade);
   }
 
   &:hover::part(button) {
     fill: var(--koi-fg);
-    background-color: var(--koi-glass-wash);
   }
 }
 
@@ -538,13 +571,7 @@
 #tabbrowser-arrowscrollbox[orient="horizontal"] {
   --koi-strip-fade-start: 0px;
   --koi-strip-fade-end: 0px;
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black var(--koi-strip-fade-start),
-    black calc(100% - var(--koi-strip-fade-end)),
-    transparent
-  );
+  mask-image: linear-gradient(to right, transparent, black var(--koi-strip-fade-start), black calc(100% - var(--koi-strip-fade-end)), transparent);
   transition:
     --koi-strip-fade-start var(--koi-fade),
     --koi-strip-fade-end var(--koi-fade);
@@ -559,13 +586,7 @@
 
   /* The gradient axis is physical; the scroll attributes are logical. */
   &:-moz-locale-dir(rtl) {
-    mask-image: linear-gradient(
-      to left,
-      transparent,
-      black var(--koi-strip-fade-start),
-      black calc(100% - var(--koi-strip-fade-end)),
-      transparent
-    );
+    mask-image: linear-gradient(to left, transparent, black var(--koi-strip-fade-start), black calc(100% - var(--koi-strip-fade-end)), transparent);
   }
 }
 

@@ -28,14 +28,21 @@
  * YAML where it is read. An `emit this into koi.js` field existed and went
  * unused by every prefs file; unknown keys are now refused so a stray one
  * cannot silently do nothing.
+ *
+ * Every name is also checked against the engine: a default for a pref that
+ * nothing in Firefox reads looks like it works and does nothing — the same
+ * silent no-op as a mistyped CSS variable — so README.md's grep runs here,
+ * on every import, and a name with no reader fails the build.
  */
 
 import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { join, relative } from 'node:path'
 import { parse } from 'yaml'
 
 const PREFS_DIR = 'prefs'
 const ENGINE = 'engine'
+const KOI_SRC = join('src', 'koi')
 const PROFILE_DIR = join(ENGINE, 'browser', 'app', 'profile')
 const OUT = join(PROFILE_DIR, 'koi.js')
 const FIREFOX_JS = join(PROFILE_DIR, 'firefox.js')
@@ -119,6 +126,49 @@ for (const file of files) {
 
   if (lines.length > 0) {
     sections.push(`// ${relative(PREFS_DIR, file)}\n${lines.join('\n')}`)
+  }
+}
+
+// One `git grep` per tree, tests excluded. With -o and -F it prints each
+// literal it matched, so a name absent from the output is read nowhere. Two
+// trees, because the engine is its own git repo (CLAUDE.md) and Koi's own
+// scripts reach it only as gitignored symlinks: a `koi.*` pref read by
+// koi-board.js is invisible to a grep of the engine, so src/koi is grepped
+// where it lives. koi.js itself is untracked in the engine, so the generated
+// file cannot vouch for its own names.
+function grepLiterals(cwd, names, pathspecs, flags = []) {
+  try {
+    const args = ['grep', '-o', '-h', '-F', '-f', '-', ...flags, '--', ...pathspecs]
+    const out = execFileSync('git', args, {
+      cwd,
+      input: names.join('\n'),
+      encoding: 'utf8',
+      maxBuffer: 1 << 26,
+    })
+    return out.split('\n')
+  } catch (error) {
+    if (error.status === 1) return [] // git grep: nothing matched at all
+    throw error
+  }
+}
+
+function readersOf(names) {
+  return new Set([
+    // Top-level testing/ needs its own pathspec: `**/testing/**` only matches
+    // a `/testing/` with a slash on both sides.
+    ...grepLiterals(ENGINE, names, ['.', ':!**/test/**', ':!**/tests/**', ':!testing']),
+    // --untracked: a script that is still new to git is a reader too.
+    ...grepLiterals('.', names, [KOI_SRC], ['--untracked']),
+  ])
+}
+
+const readers = readersOf([...seen.keys()])
+for (const [name, file] of seen) {
+  if (!readers.has(name)) {
+    die(
+      `pref "${name}" in ${file} is read nowhere in the engine. A default for ` +
+        `a name Firefox never reads does nothing — see prefs/README.md.`
+    )
   }
 }
 

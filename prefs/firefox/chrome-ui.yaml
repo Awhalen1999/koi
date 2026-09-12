@@ -17,6 +17,13 @@
 # The empty state (src/koi/newtab/) is chrome drawn over the wallpaper, so an
 # empty tab must be an actually empty page. Startup lands on about:blank like
 # every new tab (browser.newtabpage.enabled is already off in newtab.yaml).
+#
+# That is also the session-restore decision, made deliberately: Firefox's
+# browser.startup.page stays at its default of 1 (open the homepage), so a
+# launch is a fresh window on the wallpaper, never a pile of yesterday's
+# tabs — nothing asks for attention. The session is still kept; History ▸
+# Restore Previous Session brings it back on request. Set the pref to 3 to
+# restore automatically.
 - name: browser.startup.homepage
   value: about:blank
 
@@ -30,3 +37,12 @@
 # Nothing in Koi asks for attention; the field opening focused is the cue.
 - name: accessibility.typeaheadfind.flashBar
   value: 0
+
+# Tab groups are Firefox's, not yet Koi's: the strip has no design for a
+# group label, so the whole surface — the tab context menu's group items,
+# drag-to-group, the address bar's group actions, the Settings checkbox —
+# stays off until it has one (koi-chrome.css says the same of containers).
+# Smart groups sit behind browser.tabs.groups.smart.optin, false by default,
+# so there is nothing there to switch off.
+- name: browser.tabs.groups.enabled
+  value: false

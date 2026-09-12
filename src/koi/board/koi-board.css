@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The board (⇧⌘E) and peek (⌘E) — koi-board.js's one surface, two
+/* The board (⇧⌘E) and peek — koi-board.js's one surface, two
  * densities. The mode attribute is the whole switch: peek lays the same
  * cards in one row over the light scrim, board is the full grid over the
  * heavy one. Scrims dim only — page pixels are out of process and cannot
@@ -16,6 +16,9 @@
   inset: var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   overflow: clip;
+  /* Dark throughout — the cards' light-dark() tokens and the grid's own
+   * scrollbar alike agree with the scrim and the MENU tint. */
+  color-scheme: dark;
   animation: koiFade var(--koi-fade) both;
 }
 
@@ -60,30 +63,47 @@
   flex: none;
 }
 
-/* The card: a MENU-tinted header over the page thumbnail. Focus doubles as
- * selection — arrows move it, Enter commits — and the current tab's card
- * carries the accent ring on arrival. */
+/* The card: a MENU-tinted header over the page thumbnail. Three states,
+ * three marks, none shared — a board where the current card and the
+ * keyboard's card wore the same ring could not say which was which:
+ *
+ *   hovered — the hairline steps up to a quiet 1px ring. Acknowledged, not
+ *             chased; nothing moves, the board's one spring is its entrance.
+ *   current — the selected tab's own clothes from the strip: the RAISED
+ *             film on the header, the heavier title.
+ *   focused — the accent ring, and only here. Arrows move it, Enter commits.
+ *             Opened with the key it lands on the current card; opened with
+ *             the mouse, :focus-visible withholds it until a key is pressed. */
 .koi-card {
   display: flex;
   flex-direction: column;
   border-radius: var(--koi-radius-page);
   overflow: clip;
   background: var(--koi-glass-menu);
-  box-shadow: var(--koi-shadow-menu), 0 0 0 0.5px var(--koi-hair);
-  color-scheme: dark;
+  box-shadow:
+    var(--koi-shadow-menu),
+    0 0 0 0.5px var(--koi-hair);
   transition: box-shadow var(--koi-fade);
 
-  /* The pointer is acknowledged, not chased: the hairline steps up to a
-   * quiet 1px ring, so rest, hovered and chosen read as a ladder with the
-   * accent ring on top. Nothing moves — the board's one spring is its
-   * entrance. */
   &:hover {
-    box-shadow: var(--koi-shadow-menu), 0 0 0 1px var(--koi-fg-3);
+    box-shadow:
+      var(--koi-shadow-menu),
+      0 0 0 1px var(--koi-fg-3);
   }
 
-  &:is(.koi-card-current, :focus-visible) {
-    outline: 2px solid var(--koi-accent);
-    outline-offset: -2px;
+  &.koi-card-current {
+    & > .koi-card-header {
+      background: var(--koi-glass-raised);
+    }
+
+    & .koi-card-label {
+      font-weight: 500;
+    }
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-outline-inset);
   }
 }
 
@@ -114,47 +134,54 @@
   white-space: nowrap;
 }
 
-/* The tab ×'s exact clothes: 20px box, 13px glyph, wash on hover — drawn
- * as a background since this button has no XUL image machinery. The
- * pill-height header leaves it even air on every side. */
-.koi-card-close {
+/* The header's two buttons — the × and the audio badge — wear the tab ×'s
+ * exact clothes: 20px box, 13px glyph, quiet ink, the wash on hover, one
+ * rung up pressed, the accent ring for the keyboard. Glyphs are backgrounds,
+ * since these buttons have no XUL image machinery; the pill-height header
+ * leaves them even air on every side. */
+.koi-card-close,
+.koi-card-audio {
   appearance: none;
   border: none;
   flex: none;
   width: 20px;
   height: 20px;
   border-radius: var(--koi-radius-favicon);
-  background: url("resource://content-accessible/close-12.svg") center /
-    13px no-repeat;
+  background: center / 13px no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
-  transition: background-color var(--koi-fade);
+  transition:
+    background-color var(--koi-fade),
+    fill var(--koi-fade);
 
   &:hover {
     fill: var(--koi-fg);
     background-color: var(--koi-glass-wash);
   }
+
+  &:hover:active {
+    background-color: var(--koi-glass-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-outline-inset);
+  }
 }
 
-/* The audio badge: the close button's twin, speaker instead of ×. Hidden
- * unless the tab plays or is muted; the muted state swaps the glyph. */
+.koi-card-close {
+  background-image: url("resource://content-accessible/close-12.svg");
+}
+
+/* The audio badge: hidden unless the tab plays or is muted; the muted state
+ * swaps the glyph. */
 .koi-card-audio {
   display: none;
-  appearance: none;
-  border: none;
-  flex: none;
-  width: 20px;
-  height: 20px;
   /* The system's 4px between the two boxes — the same air tab pills keep —
    * by trimming the header's 8px flex gap. Hidden, the badge creates no gap
    * at all and the × is untouched. */
   margin-inline-end: calc(var(--koi-space-4) - var(--koi-space-8));
-  border-radius: var(--koi-radius-favicon);
-  background: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg")
-    center / 13px no-repeat;
-  -moz-context-properties: fill;
-  fill: var(--koi-fg-2);
-  transition: background-color var(--koi-fade);
+  background-image: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg");
 
   &:is(.playing, .muted) {
     display: block;
@@ -162,11 +189,6 @@
 
   &.muted {
     background-image: url("chrome://browser/skin/tabbrowser/tab-audio-muted-small.svg");
-  }
-
-  &:hover {
-    fill: var(--koi-fg);
-    background-color: var(--koi-glass-wash);
   }
 }
 

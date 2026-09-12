@@ -24,7 +24,7 @@
  * chrome turns opaque whenever the window loses focus. Firefox's
  * `will-change: background-color` is dead once the colour is pinned. */
 body {
-  background: var(--koi-glass-shell) !important;
+  background-color: var(--koi-glass-shell) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 0 0 0.5px var(--koi-hair);
@@ -49,6 +49,15 @@ body {
   border-bottom-style: none;
 }
 
+/* The overlays' anchor. The empty-state card and the board are absolutely
+ * positioned children of the tabbox, inset by the gutter so they sit exactly
+ * on the page card; this is the containing block that makes that true.
+ * Firefox happens to give the tabbox `translate: 0` (sidebar.css, working
+ * around bug 1930674), which forms one too — the shell does not borrow it. */
+#tabbrowser-tabbox {
+  position: relative;
+}
+
 /* The page card --------------------------------------------------------------
  * A rounded card inset on all four sides so the wallpaper frames it. The inset
  * is a margin on the grid item, not padding on the grid container — see
@@ -58,9 +67,7 @@ body {
  * corners or shadow, and a macOS fullscreen space has no wallpaper behind it to
  * frame with. `inFullscreen` is set both valued and bare, so match the bare
  * attribute. Chrome-less `window.open` popups are not browser windows. */
-:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not(
-    [chromehidden~="location"]
-  ):not([chromehidden~="toolbar"])
+:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])
   #tabbrowser-tabpanels
   .browserSidebarContainer {
   /* The card owns all four of its edges. (The top gap once lived as bottom
@@ -70,7 +77,9 @@ body {
   /* clip, not hidden: the corners have to actually cut the page content. */
   overflow: clip;
   border-radius: var(--koi-radius-page);
-  box-shadow: var(--koi-shadow-page), 0 0 0 0.5px var(--koi-page-ring);
+  box-shadow:
+    var(--koi-shadow-page),
+    0 0 0 0.5px var(--koi-page-ring);
 }
 
 /* The page ground: what shows behind a page that has not painted yet, and
@@ -100,9 +109,7 @@ body {
  *
  * Not transparent, unlike Zen — Zen also patches out that opacity:0 rule; Koi
  * keeps it, so transparency here would show the desktop through loading tabs. */
-#tabbrowser-tabpanels
-  .browserSidebarContainer
-  .browserContainer {
+#tabbrowser-tabpanels .browserSidebarContainer .browserContainer {
   background: var(--koi-ground-light);
 
   @media (-moz-content-prefers-color-scheme: dark) {
@@ -115,8 +122,6 @@ body {
  * `browser[type="content"]` also matches the sidebar, the AI window,
  * picture-in-picture and devtools panels. Outside the fullscreen guard above —
  * the panels are transparent in every window state, card or no card. */
-#tabbrowser-tabpanels
-  .browserSidebarContainer
-  browser[type="content"]:not([transparent="true"]) {
+#tabbrowser-tabpanels .browserSidebarContainer browser[type="content"]:not([transparent="true"]) {
   background: light-dark(var(--koi-ground-light), var(--koi-ground-dark));
 }

@@ -98,20 +98,29 @@
 
       // The pins are the toolbar folder's bookmarks — the folder the star
       // saves to, and the set the user curated to see — capped so the card
-      // never becomes a wall; the long tail belongs to ⌘L. Favicons via
-      // page-icon: when Places has one; a site without one becomes the
-      // spec's letter tile. Refetched on every reveal.
+      // never becomes a wall; the long tail belongs to ⌘L. One level only:
+      // fetch({ parentGuid }) is a single SELECT over the folder's direct
+      // children (Bookmarks.sys.mjs, fetchBookmarksByParent), where
+      // promiseBookmarksTree walks every descendant of every subfolder — on
+      // every new tab, to keep 24 rows. Favicons via page-icon: when Places
+      // has one; a site without one becomes the spec's letter tile.
+      // Refetched on every reveal.
       let revealGeneration = 0;
       async function refreshPins() {
         const generation = ++revealGeneration;
         let items = [];
         try {
-          const tree = await PlacesUtils.promiseBookmarksTree(
-            PlacesUtils.bookmarks.toolbarGuid
+          // fetch resolves to its first match; the callback sees them all.
+          const children = [];
+          await PlacesUtils.bookmarks.fetch(
+            { parentGuid: PlacesUtils.bookmarks.toolbarGuid },
+            child => children.push(child)
           );
-          items = (tree.children ?? [])
-            .filter(child => child.uri && !child.uri.startsWith("place:"))
-            .slice(0, 24);
+          items = children
+            // Folders and separators have no url; place: queries are not sites.
+            .filter(child => child.url && child.url.protocol !== "place:")
+            .slice(0, 24)
+            .map(child => ({ uri: child.url.href, title: child.title }));
         } catch {
           // No Places yet (first run mid-init): an empty row is fine.
         }
@@ -153,12 +162,21 @@
               event.metaKey || event.ctrlKey ? "tab" : "current"
             );
           });
-          pin.addEventListener("mouseenter", () => {
-            pinLabel.textContent = hostOf(item.uri);
-          });
-          pin.addEventListener("mouseleave", () => {
-            pinLabel.textContent = "";
-          });
+          // The label echoes the pin under the pointer, or the one holding
+          // the keyboard; leaving only clears a label that is still its own.
+          const host = hostOf(item.uri);
+          const show = () => {
+            pinLabel.textContent = host;
+          };
+          const clear = () => {
+            if (pinLabel.textContent === host) {
+              pinLabel.textContent = "";
+            }
+          };
+          pin.addEventListener("mouseenter", show);
+          pin.addEventListener("focus", show);
+          pin.addEventListener("mouseleave", clear);
+          pin.addEventListener("blur", clear);
           pins.append(pin);
         });
       }
