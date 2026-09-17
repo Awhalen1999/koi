@@ -78,8 +78,11 @@
 
       // Every capture is a paint request to a content process, and a window
       // with forty tabs must not fire forty at once: they run through this
-      // queue a few at a time. A card that has gone by the time its turn
-      // comes — the surface closed, the tab shut — is skipped, not painted.
+      // queue a few at a time. Closing the surface empties the queue; a tab
+      // shut while queued is skipped below; a card dropped while its capture
+      // was in flight is judged on resolve. Not here: cardFor() requests the
+      // capture before the card is in the grid, so at this point the thumb is
+      // never connected, and checking it dropped every capture on the floor.
       const CAPTURES_AT_ONCE = 4;
       const captureQueue = [];
       let capturesRunning = 0;
@@ -88,10 +91,7 @@
         while (capturesRunning < CAPTURES_AT_ONCE && captureQueue.length) {
           const { tab, thumb } = captureQueue.shift();
           const browser = tab.linkedBrowser;
-          if (
-            !thumb.isConnected ||
-            !browser?.browsingContext?.currentWindowGlobal
-          ) {
+          if (!browser?.browsingContext?.currentWindowGlobal) {
             continue;
           }
           const canvas = el("canvas");
@@ -101,7 +101,9 @@
           PageThumbs.captureTabPreviewThumbnail(browser, canvas)
             .then(
               () => thumb.isConnected && thumb.append(canvas),
-              () => {} // The glass fallback is already showing.
+              // The glass fallback is already showing; say why on the radar.
+              error =>
+                console.warn("koi-board: thumbnail capture failed", error)
             )
             .finally(() => {
               capturesRunning--;

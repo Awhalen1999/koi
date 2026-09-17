@@ -19,15 +19,10 @@
  *   - name: browser.newtabpage.enabled
  *     value: false
  *
- *   - name: browser.startup.homepage
- *     value: "about:blank"
- *     locked: true   # optional -> locked_pref
- *     sticky: true   # optional -> sticky_pref
- *
  * Why a pref is set is written as a `#` comment above it, which stays in the
- * YAML where it is read. An `emit this into koi.js` field existed and went
- * unused by every prefs file; unknown keys are now refused so a stray one
- * cannot silently do nothing.
+ * YAML where it is read. Any other key is refused so a stray one cannot
+ * silently do nothing. (`locked`/`sticky` variants and an `emit` field existed
+ * and went unused by every prefs file; add one back when a pref needs it.)
  *
  * Every name is also checked against the engine: a default for a pref that
  * nothing in Firefox reads looks like it works and does nothing — the same
@@ -35,7 +30,7 @@
  * on every import, and a name with no reader fails the build.
  */
 
-import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join, relative } from 'node:path'
 import { parse } from 'yaml'
@@ -49,35 +44,19 @@ const FIREFOX_JS = join(PROFILE_DIR, 'firefox.js')
 const INCLUDE_LINE = '#include koi.js'
 const ENGINE_GITIGNORE = join(ENGINE, '.gitignore')
 const IGNORE_ENTRY = 'browser/app/profile/koi.js'
-const KNOWN_KEYS = new Set(['name', 'value', 'locked', 'sticky'])
+const KNOWN_KEYS = new Set(['name', 'value'])
 
 function die(message) {
   console.error(`gen-prefs: ${message}`)
   process.exit(1)
 }
 
-function walk(dir) {
-  const found = []
-  for (const entry of readdirSync(dir).sort()) {
-    const path = join(dir, entry)
-    if (statSync(path).isDirectory()) found.push(...walk(path))
-    else if (/\.ya?ml$/.test(entry)) found.push(path)
-  }
-  return found
-}
-
 /** Renders a YAML scalar as a JS literal for a pref() call. */
 function literal(value, name) {
-  switch (typeof value) {
-    case 'boolean':
-      return String(value)
-    case 'number':
-      return String(value)
-    case 'string':
-      return JSON.stringify(value)
-    default:
-      die(`pref "${name}" has unsupported value type ${typeof value}`)
+  if (!['boolean', 'number', 'string'].includes(typeof value)) {
+    die(`pref "${name}" has unsupported value type ${typeof value}`)
   }
+  return JSON.stringify(value)
 }
 
 if (!existsSync(PROFILE_DIR)) {
@@ -87,14 +66,14 @@ if (!existsSync(PROFILE_DIR)) {
   )
 }
 
-if (!existsSync(PREFS_DIR)) die(`${PREFS_DIR}/ does not exist`)
-
-const files = walk(PREFS_DIR)
+const files = readdirSync(PREFS_DIR, { recursive: true })
+  .filter(entry => /\.ya?ml$/.test(entry))
+  .sort()
+  .map(entry => join(PREFS_DIR, entry))
 if (files.length === 0) die(`no YAML files found under ${PREFS_DIR}/`)
 
 const seen = new Map()
 const sections = []
-let count = 0
 
 for (const file of files) {
   const parsed = parse(readFileSync(file, 'utf8'))
@@ -104,7 +83,7 @@ for (const file of files) {
   const lines = []
   for (const entry of parsed) {
     if (!entry || typeof entry !== 'object') die(`${file} has a malformed entry`)
-    const { name, value, locked, sticky } = entry
+    const { name, value } = entry
     if (typeof name !== 'string') die(`${file} has an entry with no name`)
     if (value === undefined) die(`pref "${name}" in ${file} has no value`)
     for (const key of Object.keys(entry)) {
@@ -119,9 +98,7 @@ for (const file of files) {
     }
     seen.set(name, file)
 
-    const fn = locked ? 'locked_pref' : sticky ? 'sticky_pref' : 'pref'
-    lines.push(`${fn}(${JSON.stringify(name)}, ${literal(value, name)});`)
-    count++
+    lines.push(`pref(${JSON.stringify(name)}, ${literal(value, name)});`)
   }
 
   if (lines.length > 0) {
@@ -199,5 +176,5 @@ if (existsSync(ENGINE_GITIGNORE)) {
 }
 
 console.log(
-  `gen-prefs: ${count} prefs from ${files.length} file(s) -> ${OUT}`
+  `gen-prefs: ${seen.size} prefs from ${files.length} file(s) -> ${OUT}`
 )

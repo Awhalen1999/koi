@@ -83,10 +83,9 @@
    * short, Firefox's 36 read as massive, and 28 — Helium's own control
    * height — lands notably shorter than Firefox and Chrome without going
    * as tight as Helium's 3px-unit chrome (their 68px total vs our 76;
-   * see their patches/helium/ui/layout-constants.patch). Glyph geometry
-   * stays Firefox's 16px-in-32px boxes; Koi paints no box behind a bare
-   * glyph, so a box outgrowing its row edge shows nothing. Bookmark pills
-   * run one size down (icon plus 4px each side). */
+   * see their patches/helium/ui/layout-constants.patch). Toolbar glyphs
+   * are Firefox's 16px in a 28px box, the pill height (koi-chrome.css).
+   * Bookmark pills run one size down (icon plus 4px each side). */
   --koi-pill-height: 28px;
   --koi-dot: var(--koi-space-8);
 

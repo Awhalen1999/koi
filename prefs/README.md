@@ -17,8 +17,6 @@ A flat YAML list per file:
 
 - name: browser.startup.homepage
   value: "about:blank"
-  locked: true   # optional -> locked_pref
-  sticky: true   # optional -> sticky_pref
 ```
 
 Any other key is a hard error, so a typo cannot silently do nothing. Why a

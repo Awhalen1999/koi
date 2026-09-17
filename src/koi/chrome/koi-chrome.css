@@ -29,7 +29,7 @@
  *     pills — and the + button sits 4px off the last pill, the same gap
  *     tabs keep from each other.
  *   - Pills share one height, --koi-pill-height; bookmark pills run one
- *     size down. Glyph geometry stays Firefox's: 16px glyphs in 32px boxes.
+ *     size down. Toolbar glyphs are Firefox's 16px in a 28px box, the pill.
  *   - The address pill is centered between Firefox's own toolbar springs
  *     and capped at --koi-field-max.
  *
@@ -62,17 +62,22 @@
   /* Inside the pill: 10px inset, 8px favicon-to-label. */
   --tab-inline-padding: 10px;
   --tab-icon-end-margin: var(--koi-space-8);
+  /* Firefox draws a separator before the strip whenever a toolbarbutton
+   * precedes it in the DOM (tabs.css ::before) — our nav cluster does. Killed
+   * at its token: every drawing of it consumes this variable, and the
+   * variable is immune to the strip's internal DOM, where an element-scoped
+   * rule proved not to be. Koi draws no dividers; the 12px rhythm carries
+   * the grouping. */
+  --tabstrip-inner-border: none;
 
   /* Keyboard focus rings in the system accent, as the board's ring already
    * is; Firefox's default is its own brand blue. */
   --focus-outline-color: var(--koi-accent);
 }
 
-/* Nav above tabs — Firefox ships them inverted. */
+/* Nav above tabs — Firefox ships them inverted. A toolbox is already a column
+ * flexbox (xul.css), so this is only the order. */
 #navigator-toolbox {
-  display: flex;
-  flex-direction: column;
-
   & > #nav-bar {
     order: 1;
   }
@@ -207,16 +212,6 @@
  * onto the cards. Containers and groups get Koi UI when Koi adopts them. */
 #alltabs-button {
   display: none;
-}
-
-/* Firefox draws a separator before the strip whenever a toolbarbutton
- * precedes it in the DOM (tabs.css ::before) — our nav cluster now does.
- * Killed at its token: every drawing of it consumes this variable, and the
- * variable is immune to the strip's internal DOM, where an element-scoped
- * rule proved not to be. Koi draws no dividers; the 12px rhythm carries
- * the grouping. */
-:root {
-  --tabstrip-inner-border: none;
 }
 
 #firefox-view-button {
