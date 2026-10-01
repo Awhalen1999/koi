@@ -66,8 +66,11 @@ body {
  * Dropped in fullscreen, DOM or native: a video filling the screen wants no
  * corners or shadow, and a macOS fullscreen space has no wallpaper behind it to
  * frame with. `inFullscreen` is set both valued and bare, so match the bare
- * attribute. Chrome-less `window.open` popups are not browser windows. */
-:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])
+ * attribute. Chrome-less popups are not browser windows: since 157 Firefox
+ * marks a `window.open` popup `popup-window`, an onboarding window
+ * `chromeless-window` and an extension popup `web-extension-popup-window`
+ * (all browser-init.js); `chromehidden` is gone. */
+:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([popup-window]):not([chromeless-window]):not([web-extension-popup-window])
   #tabbrowser-tabpanels
   .browserSidebarContainer {
   /* The card owns all four of its edges. (The top gap once lived as bottom

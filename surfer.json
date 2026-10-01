@@ -5,7 +5,10 @@
   "binaryName": "koi",
   "version": {
     "product": "firefox",
-    "version": "154.0"
+    "version": "157.0"
+  },
+  "buildOptions": {
+    "windowsUseSymbolicLinks": false
   },
   "addons": {},
   "brands": {

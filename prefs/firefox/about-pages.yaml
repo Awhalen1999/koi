@@ -11,10 +11,6 @@
 - name: browser.vpn_promo.enabled
   value: false
 
-# The Firefox Focus upsell on about:privatebrowsing (BrowserUtils.sys.mjs).
-- name: browser.promo.focus.enabled
-  value: false
-
 # about:addons' Recommendations pane, which fetches from AMO
 # (mozapps/extensions/content/aboutaddons-utils.mjs).
 - name: extensions.getAddons.showPane

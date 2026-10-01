@@ -43,14 +43,18 @@
   /* Firefox floats tab pills on a 6px block margin of their own; the
    * system's air is 4px everywhere, and the row derives from it. */
   --tab-margin-block: var(--koi-space-4);
-  --urlbar-min-height: var(--koi-pill-height);
+  --urlbar-height: var(--koi-pill-height);
   /* The pill is the urlbar: no block padding around the background. */
   --urlbar-padding-block: 0px;
-  /* And the open dropdown is the pill, same footprint: this margin is what
-   * Proton's expand-on-open grows the bar by — [breakout-extend] adds it to
-   * each side and shifts the input text by it (urlbar-searchbar.css). Zeroed,
-   * the dropdown and its rows line up with the resting field exactly. */
+  /* The input's own inline margin inside its container (urlbar.css). Zeroed,
+   * the pill is the container, and the open dropdown lines up with it. */
   --urlbar-margin-inline: 0px;
+  /* While the view is open, Nova lets the joint background reach 8px past
+   * the input on every side (urlbar.css, --urlbar-background-overhang-open),
+   * and derives the view half's outsets from it at :root — so it is pinned
+   * here, not on #urlbar, for both halves to agree. The open surface is the
+   * pill. */
+  --urlbar-background-overhang-open: 0px;
 
   /* Tab pill clothes, on the tab.tokens.css API. */
   --tab-border-radius: var(--koi-radius-pill);
@@ -59,6 +63,11 @@
   --tab-background-color-hover: var(--koi-glass-hover);
   --tab-background-color-selected: var(--koi-glass-raised);
   --tab-box-shadow-selected: 0 0 0 0.5px var(--koi-hair);
+  /* Nova rings the selected tab with a violet-to-orange gradient painted into
+   * its border area (tabs.css, --tab-border-color-accent) and keeps an
+   * outline token for it besides. The hairline above is the selected mark. */
+  --tab-border-color-accent: none;
+  --tab-border-color-selected: transparent;
   /* Inside the pill: 10px inset, 8px favicon-to-label. */
   --tab-inline-padding: 10px;
   --tab-icon-end-margin: var(--koi-space-8);
@@ -151,10 +160,13 @@
   display: none;
 }
 
-/* Calm by default: no account or VPN upsell in the chrome. (Firefox splices
- * ipprotection-button into nav-bar's default placements at startup.) */
+/* Calm by default: no account or VPN upsell in the chrome, and no sidebar
+ * toggle until the sidebar has a decision. (Firefox splices ipprotection-
+ * button and, since 157, sidebar-button into nav-bar's placements at
+ * startup; CustomizableUI puts them back, so they are hidden, not removed.) */
 #fxa-toolbar-menu-button,
-#ipprotection-button {
+#ipprotection-button,
+#sidebar-button {
   display: none;
 }
 
@@ -166,15 +178,18 @@
  * that introduced an entry goes with it, so no menu ends on a rule.
  *
  * With no customize mode there is no way back from "Remove from Toolbar",
- * so the two of those go too. Pinning to the overflow menu stays: the »
- * panel it creates is where it is undone. */
+ * so it goes too. Pinning to the overflow menu stays: the » panel it
+ * creates is where it is undone. */
+/* stylelint-disable stylelint-plugin-mozilla/no-has-selector -- the
+   divider before a customize entry has no attribute of its own to key on,
+   and `:has(+ x)` here checks one sibling inside a menu, not a subtree. */
 [command="cmd_CustomizeToolbars"],
 #toolbar-context-customize,
 :is(menuseparator, toolbarseparator):has(+ :is([command="cmd_CustomizeToolbars"], #toolbar-context-customize)),
-#toolbar-context-remove-from-toolbar,
-#customizationPanelItemContextMenuRemove {
+#toolbar-context-remove-from-toolbar {
   display: none;
 }
+/* stylelint-enable stylelint-plugin-mozilla/no-has-selector */
 
 /* Row two: the page's row. --------------------------------------------------
  * Board button, tab strip, +. */
@@ -312,9 +327,9 @@
  * koi-theme.css on glass).
  *
  * Firefox paints --urlbar-background-color-focus on `[focused]` OR `[open]`
- * (urlbar-searchbar.css), and it focuses the urlbar on every blank tab — so
+ * (urlbar.css), and it focuses the urlbar on every blank tab — so
  * that variable must stay WELL or new tabs open with a dark field. `[open]`
- * takes the menu tint by rule instead. (`[breakout-extend]` is only ever set
+ * takes the menu tint by rule instead. (`[popover-open]` is only ever set
  * while the view is open, so `[open]` covers both.) */
 
 #urlbar-container {
@@ -328,11 +343,6 @@
   --urlbar-background-border-focused: none;
   --urlbar-background-border-radius: var(--koi-radius-pill);
   --urlbar-background-outline-focused: none;
-  /* When open, Firefox insets the painted background from the popover by
-   * half the pill height minus the view radius — a value that forks with the
-   * active design-token branch. Pinned to 0 so the open surface is the
-   * popover, which --urlbar-margin-inline: 0px (above) pins to the pill. */
-  --urlbar-background-inset-breakout: 0px;
   /* The star, and the lock when Firefox gives it a chip (chromeUI, not
    * secure, extension pages): nothing at rest or on focus — the pill has
    * no chips — then the same wash and rung-up as every other control.
@@ -360,6 +370,14 @@
    * whatever the OS theme says. */
   &[open] {
     color-scheme: dark;
+    /* Since 157 the open surface is a joint background: .urlbar-background
+     * paints the input half, and the view's popover paints the rest from
+     * these three tokens (urlbar.css, .urlbarView-background). The view is
+     * a child of #urlbar, so the open-scoped values reach it, and the focus
+     * colour can stay WELL everywhere else. */
+    --urlbar-background-color-focus: var(--koi-glass-menu);
+    --urlbar-background-border-open: none;
+    --urlbar-background-box-shadow-open: var(--koi-shadow-menu);
 
     & > .urlbar-background {
       background-color: var(--koi-glass-menu);
@@ -390,7 +408,7 @@
   }
 
   /* Suggestion rows arrive whole. Firefox slides each row's action label in
-   * from the side over 350ms (view-proton.css) — a flourish on a list that
+   * from the side (urlbar/view-nova.css) — a flourish on a list that
    * repaints on every keystroke. */
   & .urlbarView-action[slide-in] {
     animation: none;

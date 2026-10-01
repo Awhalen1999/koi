@@ -1,15 +1,15 @@
 diff --git a/.stylelintrc.js b/.stylelintrc.js
-index b484bf6600a7e1b8ad2aed8c8b7fe5e84cc3d023..dde1c446919649c1b409118680577d5688d9a4b1 100644
+index 876f76417f800ce8889d398b6ab478cc089c4125..7b1260b9147cb0c8cf0d103da63dca784a461633 100644
 --- a/.stylelintrc.js
 +++ b/.stylelintrc.js
-@@ -280,7 +280,9 @@ module.exports = {
-     "media-query-no-invalid": null,
-     "stylelint-plugin-mozilla/media-query-no-invalid": true,
+@@ -282,7 +282,9 @@ module.exports = {
+     "stylelint-plugin-mozilla/no-background-without-text-color": true,
      "stylelint-plugin-mozilla/no-base-design-tokens": true,
+     "stylelint-plugin-mozilla/no-has-selector": true,
 -    "stylelint-plugin-mozilla/use-design-tokens": true,
 +    // Koi has its own design system in src/koi/common/styles/koi-theme.css.
 +    // Linting it against Mozilla's tokens buries real errors under noise.
 +    "stylelint-plugin-mozilla/use-design-tokens": null,
+     "stylelint-plugin-mozilla/use-paired-color-tokens": true,
    },
  
-   overrides: [

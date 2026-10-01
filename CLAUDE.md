@@ -9,7 +9,7 @@ Chrome has no colour of its own — it borrows the wallpaper. No themes.
 All controls in two 36px rows at the top; the rest belongs to the page.
 
 ## Stack
-- Firefox 154 stable, forked via `@zen-browser/surfer` 1.14.7
+- Firefox 157 stable, forked via `@zen-browser/surfer` 1.14.7
 - Reference implementation: github.com/zen-browser/desktop (MPL, safe to study)
 - Surfer ships no documentation; docs.gluon.dev documents its ancestor and is
   stale. The references are surfer's own source in
@@ -120,13 +120,17 @@ Do not `%include` Koi CSS into Firefox's own `browser/themes/*/browser.css`
   Bare, it also matches the sidebar, the AI window, picture-in-picture and
   devtools.
 - **Guard only what assumes the wallpaper is there.** The guard is
-  `:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])`
+  `:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([popup-window]):not([chromeless-window]):not([web-extension-popup-window])`
   and Koi applies it to one rule, the page card. Restyling a control does not
   assume a wallpaper, so koi-chrome.css guards nothing.
 - **Style through Firefox's variable API** (`--tab-*`, `--urlbar-*`,
-  `--toolbarbutton-*`, `--panel-*`), not its structure, and grep the 154 tree
-  before writing a name: several memorable ones are gone
-  (`--toolbarbutton-inner-padding` is now `--toolbarbutton-padding-inner`).
+  `--toolbarbutton-*`, `--panel-*`), not its structure, and grep the tree
+  before writing a name: names move between majors.
+  `--toolbarbutton-inner-padding` became `--toolbarbutton-padding-inner`;
+  157 renamed `--urlbar-min-height` to `--urlbar-height`, replaced the
+  urlbar's `[breakout]` with a native popover (`[popover-open]` on the field,
+  `--urlbar-background-overhang-open` for the joint surface) and replaced
+  the root's `chromehidden` with `popup-window` / `chromeless-window`.
   When a rule mysteriously misses inside the tab strip, suspect its internal
   DOM and kill the thing at its variable (`--tabstrip-inner-border`).
 - **Before cancelling a Firefox animation, find what clears its state.**
@@ -147,6 +151,8 @@ turns off `use-design-tokens` with `null`, the only "off" stylelint accepts
 (`false` makes stylelint exit without running anything, silently). **A clean
 lint run proves nothing on its own; plant an error once to prove the linter
 saw the file.** Koi's CSS and JS pass with zero problems; keep it that way.
+157 added `no-has-selector`, whose own message asks for an inline disable
+with a reason; the one `:has()` in koi-chrome.css carries it.
 
 ### Debugging chrome
 
@@ -227,6 +233,32 @@ error if exported from a mozconfig. Patch them:
 
 `default=` loses to `imply_option`, so patch whichever file supplies the value.
 
+### Updating Firefox
+
+`npx surfer update` fetches Mozilla's latest release number, deletes
+`engine/` (objdir included), downloads and unpacks the new source, makes the
+baseline commit and writes the version into surfer.json (it also drops the
+file's trailing newline and adds a `buildOptions` key; both harmless). Clear
+`~/.mozbuild/srcdirs/engine-*` first (see Toolchain). Then:
+
+1. `npm run import`. gen-prefs runs first and refuses any pref the new tree
+   no longer reads — delete it from its yaml (157 dropped
+   `browser.promo.focus.enabled`). surfer stops at the first patch that fails
+   to apply; make that edit by hand in `engine/`, `npm run export` it, and
+   import again until all apply.
+2. A full build follows; the first after a bump mostly misses sccache
+   (154 → 157 took about 25 minutes on the M5 Pro).
+3. Look at everything: the chrome, the empty state, the board, Settings, a
+   private window. The dry run below cannot see rendering.
+
+To know the damage before downloading anything: fetch each patched file from
+`https://hg.mozilla.org/releases/mozilla-release/raw-file/FIREFOX_<v>_RELEASE/<path>`
+into a scratch git repo and `git apply --check` each patch against it, then
+`git grep -F` the new tree for every Firefox CSS variable, id and JS name
+Koi uses (git grep's ERE has no `\b`; use `-F`). 154 → 157 cost two
+context-shifted patches, one dead pref, two renamed urlbar variables, one
+renamed root attribute and one dead menu id.
+
 ---
 
 ## App identity
@@ -250,14 +282,14 @@ The objdir is `obj-aarch64-apple-darwin` because `configs/macos` passes
 `--target` explicitly. Surfer globs `obj-*`; it warns if more than one exists.
 
 - `MOZ_APP_UA_NAME=Firefox` is **load-bearing**: `nsHttpHandler` only emits
-  the `Firefox/154.0` UA token when the app name is literally `Firefox`.
+  the `Firefox/157.0` UA token when the app name is literally `Firefox`.
   Without it the UA is `… koi/0.1.0`, which breaks site compatibility. It
   also suppresses the app token, so the Koi version never leaks into the UA.
 - `MOZ_APP_BASENAME=Koi` — application.ini `Name` and the macOS profile dir.
 - `MOZ_APP_DISPLAYNAME` comes from `brandShortName` via the generated
   `browser/branding/release/configure.sh`. This is the menu-bar name.
 - `MOZ_APP_ID` stays Firefox's GUID, as Zen does, so AMO extensions install.
-- `MOZILLA_UAVERSION` (154.0) comes from `config/milestone.txt`, separate
+- `MOZILLA_UAVERSION` (157.0) comes from `config/milestone.txt`, separate
   from `MOZ_APP_VERSION`.
 
 ### The appId trap
@@ -409,14 +441,17 @@ Some Firefox brand glyphs live in Mozilla's theme dirs, out of branding's
 reach. Surfer's `copyManual` handles them: any non-`.patch` file under
 `src/<mozilla path>` has Mozilla's file removed and Koi's symlinked in its
 place, path appended to `engine/.gitignore`. Zero patches. Koi does it for
-eight files:
+nine files:
 
 - `src/browser/themes/shared/sidebar/firefox.svg` — the monochrome "this
   browser" glyph (About Koi nav item, Settings headers). Bare mark,
   `fill="context-fill"`. Not the fox on the default-browser card.
-- `src/browser/themes/shared/privatebrowsing/favicon.svg` and
-  `src/toolkit/themes/shared/icons/indicator-private-browsing.svg` — private
-  tab mask and pill. The app icon, viewBox trimmed to the tile.
+- `src/browser/themes/shared/privatebrowsing/favicon.svg`,
+  `src/toolkit/themes/shared/icons/indicator-private-browsing.svg` and, since
+  157, `src/browser/themes/shared/privatebrowsing/pbm-logo.svg` — the private
+  tab mask, the old indicator pill, and the purple mask 157 draws as the
+  indicator button and the about:privatebrowsing logo. All the app icon,
+  viewBox trimmed to the tile.
 - `src/toolkit/themes/shared/illustrations/kit-{concerned,happy,confetti,holding-lock,in-circle}.svg`
   — the five fox-kit illustrations, one Koi file under five names. Every
   consumer is a `moz-promo`, four of them `imagedisplay="cover"` (cropped to
@@ -429,6 +464,15 @@ A replaced file is tracked, so it shows as ` T ` (typechange to symlink) in
 `git -C engine status` — expected, not contamination. It is a silent
 override: if Mozilla changes the original, nothing tells you. Static assets
 only, never logic.
+
+**A replaced asset does not render in a content process in dev builds.** The
+dev build serves chrome through symlinks into `engine/`, and a replaced file
+is a second symlink out to `src/`, which the content sandbox will not follow;
+the parent process reads it fine. So the private tab icon and the indicator
+button show Koi's mark while the about:privatebrowsing logo (a child-process
+page) shows nothing until packaged — swapping the engine symlink for a real
+copy proved the asset itself is fine. The same explains the about:pdf promo
+never being seen rendered.
 
 ---
 
@@ -481,9 +525,8 @@ attributable. Check the list, not the number:
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
 | `.stylelintrc.js`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/moz.configure`, `toolkit/moz.configure`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 11 patches |
-| ` T ` × 8 | the replaced assets above |
+| ` T ` × 9 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
-| `?? .surfer/` | surfer state inside the engine |
 
 ---
 
@@ -493,8 +536,9 @@ attributable. Check the list, not the number:
   node, macOS SDK). Version-keyed upstream artifacts; re-downloading is waste.
 - `~/Library/Caches/Mozilla.sccache` (~7G): content-addressed compiler cache.
   Cannot be contaminated; it is what makes a clobbered rebuild fast.
-- `.surfer/engine/firefox-154.0.source.tar.xz` (~811MB): surfer's download
-  cache. Keeping it makes a baseline rebuild instant and byte-identical.
+- `.surfer/engine/firefox-<version>.source.tar.xz` (~800MB each): surfer's
+  download cache, one per version fetched. The current one makes a baseline
+  rebuild instant and byte-identical; older ones can go.
 
 Safe to clear when resetting: `~/.mozbuild/srcdirs/engine-*` (per-srcdir
 mach state keyed by path hash; stale state is reused if `engine/` is
@@ -519,14 +563,21 @@ section is only the standing decisions and the open list.
   (`resource:///modules/` fails to load).
 - **Customize mode is locked out.** The layout is opinionated; koi-chrome.css
   hides every entry point and koi-chrome.js disables the command.
+- **157's Nova refresh is held off at its tokens.** Nova rings the selected
+  tab with a violet-to-orange gradient (`--tab-border-color-accent`, zeroed),
+  forces `sidebar-button` into the nav-bar placements (hidden with the other
+  upsells until the sidebar has a decision), and paints the open address
+  dropdown as a joint background whose view half reads
+  `--urlbar-background-color-focus` (the menu tint, scoped to `[open]`).
 - **The palette is shelved.** The address pill is a plain editable field
   again; only the open dropdown takes the menu tint. The full palette is
   `src/koi/palette/` in commit `ceefef2`, and the mechanism if it returns:
-  the 154 urlbar is a manual popover (`[breakout]`, absolute, sized from
-  JS-measured `--urlbar-width/height`), so a palette is a restyle of it that
-  must pin `top` with `!important`; `gURLBar.view.autoOpen({event})` opens
-  rows without typed input; `browser.urlbar.openintab` turns commits into
-  new tabs.
+  since 157 the urlbar view is a native popover in the top layer
+  (`[popover-open]` on the field, geometry in `urlbar.css`), so a palette is
+  a restyle of it, not a rebuild — the 154-era notes about `[breakout]` and
+  pinning `top` no longer apply as written; `gURLBar.view.autoOpen({event})`
+  opens rows without typed input; `browser.urlbar.openintab` turns commits
+  into new tabs.
 - **Peek exists but has no trigger.** koi-board.js and .css carry a `peek`
   mode (one row of cards over the light scrim) that nothing opens; its
   trigger is hold-a-tab, not built. The board is ⇧⌘E.
