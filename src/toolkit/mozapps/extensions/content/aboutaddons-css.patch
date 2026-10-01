@@ -1,0 +1,18 @@
+diff --git a/toolkit/mozapps/extensions/content/aboutaddons.css b/toolkit/mozapps/extensions/content/aboutaddons.css
+index 219971a5a8e0312ca7d65a4cd1d81d7b1ab11da1..43ca04894cfdb14bbc8bbe842a042e703a4bdbea 100644
+--- a/toolkit/mozapps/extensions/content/aboutaddons.css
++++ b/toolkit/mozapps/extensions/content/aboutaddons.css
+@@ -69,6 +69,13 @@ h2 {
+   overflow: hidden auto;
+ }
+ 
++/* Koi has no themes (prefs/koi/theme.yaml): the category goes with them. */
++@media -moz-pref("koi.theme.disable-lightweight") {
++  #category-theme {
++    display: none;
++  }
++}
++
+ .category-badge {
+   min-width: 20px;
+   background-color: var(--color-accent-primary);

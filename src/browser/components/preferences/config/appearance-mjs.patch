@@ -1,0 +1,13 @@
+diff --git a/browser/components/preferences/config/appearance.mjs b/browser/components/preferences/config/appearance.mjs
+index 7675fab2253d0e962b3a2d5b9e7e4028d8dcf8fc..08084f0e3f95d93ee9ef0aeaa67014a326d2ecbe 100644
+--- a/browser/components/preferences/config/appearance.mjs
++++ b/browser/components/preferences/config/appearance.mjs
+@@ -109,6 +109,8 @@ Preferences.addSetting(
+ 
+ Preferences.addSetting({
+   id: "web-appearance-manage-themes-link",
++  visible: () =>
++    !Services.prefs.getBoolPref("koi.theme.disable-lightweight", false),
+   onUserClick: e => {
+     e.preventDefault();
+     // @ts-ignore topChromeWindow global

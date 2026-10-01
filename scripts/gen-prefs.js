@@ -19,10 +19,19 @@
  *   - name: browser.newtabpage.enabled
  *     value: false
  *
+ *   - name: browser.nova.enabled
+ *     value: false
+ *     locked: true   # optional -> pref(name, value, locked)
+ *
  * Why a pref is set is written as a `#` comment above it, which stays in the
  * YAML where it is read. Any other key is refused so a stray one cannot
- * silently do nothing. (`locked`/`sticky` variants and an `emit` field existed
- * and went unused by every prefs file; add one back when a pref needs it.)
+ * silently do nothing. (A `sticky` variant and an `emit` field existed and
+ * went unused by every prefs file; add one back when a pref needs it.)
+ *
+ * `locked` is the parser's third argument, `pref(name, value, locked)`, per
+ * modules/libpref/parser/src/lib.rs. There is no `locked_pref()` — an earlier
+ * version of this script emitted one, the parser rejected the line, and
+ * Firefox's own default stood while the yaml looked right.
  *
  * Every name is also checked against the engine: a default for a pref that
  * nothing in Firefox reads looks like it works and does nothing — the same
@@ -44,7 +53,7 @@ const FIREFOX_JS = join(PROFILE_DIR, 'firefox.js')
 const INCLUDE_LINE = '#include koi.js'
 const ENGINE_GITIGNORE = join(ENGINE, '.gitignore')
 const IGNORE_ENTRY = 'browser/app/profile/koi.js'
-const KNOWN_KEYS = new Set(['name', 'value'])
+const KNOWN_KEYS = new Set(['name', 'value', 'locked'])
 
 function die(message) {
   console.error(`gen-prefs: ${message}`)
@@ -83,7 +92,7 @@ for (const file of files) {
   const lines = []
   for (const entry of parsed) {
     if (!entry || typeof entry !== 'object') die(`${file} has a malformed entry`)
-    const { name, value } = entry
+    const { name, value, locked } = entry
     if (typeof name !== 'string') die(`${file} has an entry with no name`)
     if (value === undefined) die(`pref "${name}" in ${file} has no value`)
     for (const key of Object.keys(entry)) {
@@ -98,7 +107,8 @@ for (const file of files) {
     }
     seen.set(name, file)
 
-    lines.push(`pref(${JSON.stringify(name)}, ${literal(value, name)});`)
+    const attr = locked ? ', locked' : ''
+    lines.push(`pref(${JSON.stringify(name)}, ${literal(value, name)}${attr});`)
   }
 
   if (lines.length > 0) {

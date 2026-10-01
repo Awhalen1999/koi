@@ -1,0 +1,17 @@
+diff --git a/toolkit/modules/LightweightThemeConsumer.sys.mjs b/toolkit/modules/LightweightThemeConsumer.sys.mjs
+index 2bef680f15680b37fe59593ec77040fe93bbcbe8..aa197b7382b16f6baf48c54e4a59627ed3196a2e 100644
+--- a/toolkit/modules/LightweightThemeConsumer.sys.mjs
++++ b/toolkit/modules/LightweightThemeConsumer.sys.mjs
+@@ -417,7 +417,11 @@ LightweightThemeConsumer.prototype = {
+     let forcedColorsThemeOverride =
+       this.FORCED_COLORS_OVERRIDE_ENABLED &&
+       this.forcedColorsMediaQuery?.matches;
+-    if (!theme || forcedColorsThemeOverride) {
++    if (
++      !theme ||
++      forcedColorsThemeOverride ||
++      Services.prefs.getBoolPref("koi.theme.disable-lightweight", false)
++    ) {
+       theme = { id: DEFAULT_THEME_ID };
+     }
+     let builtinThemeConfig = lazy.BuiltInThemeConfig.get(theme.id);

@@ -1,0 +1,20 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# "Nova" is Firefox's visual refresh, on by default since 157: a new icon set,
+# a purple accent on in-content pages, new urlbar open-state geometry, a
+# gradient ring on the selected tab, a window-density control, a theme
+# picker. Koi's chrome was designed and reviewed against the pre-Nova
+# ("Proton") 154, and Mozilla still ships the Proton paths behind this pref,
+# so it is off and locked — the same two lines Zen ships. The Nova-specific
+# overrides in koi-chrome.css stay as the net for when Mozilla removes Proton
+# and this pref stops meaning anything; re-review the chrome under Nova then.
+- name: browser.nova.enabled
+  value: false
+  locked: true
+
+# The PDF viewer's half of the same refresh (pdf.js, pdfjs.enableNova).
+- name: pdfjs.enableNova
+  value: false
+  locked: true

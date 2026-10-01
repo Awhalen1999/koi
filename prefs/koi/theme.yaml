@@ -1,0 +1,12 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Koi has no themes: the chrome borrows the wallpaper, and a theme painted
+# over vibrancy half-applies. Zen's approach, adopted whole — a theme that is
+# installed is ignored (src/toolkit/modules/LightweightThemeConsumer-sys-mjs.patch),
+# and the ways to one are hidden: the Themes category in about:addons and the
+# "Manage themes" link in Settings ▸ Appearance. Flip this in about:config to
+# get Firefox's behaviour back.
+- name: koi.theme.disable-lightweight
+  value: true

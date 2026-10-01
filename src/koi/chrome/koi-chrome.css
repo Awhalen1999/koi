@@ -55,6 +55,15 @@
    * here, not on #urlbar, for both halves to agree. The open surface is the
    * pill. */
   --urlbar-background-overhang-open: 0px;
+  /* The open surface is drawn in two halves (the input's and the view's)
+   * that each run past the seam and are clipped back to it, with a margin
+   * left on the other sides for the shadow. Firefox sizes both for its own
+   * 14px blur; Koi's MENU shadow is a 64px blur on a 26px drop, so the
+   * stock sizes cut it into a hard-edged halo over the wallpaper. Overlap
+   * past the blur so the halves' shadows still meet as one; margin past the
+   * blur plus the drop. */
+  --urlbar-joint-background-overlap: 72px;
+  --urlbar-joint-background-shadow-margin: 96px;
 
   /* Tab pill clothes, on the tab.tokens.css API. */
   --tab-border-radius: var(--koi-radius-pill);
@@ -536,9 +545,11 @@
  * it beside the strip. Both dress as toolbar buttons (above); only the
  * spacing is its own. */
 :is(#tabs-newtab-button, #new-tab-button) {
-  /* The same 4px the pills keep between themselves: the last tab's 2px clip
-   * padding plus this. */
-  margin-inline-start: calc(var(--koi-space-4) - var(--tab-overflow-clip-margin));
+  /* The same 4px the pills keep between themselves, measured to the button's
+   * hover box: the last tab's 2px clip padding, plus the 2px outer padding a
+   * toolbarbutton keeps around its box (--toolbarbutton-padding-outer), plus
+   * this. The box is what reads as the pill, so it is what sits 4px off. */
+  margin-inline-start: calc(var(--koi-space-4) - var(--tab-overflow-clip-margin) - var(--toolbarbutton-padding-outer));
 }
 
 /* Overflow --------------------------------------------------------------------

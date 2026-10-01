@@ -32,10 +32,14 @@
 
       // Back and forward ship removable="false", and CustomizableUI's
       // window build evicts a non-removable widget from any area its markup
-      // does not put it in — a placement alone gets silently reverted.
-      // Removability is read from the live attribute, so flip it before
-      // this window builds its toolbars (DOMContentLoaded runs ahead of
-      // gBrowserInit). Per window, deliberately.
+      // does not put it in — a placement alone gets silently reverted, and
+      // the widget lands at the end of nav-bar. Removability is read from
+      // the live attribute, so flip it before this window builds its
+      // toolbars. Since 157 Firefox builds them from its own DOMContentLoaded
+      // handler on the window (browser-main.js), registered ahead of this
+      // script's, which is why this listener runs in the capture phase: a
+      // window capture listener fires before any bubble listener on the
+      // window, whatever order they were added. Per window, deliberately.
       const fixed = ["back-button", "forward-button"];
       for (const id of fixed) {
         document.getElementById(id)?.setAttribute("removable", "true");
@@ -52,6 +56,24 @@
           }
         }
       );
+
+      // The + rides inside the strip only while new-tab-button is the next
+      // placement after tabbrowser-tabs (tabs.js _updateNewTabVisibility);
+      // anything between them — a migration's insert, a stray move — sends
+      // it to the toolbar's far end. Pinned relative to the tabs, not to an
+      // index, so a migration prepending to the area cannot shift it.
+      const tabs = CustomizableUI.getPlacementOfWidget("tabbrowser-tabs");
+      const plus = CustomizableUI.getPlacementOfWidget("new-tab-button");
+      if (
+        tabs?.area === "TabsToolbar" &&
+        (plus?.area !== "TabsToolbar" || plus.position !== tabs.position + 1)
+      ) {
+        CustomizableUI.addWidgetToArea(
+          "new-tab-button",
+          "TabsToolbar",
+          tabs.position + 1
+        );
+      }
 
       // Once the two are seated in this window's tab row, the flip is
       // reversed. The eviction only ever fires on a non-removable widget
@@ -78,6 +100,6 @@
         CustomizableUI.addListener(listener);
       }
     },
-    { once: true }
+    { once: true, capture: true }
   );
 })();

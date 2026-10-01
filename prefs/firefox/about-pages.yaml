@@ -16,6 +16,12 @@
 - name: extensions.getAddons.showPane
   value: false
 
+# Nova's theme picker in about:addons (aboutaddons-themes-picker.mjs). Themes
+# are off (prefs/koi/theme.yaml); this keeps the picker from rendering if the
+# themes view is reached by URL.
+- name: browser.aboutaddons.novaThemesPickerEnabled
+  value: false
+
 # The recommendation rows AMO injects into the add-on lists
 # (mozapps/extensions/content/aboutaddons.mjs).
 - name: extensions.htmlaboutaddons.recommendations.enabled

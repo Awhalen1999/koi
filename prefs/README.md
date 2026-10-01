@@ -17,6 +17,10 @@ A flat YAML list per file:
 
 - name: browser.startup.homepage
   value: "about:blank"
+
+- name: browser.nova.enabled
+  value: false
+  locked: true   # optional -> pref(name, value, locked): read-only in about:config
 ```
 
 Any other key is a hard error, so a typo cannot silently do nothing. Why a

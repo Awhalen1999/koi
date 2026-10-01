@@ -9,7 +9,7 @@
     "download": "surfer download",
     "bootstrap": "surfer bootstrap",
     "prefs": "node scripts/gen-prefs.js",
-    "import": "npm run prefs && surfer import",
+    "import": "surfer import && npm run prefs",
     "export": "surfer export",
     "build": "surfer build",
     "build:ui": "surfer build --ui",
