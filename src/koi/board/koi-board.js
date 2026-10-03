@@ -2,33 +2,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Loaded into browser.xhtml, so the browser-window globals are real; the
- * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
- * they are declared here instead. */
+/* Browser-window globals (koi/ is outside eslint.config.mjs's browser-window
+ * paths). */
 /* global gBrowser, PageThumbs, ShortcutUtils */
 
-/* The board (⇧⌘E) and peek — every tab as a card.
+/* The board (⇧⌘E): every tab as a card, in a modal over the page card. Peek
+ * is the same cards in one row over a lighter scrim (the mode attribute only
+ * changes layout, koi-board.css); its trigger, hold-a-tab, is not built.
  *
- * One surface, two densities: peek is a single row of cards over a light
- * scrim, the board is the full grid over the heavy one. Same cards, same
- * data — the mode attribute only changes the layout (koi-board.css). The
- * board's key is ⇧⌘E: free in Firefox's keyset and in its macOS system
- * actions, with no platform meaning of its own. Peek has no key: one
- * surface, one shortcut — its trigger is the
- * hold-a-tab gesture, not yet built, so today only the board opens. (A
- * bookmarks mode existed briefly and was withdrawn: a flat grid loses
- * bookmark folders, and a surface that hides structure is worse than none.
- * It can return once folders have a design.)
- *
- * Like the empty state, this is chrome in #tabbrowser-tabbox: one subtree,
- * one attribute, no DOM moves, no patches. The surface is a modal: cards
- * are built when it opens, kept in step with the strip while it shows — a
- * tab opened, closed, moved, renamed or gone quiet is reflected as it
- * happens — and torn down when it closes, so nothing is left to go stale.
- * The tab listeners exist only while the surface shows. Thumbnails ride
- * Firefox's own tab-preview capture (PageThumbs.captureTabPreviewThumbnail),
- * a few at a time; a tab with nothing to show — pending, blank, or
- * capture-refused — keeps the quiet glass fallback. */
+ * Cards are built on open, kept in step with the strip while it shows, and
+ * torn down on close; the tab listeners exist only while it shows.
+ * Thumbnails come from Firefox's tab preview capture
+ * (PageThumbs.captureTabPreviewThumbnail); a pending, blank or refused tab
+ * keeps the glass fallback. Chrome inside #tabbrowser-tabbox, like the empty
+ * state: no DOM moves, no patches. */
 
 (() => {
   addEventListener(
@@ -57,8 +44,8 @@
 
       const surface = el("div");
       surface.id = "koi-board";
-      // A modal, and said so: the keyboard stays inside while it shows (the
-      // focus handling below).
+      // A modal: focus stays inside while it shows (the key and focus
+      // handlers below).
       surface.setAttribute("role", "dialog");
       surface.setAttribute("aria-modal", "true");
       surface.setAttribute("aria-label", "Board");
@@ -70,19 +57,17 @@
       let openMode = null;
 
       // Thumbnails --------------------------------------------------------
-      // The backing store matches the largest card the CSS draws, so board
-      // cards stay sharp and peek cards downscale — the shape Firefox's own
-      // hover preview uses (tab-hover-preview.mjs).
+      // Sized for the largest card the CSS draws (board cards stay sharp,
+      // peek cards downscale), as Firefox's hover preview is
+      // (tab-hover-preview.mjs).
       const THUMB_W = 320;
       const THUMB_H = 200;
 
-      // Every capture is a paint request to a content process, and a window
-      // with forty tabs must not fire forty at once: they run through this
-      // queue a few at a time. Closing the surface empties the queue; a tab
-      // shut while queued is skipped below; a card dropped while its capture
-      // was in flight is judged on resolve. Not here: cardFor() requests the
-      // capture before the card is in the grid, so at this point the thumb is
-      // never connected, and checking it dropped every capture on the floor.
+      // Each capture is a paint request to a content process, so they run a
+      // few at a time. Closing empties the queue, a tab closed while queued
+      // is skipped, and a card dropped mid-capture is checked on resolve.
+      // Not before capturing: cardFor() queues the capture before the card
+      // is in the grid, so the thumb is never connected yet.
       const CAPTURES_AT_ONCE = 4;
       const captureQueue = [];
       let capturesRunning = 0;
@@ -101,7 +86,7 @@
           PageThumbs.captureTabPreviewThumbnail(browser, canvas)
             .then(
               () => thumb.isConnected && thumb.append(canvas),
-              // The glass fallback is already showing; say why on the radar.
+              // The glass fallback stays; log why.
               error =>
                 console.warn("koi-board: thumbnail capture failed", error)
             )
@@ -114,7 +99,7 @@
 
       const requestThumbnail = (tab, thumb) => {
         if (tab.hasAttribute("pending") || tab.isEmpty) {
-          return; // Nothing to show; the glass fallback stands.
+          return; // Nothing to capture; the glass fallback stays.
         }
         captureQueue.push({ tab, thumb });
         pumpCaptures();
@@ -136,14 +121,14 @@
         const close = el("button", "koi-card-close");
         close.setAttribute("aria-label", "Close tab");
 
-        // The audio badge: shown while the tab plays or is muted, click
-        // toggles — the tab strip's speaker, carried onto the card.
+        // Shown while the tab plays or is muted; a click toggles mute, as
+        // the strip's speaker does.
         const audio = el("button", "koi-card-audio");
         audio.addEventListener("click", () => tab.toggleMuteAudio());
         header.append(icon, label, audio, close);
 
-        // The header is the tab's: title, favicon and audio state, redrawn
-        // whenever those change under it (onTabAttrModified).
+        // Redrawn when the tab's title, favicon or audio state changes
+        // (onTabAttrModified).
         const redraw = () => {
           const image = tab.image || MARK;
           if (icon.src !== image) {
@@ -171,8 +156,8 @@
             return; // TabClose reconciles the grid.
           }
           gBrowser.selectedTab = tab;
-          // Idempotent with the TabSelect close — selecting the
-          // already-current card fires no TabSelect at all.
+          // Selecting the current tab fires no TabSelect, so close here too;
+          // closing twice is harmless.
           closeSurface();
         });
         return card;
@@ -181,11 +166,10 @@
       const cardOf = tab =>
         [...grid.children].find(card => card.koiTab === tab);
 
-      // The strip's shape changed — a tab opened, closed, moved, hidden or
-      // shown (pinning moves) — so the grid follows: cards whose tabs remain
-      // are kept, thumbnail and all, newcomers are built, the rest drop, and
-      // the order is the strip's. Firefox invalidates visibleTabs before it
-      // dispatches each of these events, so the read is fresh.
+      // The strip changed shape (a tab opened, closed, moved, hidden or
+      // shown): surviving cards keep their thumbnails, new ones are built,
+      // and the strip's order applies. Firefox refreshes visibleTabs before
+      // dispatching each of these events.
       const reconcile = () => {
         const cards = new Map(
           [...grid.children].map(card => [card.koiTab, card])
@@ -203,8 +187,8 @@
         ) {
           return;
         }
-        // Re-inserting nodes drops their focus. Put it back where it was —
-        // or, when the focused card is the one that went, on its neighbour.
+        // Re-inserting nodes drops focus: restore it, or move it to a
+        // neighbour if the focused card went.
         const active = document.activeElement;
         const focusedCard = active?.closest(".koi-card");
         let neighbour = null;
@@ -220,8 +204,7 @@
         }
       };
 
-      // Title, favicon or audio changing under a card while the surface
-      // shows. (Selection changes close it, so the current mark never moves.)
+      // Selection changes close the surface, so only these need redrawing.
       const REDRAWN = ["label", "image", "soundplaying", "muted"];
       const onTabAttrModified = event => {
         if (event.detail.changed.some(attr => REDRAWN.includes(attr))) {
@@ -229,11 +212,10 @@
         }
       };
 
-      // Any tab switch — a card click, ⌘1, an external caller — is a
-      // navigate intent, and navigating dismisses the surface.
+      // Any tab switch (a card, ⌘1, another caller) dismisses the surface.
       const onTabSelect = () => closeSurface();
 
-      // Bound while the surface shows, and not otherwise.
+      // Bound only while the surface shows.
       const tabListeners = [
         ["TabOpen", reconcile],
         ["TabClose", reconcile],
@@ -262,8 +244,8 @@
         )?.focus();
       };
 
-      // The page takes the keyboard back on close — unless the user has
-      // already handed it to something else (the focusout below).
+      // Focus returns to the page on close, unless the user moved it
+      // elsewhere (the focusout handler).
       const closeSurface = ({ restoreFocus = true } = {}) => {
         if (!openMode) {
           return;
@@ -287,12 +269,10 @@
         }
       });
 
-      // Focus that leaves for somewhere real — the address field, the
-      // findbar — is a navigate intent: dismiss, and leave the keyboard where
-      // the user put it. Those are the only ways out: XUL chrome is
-      // -moz-user-focus: ignore, so clicking a toolbar button or the strip
-      // never blurs a card, and a window blur arrives with no relatedTarget
-      // and changes nothing.
+      // Focus moving somewhere real (the address field, the findbar)
+      // dismisses and stays there. XUL chrome is -moz-user-focus: ignore, so
+      // clicking a toolbar button never blurs a card, and a window blur has
+      // no relatedTarget.
       surface.addEventListener("focusout", event => {
         if (
           openMode &&
@@ -303,11 +283,10 @@
         }
       });
 
-      // Cards are role=button divs, so Enter/Space activate by hand; arrows
-      // walk the cards — Left/Right linearly, Up/Down by rendered row. Tab
-      // cycles within the surface, as a modal's does. Esc dismisses, handled
-      // here rather than on the window: focus lives on the surface whenever
-      // it is open.
+      // Cards are role=button divs, so Enter and Space activate them by hand.
+      // Arrows move between cards (up and down by rendered row), Tab cycles
+      // within the surface, Escape closes. Handled here, not on the window,
+      // because focus is always inside while it is open.
       surface.addEventListener("keydown", event => {
         if (event.key === "Escape") {
           event.preventDefault();
@@ -315,8 +294,7 @@
           return;
         }
         if (event.key === "Tab") {
-          // The cards and their visible buttons, in tab order: wrap at
-          // either end and leave the steps in between to Firefox.
+          // Wrap at either end; Firefox handles the steps between.
           const stops = [
             ...surface.querySelectorAll(".koi-card, .koi-card button"),
           ].filter(node => node.offsetParent);
@@ -354,16 +332,13 @@
         }
       });
 
-      // The shortcut is a XUL <key> in a keyset of Koi's own, appended to the
-      // document the way every WebExtension's is (ExtensionShortcuts.sys.mjs):
-      // Firefox's mainKeyset is untouched, and a bare <key> fires `command` on
-      // itself. `reserved` is left unset, so Firefox arbitrates it as it does
-      // its own keys — the page sees the keystroke first unless the user has
-      // denied that site shortcut overrides. A letter, deliberately: Firefox
-      // on macOS turns ⌘{ and ⌘} into previous/next tab by keypress charCode
-      // (ShortcutUtils.getSystemActionForEvent, from tabbrowser's on_keypress)
-      // and Cmd+Shift+punctuation charCodes are layout-dependent — ⇧⌘\ was
-      // consumed as previous-tab before this key ever saw it.
+      // A XUL <key> in Koi's own keyset, as WebExtensions add theirs
+      // (ExtensionShortcuts.sys.mjs), leaving Firefox's mainKeyset alone. Not
+      // `reserved`: the page sees the keystroke first unless the user denied
+      // the site shortcut overrides. ⇧⌘E is free in Firefox and macOS, and a
+      // letter on purpose: on macOS Firefox maps ⌘{ and ⌘} to tab switching
+      // by charCode (ShortcutUtils.getSystemActionForEvent), and ⇧⌘ with
+      // punctuation varies by keyboard layout (⇧⌘\ was taken as previous-tab).
       const key = document.createXULElement("key");
       key.id = "key_koiBoard";
       key.setAttribute("key", "E");
@@ -373,11 +348,8 @@
       keyset.append(key);
       document.documentElement.append(keyset);
 
-      // The board button: the strip's leading control, the mock's 2×2
-      // squares, opening exactly what the key opens. skipintoolbarset keeps
-      // CustomizableUI's area rebuilds off a node it does not manage;
-      // koi-chrome.css seats it and hides the stock all-tabs chevron it
-      // replaces.
+      // The tab row's leading button. skipintoolbarset keeps CustomizableUI
+      // from managing it; koi-chrome.css places it.
       const boardButton = document.createXULElement("toolbarbutton");
       boardButton.id = "koi-board-button";
       boardButton.className = "toolbarbutton-1 chromeclass-toolbar-additional";

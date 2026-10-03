@@ -2,12 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The board (⇧⌘E) and peek — koi-board.js's one surface, two
- * densities. The mode attribute is the whole switch: peek lays the same
- * cards in one row over the light scrim, board is the full grid over the
- * heavy one. Scrims dim only — page pixels are out of process and cannot
- * be blurred (koi-theme.css on glass) — and the cards themselves wear the
- * MENU tint, the surface for anything floated over page content. */
+/* The board and peek (koi-board.js). [mode] switches the layout: board is a
+ * grid over the heavy scrim, peek one row over the light one. Scrims only dim
+ * (page pixels cannot be blurred, koi-theme.css); cards take the MENU tint. */
 
 #koi-board {
   display: none;
@@ -16,8 +13,7 @@
   inset: var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   overflow: clip;
-  /* Dark throughout — the cards' light-dark() tokens and the grid's own
-   * scrollbar alike agree with the scrim and the MENU tint. */
+  /* So light-dark() tokens and the scrollbar match the scrim and tint. */
   color-scheme: dark;
 }
 
@@ -61,17 +57,14 @@
   flex: none;
 }
 
-/* The card: a MENU-tinted header over the page thumbnail. Three states,
- * three marks, none shared — a board where the current card and the
- * keyboard's card wore the same ring could not say which was which:
- *
- *   hovered — the hairline steps up to a quiet 1px ring. Acknowledged, not
- *             chased; nothing moves.
- *   current — the selected tab's own clothes from the strip: the RAISED
- *             film on the header, the heavier title.
- *   focused — the accent ring, and only here. Arrows move it, Enter commits.
- *             Opened with the key it lands on the current card; opened with
- *             the mouse, :focus-visible withholds it until a key is pressed. */
+/* A card: a MENU-tinted header over the thumbnail. Each state has its own
+ * mark, so the current card and the keyboard's card are never confused:
+ *   hovered — the hairline becomes a quiet 1px ring
+ *   current — the selected tab's look from the strip: RAISED header, heavier
+ *             title
+ *   focused — the accent ring, only here. Opened by key, focus starts on the
+ *             current card; opened by mouse, :focus-visible hides the ring
+ *             until a key is pressed. */
 .koi-card {
   display: flex;
   flex-direction: column;
@@ -106,8 +99,7 @@
 }
 
 .koi-card-header {
-  /* The header is a tab pill flattened onto the card: same height, same
-   * button geometry, so the two surfaces speak one control language. */
+  /* The header matches a tab pill: same height, same button geometry. */
   height: var(--koi-pill-height);
   flex: none;
   display: flex;
@@ -132,12 +124,10 @@
   white-space: nowrap;
 }
 
-/* The header's two buttons — the × and the audio badge — wear the tab
- * strip's exact clothes: 20px box, the × at 12px and the badge at 14px
- * (koi-chrome.css), quiet ink, the wash on hover, one rung up pressed, the
- * accent ring for the keyboard. Glyphs are backgrounds, since these buttons
- * have no XUL image machinery; the pill-height header leaves them even air
- * on every side. */
+/* The × and the audio badge match the tab strip's (koi-chrome.css): a 20px
+ * box with a 12px × and 14px badge, the wash on hover, one rung up pressed,
+ * the accent ring for keyboard focus. Glyphs are backgrounds because these
+ * are HTML buttons, without XUL's image attribute. */
 .koi-card-close,
 .koi-card-audio {
   appearance: none;
@@ -173,13 +163,11 @@
   background-size: 12px;
 }
 
-/* The audio badge: hidden unless the tab plays or is muted; the muted state
- * swaps the glyph. */
+/* Hidden unless the tab plays or is muted; muted swaps the glyph. */
 .koi-card-audio {
   display: none;
-  /* The system's 4px between the two boxes — the same air tab pills keep —
-   * by trimming the header's 8px flex gap. Hidden, the badge creates no gap
-   * at all and the × is untouched. */
+  /* 4px to the ×, trimmed from the header's 8px gap; a hidden badge leaves
+   * no gap. */
   margin-inline-end: calc(var(--koi-space-4) - var(--koi-space-8));
   background-image: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg");
 
@@ -192,9 +180,8 @@
   }
 }
 
-/* The thumbnail, or the quiet glass fallback for a tab with nothing to
- * show. Deliberately no letter tiles here: a grid of loud colour blocks
- * fought the screenshots, and calm won. */
+/* The thumbnail, or plain glass for a tab with nothing to show (no letter
+ * tiles: a grid of colour blocks was too loud). */
 .koi-card-thumb {
   aspect-ratio: 16 / 10;
   background: var(--koi-glass-well);

@@ -2,33 +2,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Loaded into browser.xhtml, so the browser-window globals are real; the
- * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
- * they are declared here instead. */
+/* Browser-window globals (koi/ is outside eslint.config.mjs's browser-window
+ * paths). */
 /* global gBrowser, openTrustedLinkIn, PrivateBrowsingUtils,
    isBlankPageURL, BrowserUIUtils */
 
-/* The empty state — Koi Shell v5's noTabs card.
+/* The empty state (Koi Shell v5's noTabs card): chrome, not a page, shown
+ * over the page card while the selected tab shows nothing. The wallpaper
+ * shows through because browser.tabs.allow_transparent_browser makes blank
+ * browsers paint nothing and koi-newtab.css clears the page ground while
+ * [koi-empty] is set.
  *
- * An empty tab is not a page, it is the absence of one, so this is chrome,
- * not content: a glass card floating on the wallpaper, built here and shown
- * whenever the selected tab has nothing to say. The wallpaper reaches it
- * because browser.tabs.allow_transparent_browser makes blank browsers paint
- * nothing and koi-newtab.css lifts the shell's backdrop while [koi-empty] is
- * set — ordinary pages never notice, they sit on .browserContainer's paint.
- *
- * This script owns one attribute, [koi-empty] on :root, and one subtree,
- * #koi-empty-state. Everything visual lives in koi-newtab.css. */
+ * Owns [koi-empty] on :root and the #koi-empty-state subtree; the look is
+ * koi-newtab.css. */
 
 (() => {
   addEventListener(
     "DOMContentLoaded",
     () => {
-      // Popups and other chromeless windows have no empty state. Neither
-      // do private windows: their blank tab is about:privatebrowsing, a
-      // page that paints its own UI (the overlay double-exposed over it),
-      // and a private window is no place for the bookmark grid anyway.
-      // Owning the private empty state is a designed round, deferred.
+      // None in chromeless windows, nor in private ones: their blank tab is
+      // about:privatebrowsing, which paints its own UI, and bookmarks do not
+      // belong there. A private empty state is a design still to do.
       if (
         !window.toolbar.visible ||
         window.PrivateBrowsingUtils?.isWindowPrivate(window)
@@ -54,8 +48,8 @@
         return node;
       };
 
-      // The card. Spec structure: mark, the ⌘-line, pins, then a one-line
-      // label that echoes the hovered pin's host.
+      // The spec's card: mark, the ⌘L line, pins, and a label showing the
+      // hovered pin's host.
       const card = el("div");
       card.id = "koi-empty-state";
 
@@ -80,8 +74,8 @@
         }
       };
 
-      // Stable per-site colour: hash the www-less host into the small tile
-      // palette (koi-newtab.css), so a site keeps its colour forever.
+      // A stable colour per site: the www-less host hashed into the tile
+      // palette (koi-newtab.css).
       const tileOf = uri => {
         let hash = 0;
         for (const ch of hostOf(uri)) {
@@ -96,15 +90,12 @@
       card.append(mark, line, pins, pinLabel);
       tabbox.append(card);
 
-      // The pins are the toolbar folder's bookmarks — the folder the star
-      // saves to, and the set the user curated to see — capped so the card
-      // never becomes a wall; the long tail belongs to ⌘L. One level only:
-      // fetch({ parentGuid }) is a single SELECT over the folder's direct
-      // children (Bookmarks.sys.mjs, fetchBookmarksByParent), where
-      // promiseBookmarksTree walks every descendant of every subfolder — on
-      // every new tab, to keep 24 rows. Favicons via page-icon: when Places
-      // has one; a site without one becomes the spec's letter tile.
-      // Refetched on every reveal.
+      // Pins are the bookmarks toolbar folder's direct children (where the
+      // star saves), capped; the rest is ⌘L's. fetch({ parentGuid }) is one
+      // query over direct children (Bookmarks.sys.mjs), where
+      // promiseBookmarksTree would walk every subfolder on every new tab.
+      // Refetched on every reveal. A site with no favicon in Places gets a
+      // letter tile.
       let revealGeneration = 0;
       async function refreshPins() {
         const generation = ++revealGeneration;
@@ -122,7 +113,7 @@
             .slice(0, 24)
             .map(child => ({ uri: child.url.href, title: child.title }));
         } catch {
-          // No Places yet (first run mid-init): an empty row is fine.
+          // Places not ready (first run): an empty row is fine.
         }
 
         const icons = await Promise.all(
@@ -148,8 +139,7 @@
             icon.alt = "";
             pin.append(icon);
           } else {
-            // No favicon: the letter tile — the site's initial on its
-            // hashed colour.
+            // No favicon: the site's initial on its hashed colour.
             const name = (item.title || "").trim() || hostOf(item.uri);
             pin.classList.add(tileOf(item.uri));
             const letter = el("span", "koi-empty-pin-letter");
@@ -162,8 +152,8 @@
               event.metaKey || event.ctrlKey ? "tab" : "current"
             );
           });
-          // The label echoes the pin under the pointer, or the one holding
-          // the keyboard; leaving only clears a label that is still its own.
+          // The label follows the hovered or focused pin; leaving clears it
+          // only if it is still this pin's.
           const host = hostOf(item.uri);
           const show = () => {
             pinLabel.textContent = host;
@@ -181,16 +171,13 @@
         });
       }
 
-      // Firefox's tab.isEmpty means "safe to close", so it also demands no
-      // session history; a tab navigated to a blank URL — typing about:newtab,
-      // or the Home command — fails it and would sit there cardless. This asks
-      // the narrower question, showing nothing, the same split browser.js makes
-      // in onLocationChange to decide whether Reload is disabled.
-      //
-      // checkEmptyPageOrigin is the guard: a page that navigates itself to
-      // about:blank keeps the site's principal and fails it, so content can
-      // never summon the pins. about:home is excluded because Koi serves it the
-      // activity stream, blank list or not (see AboutNewTabRedirector).
+      // Not tab.isEmpty, which also requires no session history, so a tab
+      // navigated to about:newtab would show no card. This is the narrower
+      // "shows nothing", the test browser.js uses in onLocationChange for the
+      // Reload button. checkEmptyPageOrigin stops a page that navigates itself
+      // to about:blank (it keeps the site's principal) from summoning the
+      // pins. about:home is excluded: it loads the activity stream
+      // (AboutNewTabRedirector).
       const showsNothing = tab => {
         const browser = tab.linkedBrowser;
         const url = browser.currentURI.spec;
@@ -212,9 +199,8 @@
       };
 
       gBrowser.tabContainer.addEventListener("TabSelect", update);
-      // A settled about:blank emits no further progress events, but every
-      // busy flip dispatches TabAttrModified — so emptiness always arrives
-      // with a wake-up call.
+      // A settled about:blank sends no more progress events, but every busy
+      // change dispatches TabAttrModified.
       gBrowser.tabContainer.addEventListener("TabAttrModified", event => {
         if (event.target === gBrowser.selectedTab) {
           update();

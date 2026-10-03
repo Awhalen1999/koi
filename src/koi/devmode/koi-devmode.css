@@ -2,10 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Developer mode (koi-devmode.js). The buttons are .toolbarbutton-1s and
- * wear row one's clothes from koi-chrome.css, spaced in line with the
- * buttons beside them; the error count is Firefox's own toolbar badge, the
- * red an extension's count wears. */
+/* Developer mode (koi-devmode.js). The buttons are ordinary
+ * .toolbarbutton-1s styled by koi-chrome.css; the error count is Firefox's
+ * toolbar badge, as an extension's count is. */
 
 /* Built in every window, shown only while the selected tab is in dev mode. */
 :root:not([koi-devmode]) #koi-devtools {

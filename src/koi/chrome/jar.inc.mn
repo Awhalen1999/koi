@@ -2,9 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Included from browser/base/jar.mn, so source paths are relative to
-# browser/base/. See src/koi/common/jar.inc.mn for the ground rules
-# (no bare `*` flag, `%` is the preprocessor marker in .css).
+# Included through koi-assets.jar.inc.mn into browser/base/jar.mn, so source
+# paths are relative to browser/base/. Rules: src/koi/common/jar.inc.mn.
 
         content/browser/koi-chrome/koi-chrome.css               (../../koi/chrome/koi-chrome.css)
         content/browser/koi-chrome/koi-chrome.js                (../../koi/chrome/koi-chrome.js)

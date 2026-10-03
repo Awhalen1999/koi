@@ -1,8 +1,9 @@
 # Preferences
 
-Default preferences for Koi, grouped by origin and purpose. `npm run prefs`
-(chained ahead of `surfer import`) compiles every file here into
-`engine/browser/app/profile/koi.js` and pulls it into Firefox's `firefox.js`.
+Koi's default preferences. `npm run prefs` (run after `surfer import` by
+`npm run import`) compiles every file here into
+`engine/browser/app/profile/koi.js` and includes it from Firefox's
+`firefox.js`.
 
 - `firefox/` — overrides of Mozilla's own defaults
 - `koi/` — preferences for Koi's own features
@@ -23,24 +24,19 @@ A flat YAML list per file:
   locked: true   # optional -> pref(name, value, locked): read-only in about:config
 ```
 
-Any other key is a hard error, so a typo cannot silently do nothing. Why a
-pref is set goes in a `#` comment above it, where it stays next to the value
-a reader is checking.
-
-Defining the same pref in two files is a hard error — otherwise whichever
-loaded last would silently win.
+Any other key is an error, so a typo cannot silently do nothing, and so is
+setting one pref in two files. The reason for a pref goes in a `#` comment
+above it.
 
 ## Adding a pref
 
-The pref has to exist. A default for a name Firefox never reads looks like it
-works and does nothing, so `npm run prefs` refuses any name it cannot find
-read somewhere in the engine or in `src/koi/` (one `git grep` of each, tests
-excluded). What it cannot
-see is a reader compiled out by our build flags — `MOZ_TELEMETRY_REPORTING`,
-`MOZ_NORMANDY` and friends — so still look at the hits before adding one:
+A default for a name nothing reads silently does nothing, so `npm run prefs`
+refuses any name with no reader in the engine or `src/koi/` (tests
+excluded). It cannot tell a reader that Koi's build flags compile out
+(`MOZ_TELEMETRY_REPORTING`, `MOZ_NORMANDY`), so check the hits yourself:
 
 ```
 git -C engine grep -l -F 'the.pref.name' -- . ':!**/test/**' ':!**/tests/**' ':!testing'
 ```
 
-If the only readers are behind a flag we switch off, leave the pref out.
+If the only readers are behind a flag Koi switches off, leave the pref out.

@@ -3,40 +3,22 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /**
- * Generates Koi's default preferences from prefs/ into the engine.
+ * Generates Koi's default prefs into the engine: every prefs/**\/*.yaml
+ * becomes engine/browser/app/profile/koi.js, and `#include koi.js` is
+ * appended to firefox.js (already preprocessed), so no patch is needed. Runs
+ * after `surfer import` in the `import` npm script, because a koi.* pref may
+ * be read only by patched code.
  *
- * Reads every prefs/**\/*.yaml and writes engine/browser/app/profile/koi.js,
- * then appends `#include koi.js` to Firefox's own firefox.js. firefox.js
- * already runs through the mozbuild preprocessor, so no moz.build or jar.mn
- * change is needed.
- *
- * This runs ahead of `surfer import` (see the `import` npm script), which is
- * why Koi needs no patch against firefox.js: the include is regenerated on
- * every import rather than carried as a diff.
- *
- * Pref format — a flat YAML list per file:
- *
- *   - name: browser.newtabpage.enabled
- *     value: false
- *
+ * Format, a flat list per file:
  *   - name: browser.nova.enabled
  *     value: false
  *     locked: true   # optional -> pref(name, value, locked)
+ * The reason for a pref is a `#` comment above it. Any other key is refused,
+ * and so is a name set twice. There is no `locked_pref()`: the parser takes
+ * locked as pref()'s third argument (modules/libpref/parser/src/lib.rs).
  *
- * Why a pref is set is written as a `#` comment above it, which stays in the
- * YAML where it is read. Any other key is refused so a stray one cannot
- * silently do nothing. (A `sticky` variant and an `emit` field existed and
- * went unused by every prefs file; add one back when a pref needs it.)
- *
- * `locked` is the parser's third argument, `pref(name, value, locked)`, per
- * modules/libpref/parser/src/lib.rs. There is no `locked_pref()` — an earlier
- * version of this script emitted one, the parser rejected the line, and
- * Firefox's own default stood while the yaml looked right.
- *
- * Every name is also checked against the engine: a default for a pref that
- * nothing in Firefox reads looks like it works and does nothing — the same
- * silent no-op as a mistyped CSS variable — so README.md's grep runs here,
- * on every import, and a name with no reader fails the build.
+ * Every name must have a reader in the engine or in src/koi: a default that
+ * nothing reads silently does nothing, so a name with no reader fails.
  */
 
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -116,13 +98,11 @@ for (const file of files) {
   }
 }
 
-// One `git grep` per tree, tests excluded. With -o and -F it prints each
-// literal it matched, so a name absent from the output is read nowhere. Two
-// trees, because the engine is its own git repo (CLAUDE.md) and Koi's own
-// scripts reach it only as gitignored symlinks: a `koi.*` pref read by
-// koi-board.js is invisible to a grep of the engine, so src/koi is grepped
-// where it lives. koi.js itself is untracked in the engine, so the generated
-// file cannot vouch for its own names.
+// One `git grep` per tree, tests excluded; with -o and -F it prints each
+// literal matched, so a name missing from the output is read nowhere. The
+// engine is its own git repo and sees Koi's scripts only as gitignored
+// symlinks, so src/koi is grepped where it lives. koi.js is untracked, so it
+// cannot vouch for its own names.
 function grepLiterals(cwd, names, pathspecs, flags = []) {
   try {
     const args = ['grep', '-o', '-h', '-F', '-f', '-', ...flags, '--', ...pathspecs]

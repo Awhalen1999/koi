@@ -2,106 +2,86 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# The chrome and the empty state (src/koi/chrome/, src/koi/newtab/): the
-# knobs Firefox only exposes as prefs.
+# Chrome and empty-state settings Firefox exposes only as prefs.
 
-# Two rows are the whole chrome; a bookmarks row would make it three.
+# The chrome is two rows; the bookmarks row is opt-in (View ▸ Toolbars).
 - name: browser.toolbars.bookmarks.visibility
   value: never
 
-# The spec's tab floor: tabs narrow together to 100px, then the strip scrolls
-# sideways instead, so a tab is always readable and always present.
+# Tabs narrow together to 100px, then the strip scrolls.
 - name: browser.tabs.tabMinWidth
   value: 100
 
-# The empty state (src/koi/newtab/) is chrome drawn over the wallpaper, so an
-# empty tab must be an actually empty page. Startup lands on about:blank like
-# every new tab (browser.newtabpage.enabled is already off in newtab.yaml).
-#
-# That is also the session-restore decision, made deliberately: Firefox's
-# browser.startup.page stays at its default of 1 (open the homepage), so a
-# launch is a fresh window on the wallpaper, never a pile of yesterday's
-# tabs — nothing asks for attention. The session is still kept; History ▸
-# Restore Previous Session brings it back on request. Set the pref to 3 to
-# restore automatically.
+# Startup opens about:blank, which shows the empty state (src/koi/newtab/).
+# browser.startup.page stays at Firefox's 1 (homepage), so a launch is a
+# fresh window, not yesterday's tabs; History ▸ Restore Previous Session
+# restores on request, and 3 would restore automatically.
 - name: browser.startup.homepage
   value: about:blank
 
-# Blank browsers paint nothing, letting the wallpaper through to the empty
-# card. Ordinary pages are unaffected: they sit on .browserContainer's
-# backdrop, which koi-shell.css still paints.
+# Browsers paint no background of their own, so the wallpaper reaches the
+# empty card. Firefox applies it to every tab, not only blank ones, so a page
+# with no background shows koi-shell.css's page ground (CLAUDE.md, known
+# issues).
 - name: browser.tabs.allow_transparent_browser
   value: true
 
-# The findbar blinks its field yellow when it opens (findbar.js _flash).
-# Nothing in Koi asks for attention; the field opening focused is the cue.
+# No yellow flash when the findbar opens (findbar.js _flash); the focused
+# field is the cue.
 - name: accessibility.typeaheadfind.flashBar
   value: 0
 
-# Tab groups are Firefox's, not yet Koi's: the strip has no design for a
-# group label, so the whole surface — the tab context menu's group items,
-# drag-to-group, the address bar's group actions, the Settings checkbox —
-# stays off until it has one (koi-chrome.css says the same of containers).
-# Smart groups sit behind browser.tabs.groups.smart.optin, false by default,
-# so there is nothing there to switch off.
+# Off until the tab strip has a design for group labels. Covers the tab
+# context menu items, drag-to-group, the address bar's group actions and the
+# Settings checkbox. Smart groups (browser.tabs.groups.smart.optin) are
+# already off by default.
 - name: browser.tabs.groups.enabled
   value: false
 
-# Two rows assume horizontal tabs. 157 offers vertical tabs from the tab
-# strip's and the springs' context menu (koi-chrome.css hides the item) and
-# from Settings, where the lock leaves the control disabled. Locked, as Zen
-# locks it.
+# The two-row layout assumes horizontal tabs. Locked, as in Zen: Settings
+# shows the control disabled, and koi-chrome.css hides the context-menu
+# toggle.
 - name: sidebar.verticalTabs
   value: false
   locked: true
 
-# Split view is on by default in 157 and nothing in Koi is designed for two
-# panels: the card, the empty state and the board each assume one page.
-# Off and locked, as Zen ships it, until it has a design (the tab-groups
-# rule above).
+# On by default since 157, but the page card, empty state and board each
+# assume one page. Off and locked, as in Zen, until designed.
 - name: browser.tabs.splitView.enabled
   value: false
   locked: true
 
-# 157's trust panel replaces the address field's identity box with
-# #trust-icon-container and a "Not Secure" label of its own, which slips past
-# the pill's hide list (koi-chrome.css). Off, as Zen ships it, so the field
-# keeps the identity box Koi's CSS is written against. Re-review when Mozilla
-# removes the identity box.
+# 157's trust panel replaces the identity box koi-chrome.css targets and adds
+# a "Not Secure" label the pill's hide list misses. Off, as in Zen; re-review
+# when Mozilla removes the identity box.
 - name: browser.urlbar.trustPanel.featureGate
   value: false
 
-# The "Firefox Suggest" header over history and open-tab results in the
-# address dropdown names Mozilla's product inside Koi's chrome.
+# The "Firefox Suggest" header in the address dropdown.
 - name: browser.urlbar.groupLabels.enabled
   value: false
 
-# Trending searches: focusing an empty address field fills the dropdown with
-# ten of the search engine's trending queries — news noise, asking for
-# attention before anything is typed. Off, as Zen ships it; recent searches
-# and history still show.
+# The search engine's trending queries in an empty address dropdown. Off, as
+# in Zen; recent searches and history still show.
 - name: browser.urlbar.trending.featureGate
   value: false
 
-# Nothing pops up: no preview card on tab hover (the board is where tabs are
-# seen at a glance; its thumbnails do not read this pref) and no downloads
-# panel thrown open by every download — the button says it.
+# Nothing pops up: no tab hover preview (the board's thumbnails do not read
+# this pref) and no downloads panel opening on every download.
 - name: browser.tabs.hoverPreview.enabled
   value: false
 
 - name: browser.download.alwaysOpenPanel
   value: false
 
-# Arrow panels (the app menu, extensions, downloads, site information, the
-# bookmark editor, doorhangers) become real macOS NSPopovers: the OS's
-# blurred material, shadow and corners, matching the native menus. Off by
-# default upstream; Zen, which contributed it, ships it on. koi-panels.css
-# clears Firefox's paint so the material shows.
+# Arrow panels become native NSPopovers, with macOS's blurred material,
+# shadow and corners. Off upstream; Zen contributed it and ships it on.
+# koi-panels.css clears Firefox's paint so the material shows; Zen's fixes
+# for it are in the nsCocoaWindow and global-shared.css patches.
 - name: widget.macos.native-popovers
   value: true
 
-# Firefox's multi-profile switcher: a "Create a New Profile" row near the top
-# of the app menu and a Profiles menu in the macOS menu bar. A feature to
-# learn on first launch; off, as Zen ships it.
+# Firefox's profile switcher (an app menu row, a menu-bar Profiles menu).
+# Off, as in Zen.
 - name: browser.profiles.enabled
   value: false

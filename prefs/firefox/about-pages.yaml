@@ -2,9 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Firefox's about: pages carry upsells that fetch from Mozilla services.
-# Nothing in Koi asks for attention, so each is switched off at its reader —
-# every pref below was checked to have one in the 154 tree, per README.md.
+# Upsells on Firefox's about: pages, most fetching from Mozilla services.
+# Each pref's reader is noted.
 
 # The Mozilla VPN promo, on about:privatebrowsing and as the VPN card on
 # about:protections (protections/content/vpn-card.mjs).
@@ -16,9 +15,8 @@
 - name: extensions.getAddons.showPane
   value: false
 
-# Nova's theme picker in about:addons (aboutaddons-themes-picker.mjs). Themes
-# are off (prefs/koi/theme.yaml); this keeps the picker from rendering if the
-# themes view is reached by URL.
+# Nova's theme picker in about:addons (aboutaddons-themes-picker.mjs), in
+# case the themes view is reached by URL; themes are off (koi/theme.yaml).
 - name: browser.aboutaddons.novaThemesPickerEnabled
   value: false
 
@@ -27,8 +25,8 @@
 - name: extensions.htmlaboutaddons.recommendations.enabled
   value: false
 
-# about:protections' mobile card, which brandShortName rebadges as "Koi
-# Browser for Android and iOS" — a product that does not exist — over links
-# to Mozilla's Firefox listings (protections/content/protections.mjs).
+# about:protections' mobile card, which brandShortName turns into "Koi
+# Browser for Android and iOS" (no such product) over links to Firefox's
+# listings (protections/content/protections.mjs).
 - name: browser.contentblocking.report.show_mobile_app
   value: false

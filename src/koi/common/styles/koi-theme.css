@@ -2,39 +2,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Koi's design tokens — the vocabulary every other Koi stylesheet is written
- * in. Values come from the specs in ../koi-design/design/: Koi Shell v4 for
- * the shell layout, v5 for the empty state (its palette was decided
- * against); the brand kit is a summary of them and less complete.
+/* Koi's design tokens. Every Koi stylesheet is written in them; all are
+ * --koi-* because Firefox defines hundreds of custom properties on the same
+ * :root. Values are ported from ../koi-design/design/ (Koi Shell v4 for the
+ * shell, v5 for the empty state). Some tokens serve surfaces not built yet;
+ * delete one only when no spec or feature claims it. Koi's sheets load after
+ * Firefox's (koi-assets.inc.xhtml), so they win specificity ties without
+ * !important.
  *
- * Loaded into every browser window via browser/base/content/koi-assets.inc.xhtml,
- * after Firefox's own chrome stylesheets, so Koi rules win ties on equal
- * specificity without needing !important.
- *
- * Everything is namespaced --koi-*. Firefox defines several hundred custom
- * properties on this same :root and a collision would be a bad afternoon.
- *
- * The sheet deliberately runs ahead of its consumers: values transcribed
- * from the spec for surfaces not yet built (the board's scrim, the menus'
- * shadow, the spaces' dots, the smaller type sizes) live here so the
- * vocabulary is complete when those features land. A token no spec or
- * feature claims is the thing that gets deleted.
- *
- * The glass departs from the spec deliberately: v5's four tints collapsed
- * into one white-film ladder plus the menu tint (a design decision, not
- * drift) after the blur findings below made the spec's depth-by-blur system
- * unportable.
- *
- * The chrome is always light ink over glass, because it always sits on the
- * user's wallpaper. There is deliberately no light variant. */
+ * The chrome always sits on the wallpaper, so its ink is always light: there
+ * is no light variant. */
 
 :root {
-  /* Scale ------------------------------------------------------------------
-   * The shell is quantised to 4px: every size, pad, gap and radius below is a
-   * multiple of it. New values should be too.
-   *
-   * Named for the value, not the multiple — --koi-space-12 is 12px. A name
-   * that needs multiplying to read is a name that gets misused. */
+  /* Scale: every size, gap and radius is a multiple of 4px. Named for the
+   * value, not the multiple: --koi-space-12 is 12px. */
   --koi-space-4: 4px;
   --koi-space-8: 8px;
   --koi-space-12: 12px;
@@ -42,62 +23,37 @@
   --koi-space-24: 24px;
   --koi-space-32: 32px;
 
-  /* Chrome ------------------------------------------------------------------
-   * Two rows, split by what they act on. The top row acts on the window
-   * (lights, nav, the address pill, tools); the bottom row acts on the page
-   * (board, tabs, new), sitting closest to the content it controls.
-   *
-   * A row is the pill height plus 4px of air each side — one number,
-   * --koi-pill-height, drives every row. Chrome height is the page's to
-   * spend, so the pill is tuned, not inherited (see Control metrics).
-   *
-   * The gutter is the page card's inset, owned entirely by the card's own
-   * margin (koi-shell.css). Chrome rows end where their pills end — no row
-   * carries batting for a neighbour. */
+  /* Chrome: two rows, each the pill height plus 4px above and below. The top
+   * row acts on the window, the bottom row on the page. The gutter (the page
+   * card's inset) belongs to the card's margin (koi-shell.css), so no row
+   * pads for a neighbour. */
   --koi-chrome-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-4));
   --koi-chrome-pad: var(--koi-space-12);
   --koi-gutter: var(--koi-space-4);
 
-  /* The address pill is centered and capped. The cap deliberately outgrows
-   * the spec's 520: the field is the top row's centrepiece, so its ceiling
-   * tracks the window — 60% of its width, itself held between 640 and 1200.
-   * It is a ceiling only: in a narrow row the field shrinks below it as the
-   * springs run out, so the clusters never crowd. Tabs are all
-   * exactly as wide as each other: they narrow together from this ceiling to
-   * a 100px floor, then the strip scrolls instead. The floor is
-   * browser.tabs.tabMinWidth (prefs/firefox/chrome-ui.yaml) — Firefox plumbs
-   * that pref into layout itself, so it has no token here. */
+  /* The address field's ceiling: 60% of the window, held to 640–1200px (the
+   * spec's 520 is too small for the row's centrepiece). In a narrow window the
+   * field shrinks below it. Tabs share one width, narrowing from --koi-tab-max
+   * to browser.tabs.tabMinWidth (chrome-ui.yaml; Firefox's own layout reads
+   * it) before the strip scrolls. */
   --koi-field-max: clamp(640px, 60vw, 1200px);
   --koi-tab-max: 178px;
 
-  /* Radii — the window's own corners are AppKit's, not ours, so there is no
-   * token for them. */
+  /* No window radius: AppKit draws the window's corners. */
   --koi-radius-page: 12px;
   --koi-radius-pill: 8px;
   --koi-radius-favicon: 4px;
 
-  /* Control metrics ---------------------------------------------------------
-   * One pill height for the tabs and the address field; every row derives
-   * from it. Tuned by eye against the neighbours: the spec's 24 sat too
-   * short, Firefox's 36 read as massive, and 28 — Helium's own control
-   * height — lands notably shorter than Firefox and Chrome without going
-   * as tight as Helium's 3px-unit chrome (their 68px total vs our 76;
-   * see their patches/helium/ui/layout-constants.patch). Toolbar glyphs
-   * are Firefox's 16px in a 28px box, the pill height (koi-chrome.css).
-   * Bookmark pills run one size down (icon plus 4px each side). */
+  /* One pill height for tabs and the address field; every row derives from
+   * it. 28px is tuned by eye: the spec's 24 is too short, Firefox's 36 too
+   * tall. Helium uses 28 as well. */
   --koi-pill-height: 28px;
   --koi-dot: var(--koi-space-8);
 
-  /* Type --------------------------------------------------------------------
-   * One mono stack, spelled once. It appears 27 times in the spec, and a
-   * quoted family name is exactly where a stack drifts ('SF Mono' against
-   * SFMono-Regular). There is no sans token: Firefox chrome's own `font: menu`
-   * already resolves to SF on macOS.
-   *
-   * The spec's nine sizes; the smallest belong to surfaces not yet built
-   * (favicon letters, group labels, footer hints, menu rows). The half-pixel
-   * entries are faithful to the spec but are prototype drift rather than
-   * system — worth revisiting when type gets a deliberate pass. */
+  /* Type: one mono stack, spelled once, since quoted family names are where
+   * stacks drift. No sans token: the chrome's `font: menu` is already SF. The
+   * sizes are the spec's nine; the half-pixel ones are prototype drift, to be
+   * settled in a type pass. */
   --koi-font-mono: ui-monospace, "SF Mono", monospace;
 
   --koi-text-8: 8px;
@@ -110,65 +66,38 @@
   --koi-text-13: 13px;
   --koi-text-15: 15px;
 
-  /* Ink ---------------------------------------------------------------------
-   * White at three fixed opacities. Primary reads, secondary is available,
-   * tertiary is present but not asking for attention. */
+  /* Ink: white at three levels of emphasis. */
   --koi-fg: #fff;
   --koi-fg-2: rgba(255, 255, 255, 0.62);
   --koi-fg-3: rgba(255, 255, 255, 0.42);
 
-  /* The one colour in the chrome that is not a white film, and it always means
-   * "this one, now": the board's focused card, the focus ring. Its value is the OS's own accent (the CSS AccentColor system
-   * keyword) — the wallpaper-borrowing doctrine taken to its end: Koi imposes
-   * no colour at all, the user's Mac supplies it, live from System Settings.
-   * The token stays the API; a brand hex is a one-line change back. Known
-   * edge: the graphite setting yields a grey accent, which whispers where
-   * this should point — accepted. */
+  /* The chrome's only colour, meaning "this one, now" (the board's focused
+   * card, focus rings). It is the macOS accent, live from System Settings, so
+   * Koi imposes no colour of its own; Graphite makes it grey, accepted. */
   --koi-accent: AccentColor;
 
-  /* Edges ---------------------------------------------------------------------
-   * Two hairlines: white on glass surfaces, dark on the page card — the one
-   * surface sitting on the glass rather than under it. */
+  /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);
   --koi-page-ring: rgba(0, 0, 0, 0.06);
 
-  /* Glass -------------------------------------------------------------------
-   * There is no CSS blur in Koi's chrome, verified twice over:
+  /* Glass ------------------------------------------------------------------
+   * CSS cannot blur anything in Koi's chrome. The shell's blur is the desktop,
+   * which only the NSVisualEffectView behind the window samples (widget/cocoa
+   * patch), and page content renders out of process; backdrop-filter has
+   * nothing to sample in either place. These tints carry every surface.
    *
-   *   - The shell's blur is the macOS desktop, which only the OS can sample —
-   *     an NSVisualEffectView in blendingMode BehindWindow (widget/cocoa).
-   *     The chrome paints nothing, so backdrop-filter has no backdrop there.
-   *   - Page content renders out-of-process, and chrome CSS cannot sample a
-   *     remote browser's pixels either — a backdrop-filter over the page card
-   *     is a no-op too. (An earlier note here claimed it bites there; a
-   *     surface floated over a real page disproved it.)
+   * A ladder of white films, 5% apart:
+   *   SHELL  — the window's own film (body, bevel, outline)
+   *   WASH   — a hovered bare glyph (+, tab ×, key cap)
+   *   WELL   — a resting pill, focused included (focus is the caret's job)
+   *   HOVER  — a hovered pill
+   *   RAISED — the active surface (selected tab, empty-state card)
    *
-   * So the spec's blur numbers do not port: the TINTS below carry these
-   * surfaces entirely. A floating surface reads frosted over an empty tab
-   * because the wallpaper behind the window is already OS-blurred, and reads
-   * frosted over a page because the tint is nearly opaque. */
-
-  /* The glass: one straight ladder of white films, 5% brighter per step.
-   * Five steps, one meaning each:
-   *
-   *   SHELL  — the window's own film: the whole body, the bevel, the
-   *            outline. Barely there; the wallpaper does the talking.
-   *   WASH   — a hovered bare glyph: the +, a tab ×, a pin, a key cap.
-   *   WELL   — a resting pill: the address field, focused included —
-   *            focus is the caret's job, not the surface's.
-   *   HOVER  — a hovered pill: the field, a tab.
-   *   RAISED — the active surface: the selected tab, the empty-state card.
-   *            The most frosted thing on the shell.
-   *
-   * Plus the one tint off the ladder, MENU, for every floating surface Koi
-   * or Firefox draws itself — the urlbar's open dropdown, the findbar, the
-   * board's cards, the bookmark menus: 96% opaque, because out-of-process
-   * pixels can't be blurred and the leftover is an unblurred ghost of the
-   * page's text. At 90% that ghost read clearly through the dropdown. What
-   * macOS draws (menus, panels) wears its own blurred material instead
-   * (koi-panels.css), and MENU sits beside it, so it is the near-black
-   * neutral of a native popover over a dark page — not the spec's navy, nor
-   * a mid grey; both read as a different family next to the popovers. */
+   * MENU, off the ladder, is every floating surface Firefox or Koi draws over
+   * the page: urlbar dropdown, findbar, board cards, bookmark menus. 96%
+   * opaque because unblurred page text ghosts through anything lighter (it
+   * read clearly at 90%); near-black to match the native popovers beside it
+   * (koi-panels.css). */
   --koi-glass-shell: rgba(255, 255, 255, 0.07);
   --koi-glass-wash: rgba(255, 255, 255, 0.12);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
@@ -176,37 +105,24 @@
   --koi-glass-raised: rgba(255, 255, 255, 0.27);
   --koi-glass-menu: rgba(30, 30, 32, 0.96);
 
-  /* Scrims ------------------------------------------------------------------
-   * Two weights, and the difference carries meaning: the board is a full
-   * takeover, peek is a lighter overlay you stay oriented behind.
-   * Dim only — scrim blurs cannot reach page pixels (see Glass). */
+  /* Scrims: the board is a full takeover, peek a lighter overlay. Dim only
+   * (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
   --koi-scrim-float: rgba(8, 10, 14, 0.28);
 
-  /* Shadows -----------------------------------------------------------------
-   * Hairlines compose at the use site so a rule can pick its own ring — the
-   * page card takes --koi-page-ring, everything else --koi-hair:
+  /* Shadows. The ring is composed at the use site, so each rule picks its own:
    *   box-shadow: var(--koi-shadow-float), 0 0 0 0.5px var(--koi-hair);
-   *
-   * The window's own drop shadow is drawn by the window server, outside the
-   * window bounds; no chrome box-shadow can reach it. Changing that is a
-   * widget/cocoa change, not a stylesheet one. */
+   * The window's own shadow is the window server's; no CSS reaches it. */
   --koi-shadow-page: 0 6px 28px rgba(0, 0, 0, 0.22);
   --koi-shadow-float: 0 32px 80px rgba(0, 0, 0, 0.42);
   --koi-shadow-menu: 0 26px 64px rgba(0, 0, 0, 0.32);
 
-  /* Motion ------------------------------------------------------------------
-   * The shell does not move. Nothing enters, rises, springs or lifts: a
-   * surface is simply there, as a macOS menu is. The one speed left is for
-   * state, not motion — a colour or opacity answering the pointer (hover,
-   * pressed, the strip's edge fade) eases over 150ms so it reads as a
-   * response rather than a flicker. The spec's entrance keyframes and its
-   * spring were built and taken out; motion returns as a deliberate pass of
-   * its own, not one surface at a time. */
+  /* Motion: the shell does not move (no entrances, springs or lifts; motion
+   * returns as a pass of its own). Only state eases — a colour or opacity
+   * answering the pointer — so a hover reads as a response, not a flicker. */
   --koi-fade: 150ms linear;
 }
 
-/* Respect the system setting. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --koi-fade: 0ms linear;

@@ -3,20 +3,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /**
- * Postinstall patcher for dependencies that cannot be configured.
- *
- * Two files in node_modules have to be edited in place. Without this script a
- * plain `npm install` silently reverts them, and the damage is invisible until
- * you notice Zen's URLs baked into a Koi build.
- *
+ * Postinstall: edits two files in node_modules that have no config hook, which
+ * a plain `npm install` would otherwise silently revert.
  *   1. surfer's branding generator hardcodes zen-browser.app URLs into
- *      branding.nsi and pref/firefox-branding.js. There is no config hook.
+ *      branding.nsi and pref/firefox-branding.js.
  *   2. async-icns calls fs.promises.rmdir(..., {recursive}), removed in Node 24.
- *
- * Each edit is expressed as an exact from/to pair. If `from` is missing but
- * `to` is present the edit is already applied and we move on; if neither is
- * found we fail loudly, because that means the dependency changed shape and
- * the patch is no longer doing what it claims.
+ * Each edit is an exact from/to pair: already applied is skipped, and a file
+ * with neither fails loudly, because the dependency changed shape.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -28,14 +21,11 @@ const targets = [
   {
     file: 'node_modules/@zen-browser/surfer/dist/commands/patches/branding-patch.js',
     why: "surfer's hardcoded Zen URLs",
-    // The edits below only know the URLs surfer had when they were written. A
-    // URL a later surfer ADDS would sail past them, and this file's whole
-    // reason for existing is that such a URL stays invisible until it is in a
-    // shipped build. So the pass is only complete if none survive it.
+    // The edits know only the URLs surfer had when they were written, so the
+    // pass also fails if any zen-browser.app URL survives it.
     forbid: /zen-browser\.app/,
     edits: [
-      // Nothing should open on first run, so the welcome flow is emptied
-      // rather than pointed at a Koi page.
+      // Emptied, not pointed at Koi pages: nothing opens on first run.
       ['"https://zen-browser.app/whatsnew?v=%VERSION%"', '""'],
       ['"https://zen-browser.app/welcome/"', '""'],
       ['"https://zen-browser.app/privacy-policy/"', '""'],

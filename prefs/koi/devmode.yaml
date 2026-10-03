@@ -2,12 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Developer mode (src/koi/devmode/). Off until switched on from the ☰ menu:
-# nothing in it is for a first launch.
+# Developer mode (src/koi/devmode/), switched on from ☰ ▸ Developer Mode.
 - name: koi.devmode.enabled
   value: false
 
-# The page's error count on the Console button, its own switch in the
-# developer menu so it can go quiet without leaving dev mode.
+# The page's error count on the Developer Tools button. Its own switch (⚒
+# menu), so it can go quiet without leaving dev mode.
 - name: koi.devmode.error-badge
   value: true

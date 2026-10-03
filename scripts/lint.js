@@ -3,21 +3,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /**
- * Lints Koi's own code with Firefox's linters — from real files, in a real
- * directory.
- *
- * engine/koi/ is a symlink farm into src/koi/, and pointing `mach lint` at it
- * reports success over zero files: eslint drops any path whose target
- * resolves outside the tree, and prettier refuses symlinks. So src/koi/ is
- * copied to engine/koi-lint/, linted there as any directory of the tree
- * would be, and removed again.
- *
- * The copy's name has no dot in it, on purpose. Firefox's .prettierignore
- * ignores `*.*` and then un-ignores the file types it formats; a directory
- * named `.lint` matched `*.*` and took everything under it with it, so the
- * first version of this script passed prettier and stylelint over empty air.
- * mach's eslint and stylelint each run prettier on their own files, so there
- * is no separate prettier step: one command, one code path.
+ * Lints Koi's code with Firefox's own linters. `mach lint` on engine/koi/
+ * reports success over zero files (eslint drops paths that resolve outside
+ * the tree, prettier refuses symlinks), so src/koi/ is copied to
+ * engine/koi-lint/, linted there and removed. The copy's name has no dot:
+ * Firefox's .prettierignore ignores `*.*` and re-includes file types, so a
+ * dotted directory was silently skipped. mach's eslint and stylelint run
+ * prettier themselves.
  *
  * Usage: npm run lint            check
  *        npm run lint -- --fix   let the tools rewrite, copied back into src/

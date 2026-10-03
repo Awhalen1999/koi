@@ -2,22 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The empty state — Koi Shell v5's noTabs card.
- *
- * koi-newtab.js builds #koi-empty-state inside #tabbrowser-tabbox and stamps
- * [koi-empty] on :root while the selected tab is blank. Every rule here is
- * keyed on that attribute: no empty tab, no trace of this file.
- *
- * The card's blur is the window's own vibrancy — the wallpaper behind the
- * window is already composited blurred, so the RAISED glass film is what
- * this surface actually carries. See koi-theme.css on glass. */
+/* The empty state (Koi Shell v5's noTabs card). koi-newtab.js builds
+ * #koi-empty-state and sets [koi-empty] on :root while the selected tab is
+ * blank; every rule here keys on that attribute. The card is the RAISED film
+ * over the window's vibrancy (koi-theme.css). */
 
-/* While the empty card shows, the window behind it is the wallpaper: lift the
- * shell's backdrop paint and the page card's chrome. Blank browsers paint
- * nothing themselves (browser.tabs.allow_transparent_browser, and the shell's
- * content-backdrop rule already excludes [transparent="true"]); ordinary
- * pages keep sitting on .browserContainer's paint because [koi-empty] is only
- * ever set while the selected tab is empty. */
+/* While the card shows, the page ground and the page card's frame are
+ * cleared so the wallpaper shows. Blank browsers already paint nothing
+ * (browser.tabs.allow_transparent_browser; koi-shell.css skips
+ * [transparent="true"]). */
 :root[koi-empty] #tabbrowser-tabpanels .browserSidebarContainer {
   box-shadow: none;
 
@@ -31,16 +24,15 @@
 }
 
 :root[koi-empty] #koi-empty-state {
-  /* A backdrop, not a wall: it covers the whole card, and chrome sharing
-   * that space (the findbar, riding the card's bottom edge) must stay
-   * clickable through it. The pins opt back in below. */
+  /* It covers the whole page card, so clicks pass through to chrome in the
+   * same space (the findbar); the pins opt back in. */
   pointer-events: none;
-  /* The page card's own geometry: inset by the gutter, rounded, ringed. */
+  /* The page card's geometry: inset by the gutter, rounded, ringed. */
   position: absolute;
   inset: var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   background: var(--koi-glass-raised);
-  /* Softer than the page card's shadow — the spec's empty-card weight. */
+  /* The spec's empty-card shadow, softer than the page card's. */
   box-shadow:
     0 6px 28px rgba(0, 0, 0, 0.14),
     inset 0 0 0 0.5px var(--koi-hair);
@@ -80,8 +72,7 @@
 
 .koi-empty-pins {
   display: flex;
-  /* Eight tiles to a row, then wrap, centered — the fetch caps at 24
-   * (koi-newtab.js), so the grid is at most three rows. */
+  /* Eight tiles a row, centred; koi-newtab.js caps pins at 24 (three rows). */
   flex-wrap: wrap;
   justify-content: center;
   max-width: 468px;
@@ -89,7 +80,7 @@
   gap: var(--koi-space-12);
   margin-top: var(--koi-space-32);
 
-  /* No bookmarks, no row — and no stray margins either. */
+  /* No bookmarks: no row and no margins. */
   &:empty {
     display: none;
 
@@ -121,13 +112,12 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   }
 
-  /* Pressed, the shadow settles back to rest — the pin is pushed, not lit: a
-   * letter tile's colour is its identity and holds under the press. */
+  /* Pressed, the shadow returns to rest; a letter tile keeps its colour. */
   &:hover:active {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   }
 
-  /* The keyboard's pin: the accent ring, outside the tile like a key cap. */
+  /* Keyboard focus: the accent ring, outside the tile. */
   &:focus-visible {
     outline: var(--focus-outline);
     outline-offset: var(--focus-outline-offset);
@@ -140,10 +130,9 @@
   border-radius: var(--koi-radius-favicon);
 }
 
-/* A pin with no stored favicon is the letter tile: the site's initial on
- * one of six colours from the v5 mock, hashed from the host so a site keeps
- * its colour. The palette sits after the pin's hover rule on equal
- * specificity, so the colour also holds under the pointer. */
+/* A pin with no favicon in Places: the site's initial on one of the v5
+ * mock's six colours, hashed from the host. After the hover rule at equal
+ * specificity, so the colour holds under the pointer. */
 .koi-empty-pin-letter {
   font-size: var(--koi-text-15);
   font-weight: 600;

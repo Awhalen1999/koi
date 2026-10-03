@@ -2,19 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Chrome furniture that CSS cannot do alone: CustomizableUI placements, and
- * the measurement that keeps the address pill centred on the window.
+/* Chrome layout that CSS cannot do alone: CustomizableUI placements, and
+ * keeping the address pill centred on the window.
  *
- * Back, forward and reload live in the page's row, leading it (their order
- * is koi-chrome.css's). Placements persist in the profile, so this is
- * enforcement, not decoration: Koi's layout is opinionated, and customize
- * mode is not a surface — koi-chrome.css hides every way in and this file
- * disables the command behind them, so the layout changes with the next
- * Koi build and nothing else. Runs per window; the moves are global and
- * checked first, so every window after the first is a no-op. */
+ * Placements persist in the profile, so they are enforced in every window:
+ * back, forward and reload lead the tab row, and + follows the tabs. The
+ * moves are global and checked first, so later windows change nothing.
+ * Customize mode is locked out (koi-chrome.css hides its entry points, this
+ * disables the command), so the layout changes only with a Koi build. */
 
-/* RTL_UI is a browser-window global (browser.js); the koi/ tree sits outside
- * eslint.config.mjs's browser-window path list. */
+/* Browser-window global (koi/ is outside eslint.config.mjs's browser-window
+ * paths). */
 /* global RTL_UI */
 
 (() => {
@@ -28,23 +26,19 @@
         "moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs"
       );
 
-      // Every entry to customize mode — the app menu, View ▸ Toolbars, the
-      // toolbar and panel context menus, the overflow panel — runs or
-      // observes this one command. Nothing in Firefox re-enables it.
+      // Every customize-mode entry point runs or observes this command, and
+      // nothing in Firefox re-enables it.
       document
         .getElementById("cmd_CustomizeToolbars")
         ?.setAttribute("disabled", "true");
 
-      // Back and forward ship removable="false", and CustomizableUI's
-      // window build evicts a non-removable widget from any area its markup
-      // does not put it in — a placement alone gets silently reverted, and
-      // the widget lands at the end of nav-bar. Removability is read from
-      // the live attribute, so flip it before this window builds its
-      // toolbars. Since 157 Firefox builds them from its own DOMContentLoaded
-      // handler on the window (browser-main.js), registered ahead of this
-      // script's, which is why this listener runs in the capture phase: a
-      // window capture listener fires before any bubble listener on the
-      // window, whatever order they were added. Per window, deliberately.
+      // Back and forward ship removable="false", and CustomizableUI evicts a
+      // non-removable widget from any area its markup does not place it in
+      // (to the end of nav-bar). It reads the live attribute, so the flip
+      // must land before this window's toolbars are built. Since 157 Firefox
+      // builds them in its own window DOMContentLoaded listener
+      // (browser-main.js), added before this one, hence the capture phase: a
+      // window capture listener runs before any bubble listener.
       const fixed = ["back-button", "forward-button"];
       for (const id of fixed) {
         document.getElementById(id)?.setAttribute("removable", "true");
@@ -62,11 +56,11 @@
         }
       );
 
-      // The + rides inside the strip only while new-tab-button is the next
-      // placement after tabbrowser-tabs (tabs.js _updateNewTabVisibility);
-      // anything between them — a migration's insert, a stray move — sends
-      // it to the toolbar's far end. Pinned relative to the tabs, not to an
-      // index, so a migration prepending to the area cannot shift it.
+      // The + sits inside the strip only while new-tab-button is the
+      // placement right after tabbrowser-tabs (tabs.js
+      // _updateNewTabVisibility); anything between them sends it to the
+      // toolbar's end. Pinned relative to the tabs, so a migration inserting
+      // into the area cannot shift it.
       const tabs = CustomizableUI.getPlacementOfWidget("tabbrowser-tabs");
       const plus = CustomizableUI.getPlacementOfWidget("new-tab-button");
       if (
@@ -80,19 +74,16 @@
         );
       }
 
-      // Once the two are seated in this window's tab row, the flip is
-      // reversed. The eviction only ever fires on a non-removable widget
-      // whose node is *outside* its area, so in place they are as fixed as
-      // Firefox ships them — and the toolbar context menu's "Remove from
-      // Toolbar" disables itself for them (ToolbarContextMenu.sys.mjs),
-      // where a widget left removable could have been pulled off the row.
+      // Once seated, the flip is reversed: eviction only applies outside the
+      // area, and non-removable disables "Remove from Toolbar" for them
+      // (ToolbarContextMenu.sys.mjs).
       const pin = () => {
         for (const id of fixed) {
           document.getElementById(id)?.setAttribute("removable", "false");
         }
       };
       if (document.getElementById("back-button")?.closest("#TabsToolbar")) {
-        pin(); // The row was already built; the move above seated them.
+        pin(); // Already built, and seated by the move above.
       } else {
         const listener = {
           onAreaNodeRegistered(area, node) {
@@ -108,16 +99,12 @@
     { once: true, capture: true }
   );
 
-  // Row one centres the address pill on the window, not on the space the
-  // clusters leave it: Firefox's two springs split that space evenly, so a
-  // right side wider than the lights pushed the pill left. The narrower
-  // side's spring starts out as wide as the difference, and the evenly split
-  // remainder then centres the pill (koi-chrome.css applies the two
-  // values). CSS cannot balance groups it cannot measure. When room runs
-  // out the springs shrink first, the pill keeps Firefox's own floor
-  // (--urlbar-container-min-width), and Firefox's overflow takes over.
-  // Listening after Firefox's own DOMContentLoaded handler, which builds the
-  // springs.
+  // Centres the address pill on the window, not between the clusters: the
+  // narrower side's spring starts as wide as the difference
+  // (--koi-nav-lead / --koi-nav-trail, applied in koi-chrome.css) and the
+  // springs split the rest. Out of room, the springs shrink first and the
+  // pill keeps Firefox's floor (--urlbar-container-min-width). Bubble phase,
+  // after Firefox's own listener has built the springs.
   addEventListener(
     "DOMContentLoaded",
     () => {

@@ -2,34 +2,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Developer mode — the app's half. koi-devmode.js is each window's.
+/* Developer mode, the app-wide half (koi-devmode.js is each window's).
  *
- * Off by default; the ☰ menu's Developer Mode switch sets koi.devmode.enabled
- * (prefs/koi/devmode.yaml). A tab is in dev mode while that is on, while it
- * shows a page served from this machine (localhost, as Arc does it), and
- * while it has a switch set. Everything here is Firefox's own machinery,
- * reached from one place:
+ * A tab is in dev mode while koi.devmode.enabled is on (☰ ▸ Developer Mode),
+ * while it shows a local page (localhost, as in Arc), or while it has a
+ * switch set. All of it is Firefox's own machinery:
+ *   - Full URLs: browser.urlbar.trimURLs is turned off on the default branch,
+ *     so a value the user set still wins and nothing is written to the
+ *     profile. It follows the switch only (a pref is global); local pages
+ *     lose nothing, since Firefox never trims an insecure page's http://.
+ *   - Error count: a window actor (KoiPageErrorsChild.sys.mjs) reports a
+ *     tab's uncaught errors, unhandled rejections and console.error() calls.
+ *     The parent cannot attribute errors itself: content errors reach it
+ *     without their window (ContentParent::RecvScriptError). Registered for
+ *     every tab with dev mode on, for local pages only with it off.
+ *   - Per-tab switches (cache, JavaScript, styles, offline, appearance):
+ *     fields on the tab's top browsing context, set as the devtools and
+ *     View ▸ Page Style set them. A navigation that swaps the browsing
+ *     context drops most of them (CanonicalBrowsingContext::ReplacedBy), so
+ *     state is kept here by browserId and re-applied as the new context
+ *     attaches, before the page's scripts run. Turning dev mode off clears
+ *     every switch.
  *
- *   - Full URLs. Dev mode shifts the default of browser.urlbar.trimURLs, so
- *     protocol, port and path stay visible. A value the user set still wins,
- *     and nothing is written to their profile.
- *   - Page errors. A window actor (KoiPageErrorsChild.sys.mjs) reports every
- *     uncaught error and unhandled rejection in a tab's top document. The
- *     main process cannot attribute errors on its own: content errors reach
- *     it re-logged without their window (ContentParent::RecvScriptError).
- *     console.error() counts too, as Chromium's and Firefox's consoles count
- *     it. While the error count is on, the actor is registered for every tab
- *     with dev mode on, and for local pages with it off.
- *   - Per-tab switches — cache, JavaScript, styles, offline, page appearance —
- *     set on the tab's top browsing context, as the devtools and View ▸ Page
- *     Style set them. Their state lives here, keyed by browserId:
- *     a navigation that swaps the browsing context carries only some of
- *     those fields over (CanonicalBrowsingContext::ReplacedBy), so they are
- *     re-applied as the new one attaches, before the page's scripts run.
- *     Turning dev mode off clears every switch in every window.
- *
- * Windows hear about changes through two observer topics: "koi-devmode"
- * (a pref or a switch changed) and "koi-page-error" (subject: the browser). */
+ * Windows listen on "koi-devmode" (state changed) and "koi-page-error"
+ * (subject: the browser). */
 
 const ENABLED_PREF = "koi.devmode.enabled";
 const ERROR_COUNT_PREF = "koi.devmode.error-badge";
@@ -54,7 +50,7 @@ const defaultBranch = Services.prefs.getDefaultBranch("");
 const TRIM_URLS_DEFAULT = defaultBranch.getBoolPref(TRIM_URLS_PREF);
 
 // Errors per top-level document. A navigation brings a new WindowGlobal, so
-// a page's count starts at zero without any bookkeeping.
+// counts reset by themselves.
 const errorCounts = new WeakMap();
 
 // browserId → the tab's switches, held only while one differs from DEFAULTS.
@@ -151,8 +147,8 @@ function sync(_subject, _topic, pref) {
     actorScope = scope;
   }
 
-  // Only the switch going off clears them: the error count's switch, flipped
-  // on a local page, must leave its tab alone.
+  // Only the enabled pref turning off clears switches; flipping the error
+  // count on a local page must not.
   if (pref == ENABLED_PREF && !enabled) {
     for (const browserId of overrides.keys()) {
       apply(BrowsingContext.getCurrentTopByBrowserId(browserId), DEFAULTS);

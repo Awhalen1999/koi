@@ -10,21 +10,19 @@
 - name: browser.preferences.moreFromMozilla
   value: false
 
-# MOZ_APPUPDATE_HOST is surfer's deliberately non-resolving placeholder until
-# Koi has a real update server. Auto-update must stay off until it does.
+# Off until Koi has an update server: MOZ_APPUPDATE_HOST is surfer's
+# non-resolving placeholder.
 - name: app.update.auto
   value: false
 
-# The old-build check reads app.update.checkInstallTime.days, a branding pref
-# surfer's generated branding never defines. The read throws inside
-# BrowserGlue._onFirstWindowLoaded and silently aborts everything after it —
-# the whole browser-first-window-ready category (PageActions, AboutNewTab,
-# TabCrashHandler, ProcessHangMonitor, ...). No update server, no install-time
-# check; skipping it also unbreaks the star/⌘D popup and about:newtab.
+# The old-build check reads app.update.checkInstallTime.days, which surfer's
+# branding never defines. The throw in BrowserGlue._onFirstWindowLoaded
+# silently skips everything after it: PageActions (the ⌘D popup), AboutNewTab,
+# TabCrashHandler and more. No update server, so no check.
 - name: app.update.checkInstallTime
   value: false
 
-# Matches --with-unsigned-addon-scopes=app,system; Mozilla's signing does not
-# cover this build.
+# Matches --with-unsigned-addon-scopes=app,system: Mozilla does not sign
+# Koi's builds.
 - name: xpinstall.signatures.required
   value: false

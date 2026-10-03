@@ -42,14 +42,13 @@ export MOZ_SOURCE_CHANGESET=${changeset}
 mk_add_options MOZ_TELEMETRY_REPORTING=
 ac_add_options MOZ_TELEMETRY_REPORTING=
 
-# MOZ_DATA_REPORTING is NOT settable here. toolkit/moz.configure derives it as
-# (telemetry or healthreport or crashreporter or normandy). Telemetry and the
-# crash reporter are off here; healthreport and normandy are force-implied by
-# browser/moz.configure and are removed in src/browser/moz-configure.patch.
-# With all four off, MOZ_DATA_REPORTING disappears on its own.
+# MOZ_DATA_REPORTING cannot be set here: toolkit/moz.configure derives it from
+# telemetry, healthreport, crashreporter and normandy. Telemetry and the crash
+# reporter are off here, the other two in src/browser/moz-configure.patch;
+# with all four off it disappears.
 
-# Koi has no crash-reporting service. Left enabled, Firefox submits reports to
-# crash-reports.mozilla.com under Firefox's own app GUID.
+# Koi has no crash service; left on, reports go to crash-reports.mozilla.com
+# under Firefox's app GUID.
 ac_add_options --disable-crashreporter
 
 # Mozilla's add-on signing does not cover this build.
@@ -60,12 +59,11 @@ ac_add_options --with-unsigned-addon-scopes=app,system
 # Build ------------------------------------------------------------------
 ac_add_options --enable-bootstrap
 
-# Configure changes can leave stale generated bindings behind that fail to
-# compile on the next incremental build. Let mach clobber itself.
+# Configure changes can leave stale generated bindings that fail the next
+# incremental build; let mach clobber itself.
 mk_add_options AUTOCLOBBER=1
 
-# sccache is bootstrapped into ~/.mozbuild and is not on PATH at configure
-# time, so probe for it rather than assuming the bare name resolves.
+# sccache is bootstrapped into ~/.mozbuild, not on PATH at configure time.
 if test -x "$(command -v sccache)"; then
   ac_add_options --with-ccache=sccache
 elif test -f "$HOME/.mozbuild/sccache/sccache"; then

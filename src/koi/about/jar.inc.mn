@@ -2,11 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Included from browser/base/jar.mn, so source paths are relative to
-# browser/base/. See src/koi/common/jar.inc.mn for the ground rules.
+# Included through koi-assets.jar.inc.mn into browser/base/jar.mn, so source
+# paths are relative to browser/base/. Rules: src/koi/common/jar.inc.mn.
 #
-# `content browser` is declared contentaccessible=yes in browser/base/jar.mn,
-# which is what lets about:rights reach these from a content process.
+# about:rights can load these from a content process because browser/base's
+# jar.mn declares `content browser` contentaccessible=yes.
 
         content/browser/koi-about/koi-rights.html               (../../koi/about/koi-rights.html)
         content/browser/koi-about/koi-rights.css                (../../koi/about/koi-rights.css)

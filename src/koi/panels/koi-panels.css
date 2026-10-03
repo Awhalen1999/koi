@@ -2,61 +2,47 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Floating surfaces — macOS's own, as Zen ships them.
+/* Floating surfaces. What macOS draws keeps its own material (a real blur);
+ * what Firefox or Koi draws over the page takes the MENU tint (koi-theme.css).
  *
- * Every popup is drawn in the OS's vibrancy material: a true blur of
- * whatever is behind it, the system's shadow and corners, light or dark with
- * the system — the one surface CSS cannot fake over page content
- * (koi-theme.css on glass). Menus always were (popup.css gives menupopups the
- * native menu appearance). Arrow panels — the app menu, extensions,
- * downloads, site information, the bookmark editor, doorhangers — become
- * real NSPopovers through widget.macos.native-popovers
- * (prefs/firefox/chrome-ui.yaml), the Firefox pref Zen upstreamed and ships
- * on. Koi's part is Zen's (zen-panel-ui.css): stop Firefox painting over
- * the material. A panel id that sets its own --panel-background-color (the
- * confirmation hint's accent pill, the date picker) outranks this and keeps
- * it.
- *
- * The urlbar dropdown and the findbar are not popups: they live inside the
- * window, over page content no material reaches, and wear the MENU tint. */
+ * Menupopups are native menus already (popup.css). Arrow panels (app menu,
+ * extensions, downloads, site information, bookmark editor, doorhangers)
+ * become NSPopovers through widget.macos.native-popovers (chrome-ui.yaml),
+ * and, as in Zen (zen-panel-ui.css), Firefox's paint is cleared so the
+ * material shows. A panel id that sets its own --panel-background-color (the
+ * confirmation hint, the date picker) outranks this and keeps it. */
 
 panel[type="arrow"]:not(#feature-callout) {
   --panel-background-color: transparent;
   --panel-border-color: transparent;
-  /* No entrance slide: Firefox parks every arrow panel 70px above its seat
-   * and eases it down over 0.18s (popup.css); a macOS menu is simply there.
-   * Not swapped for a fade — Firefox skips -moz-window-opacity on Big Sur+
-   * because the window shadow vanishes mid-fade (bug 1672091). */
+  /* No entrance slide (popup.css eases each panel down 70px). Not a fade
+   * either: Firefox skips -moz-window-opacity on Big Sur+, where the window
+   * shadow vanishes mid-fade (bug 1672091). */
   -moz-window-transform: none;
 
-  /* A panel Firefox draws itself ([nonnative]: the selection shortcuts, the
-   * tab preview) never becomes an NSPopover, and arrow panels ship
-   * appearance: none — with the paint cleared above it would be bare. It
-   * takes the menu material instead, as every menupopup does. */
+  /* A [nonnative] panel (the selection shortcuts, the tab preview) never
+   * becomes a popover and would be bare with the paint cleared, so it takes
+   * the native menu material instead. */
   &[nonnative] {
     appearance: auto;
     -moz-default-appearance: menupopup;
     background-color: Menu;
   }
 
-  /* A pressed switch draws its knob in the panel's canvas colour
-   * (moz-toggle.tokens.css), which the clearing above made transparent: the
-   * knob vanished. White, as a macOS switch's is in either appearance. */
+  /* A pressed switch's knob is the panel's canvas colour
+   * (moz-toggle.tokens.css), transparent here, so it vanished. White, as a
+   * macOS switch's knob is in either appearance. */
   & moz-toggle {
     --toggle-dot-background-color-on-pressed: white;
   }
 }
 
-/* Bookmark menus — every bookmarks-toolbar folder, the » overflow, the
- * Bookmarks button's menu — cannot be real macOS menus (they need drag and
- * drop, favicons and a context menu of their own), so Firefox draws them
- * itself ([nonnative], browserPlacesViews.js) and paints them "to feel like
- * panels" in its old panel grey (.toolbar-menupopup, panelUI-shared.css).
- * The rule is one line: what macOS draws wears its material, what Firefox or
- * Koi draws wears the MENU tint, the urlbar dropdown's surface. (Handing
- * these back the native menu appearance, Zen's fix, gets macOS 26's clear
- * menu glass — nsCocoaWindow.mm — visibly greyer than the popovers.) Same
- * selectors as Firefox's, so this later sheet wins without !important. */
+/* Bookmark menus (toolbar folders, the » overflow, the Bookmarks button)
+ * need drag and drop, so Firefox draws them itself ([nonnative],
+ * browserPlacesViews.js) in its panel grey (panelUI-shared.css). They take
+ * the MENU tint. Zen gives them the native menu appearance instead, which on
+ * macOS 26 is a clear glass visibly greyer than the popovers. Same selectors
+ * as Firefox's, so this later sheet wins. */
 .toolbar-menupopup {
   &,
   menupopup {
@@ -66,22 +52,18 @@ panel[type="arrow"]:not(#feature-callout) {
   }
 }
 
-/* The findbar rides the bottom edge of the page card, over content: same
- * doctrine, same tint. The border keeps its 1px of geometry (the hidden-state
- * margin math counts it, findBar.css) but loses its grey line. */
+/* The findbar sits over the page card's bottom edge, so it takes the MENU
+ * tint. Its border keeps its 1px (findBar.css's hidden-state margin counts
+ * it) but not its grey line. */
 .browserContainer > findbar {
   background-color: var(--koi-glass-menu);
   color: var(--koi-fg);
   color-scheme: dark;
   border-top-color: transparent;
 
-  /* The find field is a field, so it wears the field's clothes: the resting
-   * WELL under a hairline ring, on the pill radius, focus left to the caret —
-   * the address field's doctrine. The notfound red keeps its job (it is a
-   * signal, not decoration), so the states are carved out rather than
-   * restated; the flash state's yellow blink is retired by pref
-   * (prefs/firefox/chrome-ui.yaml), and its carve-out here keeps this rule
-   * honest if that pref ever flips back. */
+  /* Dressed as the address field: WELL, hairline ring, pill radius, focus
+   * left to the caret. The notfound red and the flash state (off by pref,
+   * chrome-ui.yaml) keep Firefox's colours. */
   & .findbar-textbox {
     border: none;
     border-radius: var(--koi-radius-pill);
@@ -98,14 +80,10 @@ panel[type="arrow"]:not(#feature-callout) {
   }
 }
 
-/* The app menu's account area carries three pieces of Firefox's brand. The
- * "zap" separator under the account row is drawn in Firefox's
- * purple-to-orange gradient whenever no theme is set (panelUI-shared.css) —
- * always, in Koi — and without it is a plain rule. The sign-in promo a
- * never-signed-in profile sees at the top of the menu carries a fox
- * (kit-signed-out.svg), hidden as Zen hides it, on Firefox's violet promo
- * card, which goes neutral: a faint film of the panel's own ink, so the one
- * colour left is the accent on its Sign in button. */
+/* Firefox branding in the app menu's account area: the gradient "zap"
+ * separator (panelUI-shared.css) becomes a plain rule; the sign-in promo's
+ * fox (kit-signed-out.svg) is hidden, as in Zen; and its violet card turns a
+ * faint film of the panel's ink, leaving the Sign in button's accent. */
 toolbarseparator.proton-zap {
   --panel-separator-zap-gradient: none;
 }

@@ -2,20 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Colour-codes `mach run` output so the chrome speaks and pages whisper.
- * Piped in by `npm start`. Every line prints except a repeating page's
- * console spam, which collapses into a single counter (see `run` below):
- *
- *   red      chrome JavaScript errors, Koi's own included — the bug radar
- *   yellow   chrome JavaScript warnings
- *   magenta  Koi's own files (anything koi-*) that are neither
- *   dim      page JavaScript (and its stack frames), known macOS/dev noise
- *   plain    everything else, mach's own output included
- *
- * The JS-error terminal echo is gated by browser.dom.window.dump.enabled,
- * which does not distinguish page from chrome — so the split lives here,
- * where the source URL in each line names its owner. Colours only on a TTY;
- * NO_COLOR is respected, KOI_LOG_COLOR=1 forces them (for testing a pipe). */
+/* Colour-codes `mach run` output for `npm start`, so chrome errors stand out
+ * from page noise. Consecutive lines from the same page collapse into one
+ * counter (see `run`).
+ *   red      chrome JS errors, Koi's included
+ *   yellow   chrome JS warnings
+ *   magenta  other lines from Koi's files (koi-*)
+ *   dim      page JS and its stack frames, known macOS and dev-build noise
+ *   plain    everything else
+ * Firefox's terminal echo of JS errors cannot tell page from chrome, so the
+ * split is made here from each line's source URL. Colour only on a TTY;
+ * NO_COLOR is respected, KOI_LOG_COLOR=1 forces it. */
 
 import { createInterface } from "node:readline";
 
@@ -24,8 +21,7 @@ const useColor =
 const paint = (code, line) =>
   useColor ? `\x1b[${code}m${line}\x1b[0m` : line;
 
-/* Not SGR 2 ("faint") — macOS Terminal.app renders faint as normal text.
- * Bright-black reads as gray on every dark theme. */
+/* Bright black, not SGR 2 (faint), which Terminal.app renders as normal. */
 const DIM = "90";
 const RED = "1;31";
 const YELLOW = "33";
@@ -53,8 +49,7 @@ const KOI_OWN = /koi-[a-z]+\.(css|js|svg)|content\/koi-/;
 // Page errors trail multi-line stacks; keep dimming until the frames stop.
 let inPageStack = false;
 
-// A page tends to repeat itself. The first line of a run prints; the rest of
-// a consecutive run from the same host collapses into one gray counter.
+// The first line of a run from one host prints; the rest become one counter.
 let run = null; // { host, count }
 
 const hostOfLine = line => {
@@ -90,10 +85,7 @@ createInterface({ input: process.stdin }).on("line", line => {
   }
   inPageStack = false;
   flushRun();
-  // Order is load-bearing: a Koi file is ours, but an error is an error
-  // first. Testing KOI_OWN ahead of this painted our own crashes magenta and
-  // kept the code most likely to be wrong off the radar. The filename in the
-  // line still says whose it is.
+  // Errors before KOI_OWN, so Koi's own errors show red, not magenta.
   if (CHROME_JS.test(line)) {
     emit(paint(line.startsWith("JavaScript error") ? RED : YELLOW, line));
   } else if (KOI_OWN.test(line)) {

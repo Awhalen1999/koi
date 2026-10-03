@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# The new tab page belongs to the page, not to us. Strip Mozilla's activity
-# stream entirely rather than configuring it down.
+# Koi's empty state replaces the new tab page, so Mozilla's activity stream is
+# switched off rather than configured down.
 
 - name: browser.newtabpage.enabled
   value: false

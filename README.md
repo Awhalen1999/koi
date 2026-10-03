@@ -3,8 +3,8 @@
 A fast, minimal browser built on Firefox (Gecko). macOS only.
 
 Calm by default. Nothing pops up, nothing asks for attention, nothing needs
-learning on first launch. All controls in 64px at the top; the rest belongs to
-the page.
+learning on first launch. All controls in two rows at the top; the rest
+belongs to the page.
 
 ## Building
 
@@ -13,10 +13,10 @@ Requires Xcode command line tools, Node 26, Python 3, and GNU tar
 
 ```sh
 npm install
-npm run download          # fetches Firefox 154 into engine/
+npm run download          # fetches Firefox (surfer.json's version) into engine/
 npx surfer set brand release   # machine-local, once per clone
 npm run bootstrap         # Mozilla build toolchain
-npm run import            # generate prefs, branding, apply patches
+npm run import            # apply patches and branding, generate prefs
 npm run build
 npm start
 ```
@@ -32,11 +32,11 @@ dev build.
 | `src/<firefox-path>/*.patch` | minimal diffs into Firefox source |
 | `configs/` | mozconfigs and branding inputs |
 | `prefs/` | default preferences as YAML |
-| `scripts/` | prefs generator, dependency patcher |
+| `scripts/` | prefs generator, dependency patcher, lint runner, log filter |
 | `engine/` | Firefox source, gitignored, its own git repo |
 
-`CLAUDE.md` has the details, including the parts that are load-bearing and
-non-obvious.
+`CLAUDE.md` has the details: the build traps, the decisions, and how to
+work on the tree.
 
 Built with [surfer](https://github.com/zen-browser/surfer). Firefox is
 Mozilla's; see LICENSE.

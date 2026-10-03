@@ -2,117 +2,83 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The two-row chrome — Koi Shell v4.
+/* The two-row chrome (Koi Shell v4.dc.html). Row one acts on the window:
+ * traffic lights, the centred address pill, tools. Row two acts on the page:
+ * back, forward, reload, the board button, tabs, +. Firefox already ships
+ * both rows (tabs above nav), so the layout is a flex `order` swap with no
+ * DOM moves.
  *
- * Two rows, split by what they act on. The top row acts on the window:
- * lights, back/forward/reload, a centered address pill, then tools. The
- * bottom row acts on the page: the board button, the tab strip, the + —
- * sitting closest to the content it controls. (A third, the bookmarks
- * sub-row, is off by default and dressed further down.)
+ * Style through Firefox's variables (--tab-*, --urlbar-*, --toolbarbutton-*),
+ * not its DOM structure, which changes between releases. The tab and urlbar
+ * tokens are declared inside @layer, so these un-layered rules win regardless
+ * of specificity.
  *
- * Firefox already ships both rows — tabs above nav — so the whole layout is
- * a flex `order` swap on #navigator-toolbox. No DOM moves, no scripts: the
- * chrome feature is this stylesheet alone. (v5's one-line experiment needed
- * JS to merge the rows; v4 needs nothing. That is much of why it won.)
- *
- * Style through Firefox's own variables wherever one exists (--tab-*,
- * --urlbar-*, --toolbarbutton-*): the variable is the API, and a rule written
- * against internal structure is the one that breaks on the next update. The
- * tab and urlbar tokens ship inside @layer, so these un-layered overrides win
- * regardless of specificity.
- *
- * The spacing system, so every value below reads as intent:
- *
- *   - Two equal rows of pill-plus-air, heights declared, never accumulated
- *     from content. The page card's 4px top gap is the card's own margin
- *     (koi-shell.css). 12px of AIR between clusters, 4px between tab
- *     pills — and the + button sits 4px off the last pill, the same gap
- *     tabs keep from each other.
- *   - Pills share one height, --koi-pill-height; bookmark pills run one
- *     size down. Toolbar glyphs are Firefox's 16px in a 28px box, the pill.
- *   - The address pill is centered between Firefox's own toolbar springs
- *     and capped at --koi-field-max.
- *
- * Values are from Koi Shell v4.dc.html; tokens are koi-theme.css. */
+ * Spacing: each row is a pill (--koi-pill-height) plus 4px above and below,
+ * with a declared height so content cannot inflate it; 12px between
+ * clusters; 4px between tab pills and before the +. */
 
 /* The rows ------------------------------------------------------------------ */
 
 :root {
-  /* Firefox's geometry is variable-driven; rows are pill + 2 × 4px air. */
   --tab-min-height: var(--koi-pill-height);
-  /* Firefox floats tab pills on a 6px block margin of their own; the
-   * system's air is 4px everywhere, and the row derives from it. */
+  /* Firefox's 6px block margin around tab pills, brought to Koi's 4px. */
   --tab-margin-block: var(--koi-space-4);
   --urlbar-height: var(--koi-pill-height);
-  /* The pill is the urlbar: no block padding around the background. */
+  /* The pill is the urlbar's background, with no padding around it. */
   --urlbar-padding-block: 0px;
-  /* The input's own inline margin inside its container (urlbar.css). Zeroed,
-   * the pill is the container, and the open dropdown lines up with it. */
+  /* Zeroed so the input fills its container and the open dropdown lines up
+   * with the pill (urlbar.css). */
   --urlbar-margin-inline: 0px;
-  /* While the view is open, Nova lets the joint background reach 8px past
-   * the input on every side (urlbar.css, --urlbar-background-overhang-open),
-   * and derives the view half's outsets from it at :root — so it is pinned
-   * here, not on #urlbar, for both halves to agree. The open surface is the
-   * pill. */
+  /* Firefox extends the open dropdown 8px past the input on every side and
+   * derives the view's outsets from this at :root (urlbar.css), so it is
+   * zeroed here, not on #urlbar, for both halves to agree. */
   --urlbar-background-overhang-open: 0px;
-  /* The open surface is drawn in two halves (the input's and the view's)
-   * that each run past the seam and are clipped back to it, with a margin
-   * left on the other sides for the shadow. Firefox sizes both for its own
-   * 14px blur; Koi's MENU shadow is a 64px blur on a 26px drop, so the
-   * stock sizes cut it into a hard-edged halo over the wallpaper. Overlap
-   * past the blur so the halves' shadows still meet as one; margin past the
-   * blur plus the drop. */
+  /* The open dropdown is painted in two halves (input and view), each
+   * overlapping the seam and clipped back to it, with a margin kept for the
+   * shadow. Firefox sizes both for its 14px blur, which would cut Koi's MENU
+   * shadow (64px blur, 26px drop) into a hard halo: the overlap exceeds the
+   * blur, the margin exceeds blur plus drop. */
   --urlbar-joint-background-overlap: 72px;
   --urlbar-joint-background-shadow-margin: 96px;
 
-  /* Tab pill clothes, on the tab.tokens.css API. */
+  /* Tab pills (tab.tokens.css): HOVER under the pointer, RAISED selected. */
   --tab-border-radius: var(--koi-radius-pill);
-  /* Tabs speak the glass ladder (koi-theme.css): the one hover color, the
-   * one active color — the same film the empty-state card wears. */
   --tab-background-color-hover: var(--koi-glass-hover);
   --tab-background-color-selected: var(--koi-glass-raised);
   --tab-box-shadow-selected: 0 0 0 0.5px var(--koi-hair);
-  /* Nova rings the selected tab with a violet-to-orange gradient painted into
-   * its border area (tabs.css, --tab-border-color-accent) and keeps an
-   * outline token for it besides. The hairline above is the selected mark. */
+  /* Nova paints a gradient ring in the selected tab's border (tabs.css); the
+   * hairline above is Koi's selected mark. */
   --tab-border-color-accent: none;
   --tab-border-color-selected: transparent;
-  /* Inside the pill: 10px inset, 8px favicon-to-label. */
+  /* Inside the pill: 10px inset, 8px from favicon to label. */
   --tab-inline-padding: 10px;
   --tab-icon-end-margin: var(--koi-space-8);
-  /* The × and the audio button share one box (tabs.css): 20px, so the
-   * system's 4px of air surrounds it in the 28px pill; the padding (the
-   * ×'s alone) leaves a 12px glyph. These are the tokens Firefox reads; since 157 the older
-   * --tab-close-button-padding only feeds this one at :root, so setting it
-   * on the button did nothing. */
+  /* The × and the audio button share one box (tabs.css): 20px leaves 4px of
+   * air in the 28px pill, and the ×'s 4px padding leaves a 12px glyph. Since
+   * 157 Firefox reads these two; --tab-close-button-padding only feeds them
+   * at :root, so setting it on the button does nothing. */
   --tab-content-button-size: 20px;
   --tab-content-button-padding: 4px;
-  /* Firefox draws a separator before the strip whenever a toolbarbutton
-   * precedes it in the DOM (tabs.css ::before) — our nav cluster does. Killed
-   * at its token: every drawing of it consumes this variable, and the
-   * variable is immune to the strip's internal DOM, where an element-scoped
-   * rule proved not to be. Koi draws no dividers; the 12px rhythm carries
-   * the grouping. */
+  /* Firefox draws a separator before the strip when a toolbarbutton precedes
+   * it (tabs.css ::before), as back/forward/reload do. Every drawing reads
+   * this variable; element-scoped rules could not reach the strip's DOM. */
   --tabstrip-inner-border: none;
 
-  /* The chrome's accent is the system's (koi-theme.css). Firefox's browser
-   * theme pins these to its own blue/cyan on macOS (tokens-platform.css):
-   * primary buttons in doorhangers, toggles, and the focus ring, which the
-   * tokens derive from --color-accent-primary. Hover and active darken it the
-   * way Firefox's native-theme layer does. This sheet is the chrome document
-   * only, so Settings and Add-ons keep Firefox's accent. */
+  /* The system accent (koi-theme.css) replaces Firefox's macOS blue
+   * (tokens-platform.css) in doorhanger buttons, toggles and focus rings;
+   * hover and active darken it as Firefox's native-theme layer does. Chrome
+   * document only: Settings and Add-ons keep Firefox's accent. */
   --color-accent-primary: var(--koi-accent);
   --color-accent-primary-hover: color-mix(in srgb, black 10%, var(--koi-accent));
   --color-accent-primary-active: color-mix(in srgb, black 20%, var(--koi-accent));
-  /* Attention glyphs — the starred star, download progress, the translations
-   * chip — are drawn in their button's own ink, as Zen does: the state is the
-   * glyph's shape, not a colour. */
+  /* Attention glyphs (the starred star, download progress, the translations
+   * chip) take their button's ink, as in Zen: the shape carries the state. */
   --toolbarbutton-icon-fill-attention: currentColor;
 }
 
-/* Nav above tabs — Firefox ships them inverted. A toolbox is already a column
- * flexbox (xul.css), so this is only the order. Every child that can show
- * needs one: an unordered child sorts first, above the traffic lights. */
+/* Nav above tabs; Firefox ships them the other way round. The toolbox is a
+ * column flexbox (xul.css). Every child that can show needs an order, or it
+ * sorts first, above the traffic lights. */
 #navigator-toolbox {
   & > #nav-bar {
     order: 1;
@@ -131,7 +97,7 @@
   }
 }
 
-/* Row one: the window's row, and the titlebar. ------------------------------ */
+/* Row one: the window's row and the titlebar. ------------------------------- */
 
 #navigator-toolbox > #nav-bar {
   height: var(--koi-chrome-height);
@@ -139,35 +105,30 @@
   align-items: center;
   padding-inline: 0 var(--koi-chrome-pad);
   background-color: transparent;
-  /* Firefox's chrome/content separator (browser-shared.css #nav-bar). Koi's
-   * boundary is the page card's gutter. */
+  /* Firefox's chrome/content separator (browser-shared.css). */
   border-top-style: none;
   color: var(--koi-fg);
-  /* The top row is the titlebar, so it drags the window. Firefox's only drag
-   * region is .browser-titlebar, which tabbrowser.js puts on nav-bar only
-   * while the tab strip is hidden; with tabs shown it sits on the tab row and
-   * this row would not drag at all. Controls opt out themselves — xul.css
-   * makes buttons and inputs no-drag. */
+  /* This row is the titlebar, so it drags the window. Firefox's drag region,
+   * .browser-titlebar, is on the tab row unless tabs are hidden
+   * (tabbrowser.js). Buttons and inputs opt out themselves (xul.css). */
   -moz-window-dragging: drag;
 
-  /* osx/browser.css gives the lights a 12px lead margin and no trailing one;
-   * the trailing margin meets the back button's slack. */
+  /* 12px each side of the lights (osx/browser.css gives none after them);
+   * the trailing side discounts the next button's inner padding. */
   & .titlebar-buttonbox {
     margin-inline: var(--koi-space-12) calc(var(--koi-space-12) - var(--toolbarbutton-padding-inner));
   }
 
-  /* The 40px pre/post spacers are titlebar padding for the row the lights no
-   * longer live in; the buttonbox margin above is the spec's left inset. */
+  /* Firefox's 40px titlebar spacers; the margin above is the inset here. */
   & > .titlebar-spacer {
     display: none;
   }
 }
 
-/* Traffic lights: nav-bar ships its own buttonbox, normally shown only under
- * [tabs-hidden] (vertical tabs). This mirrors browser-shared.css's hiding
- * selector exactly — #navigator-toolbox:not([tabs-hidden]) > #nav-bar > … —
- * so the two rules tie on specificity and this later sheet wins. A shorter
- * selector here loses and the lights vanish. */
+/* nav-bar has its own traffic-light buttonbox, which Firefox shows only under
+ * [tabs-hidden]. This repeats browser-shared.css's hiding selector exactly, so
+ * it ties on specificity and wins by order; a shorter one loses and the
+ * lights vanish. */
 #navigator-toolbox:not([tabs-hidden]) > #nav-bar > .titlebar-buttonbox-container {
   display: flex;
 }
@@ -176,18 +137,16 @@
   align-items: center;
 }
 
-/* toolbarbuttons.css caps springs at 112px. Capped springs cannot absorb the
- * row's free space, so the leftover piles up at the customization target's
- * end and shoves the pill off-center. Uncapped, the two springs split the
- * slack — they are the layout, so they get to grow. Each starts from the
- * width koi-chrome.js measures to balance the sides, so the pill sits on the
- * window's centre line whatever either side holds. */
+/* Firefox caps springs at 112px (toolbarbuttons.css), stranding free space at
+ * the row's end and pushing the pill off-centre. Uncapped, the springs share
+ * it, each starting from the width koi-chrome.js measures so the pill sits on
+ * the window's centre line. */
 #nav-bar toolbarspring {
   max-width: none;
 }
 
-/* Firefox sizes these with `flex: 80 80` from a selector this one only ties
- * (toolbarbuttons.css); anchored on the target's id, these outrank it. */
+/* Firefox's `flex: 80 80` comes from a selector a plain rule only ties
+ * (toolbarbuttons.css); anchoring on the target's id outranks it. */
 #nav-bar-customization-target > toolbarspring:not(#vertical-spacer) {
   flex-basis: var(--koi-nav-lead, 0);
 }
@@ -196,35 +155,28 @@
   flex-basis: var(--koi-nav-trail, 0);
 }
 
-/* The vertical-tabs spacer has no place in either row. The springs stay:
- * they are what centers the address pill. */
+/* The vertical-tabs spacer is a toolbarspring too, with no place here. */
 #vertical-spacer {
   display: none;
 }
 
-/* Calm by default: no account or VPN upsell in the chrome, and no sidebar
- * toggle until the sidebar has a decision. (Firefox splices ipprotection-
- * button and, since 157, sidebar-button into nav-bar's placements at
- * startup; CustomizableUI puts them back, so they are hidden, not removed.) */
+/* No account or VPN upsell, and no sidebar toggle until the sidebar has a
+ * decision. Firefox adds ipprotection-button and sidebar-button to nav-bar at
+ * startup and CustomizableUI restores them, so they are hidden, not removed. */
 #fxa-toolbar-menu-button,
 #ipprotection-button,
 #sidebar-button {
   display: none;
 }
 
-/* Customize mode has no seat in Koi: the layout is opinionated and
- * koi-chrome.js enforces it (and disables the command these run). Every
- * entry point goes — app menu ▸ More tools, View ▸ Toolbars, the toolbar
- * and panel context menus, the overflow panel's footer. All but the toolbar
- * context item run the one command; that one observes it. Each divider
- * that introduced an entry goes with it, so no menu ends on a rule.
- *
- * With no customize mode there is no way back from "Remove from Toolbar",
- * so it goes too. Pinning to the overflow menu stays: the » panel it
- * creates is where it is undone. */
-/* stylelint-disable stylelint-plugin-mozilla/no-has-selector -- the
-   divider before a customize entry has no attribute of its own to key on,
-   and `:has(+ x)` here checks one sibling inside a menu, not a subtree. */
+/* Customize mode is locked out (koi-chrome.js disables its command), so every
+ * entry point goes, with the separator before it: app menu ▸ More Tools,
+ * View ▸ Toolbars, the toolbar and panel context menus, the overflow panel
+ * footer. "Remove from Toolbar" goes too, since nothing could undo it; "Pin to
+ * Overflow Menu" stays, undone from the » panel. */
+/* stylelint-disable stylelint-plugin-mozilla/no-has-selector -- a customize
+   entry's separator has nothing else to key on, and `:has(+ x)` checks one
+   sibling, not a subtree. */
 [command="cmd_CustomizeToolbars"],
 #toolbar-context-customize,
 :is(menuseparator, toolbarseparator):has(+ :is([command="cmd_CustomizeToolbars"], #toolbar-context-customize)),
@@ -233,24 +185,19 @@
 }
 /* stylelint-enable stylelint-plugin-mozilla/no-has-selector */
 
-/* Two rows assume horizontal tabs, so vertical tabs are locked off
- * (prefs/firefox/chrome-ui.yaml). Right-clicking the strip or a toolbar
- * spring — the springs are most of row one — still offers the toggle
- * (ToolbarContextMenu.sys.mjs), so it goes, with its sidebar companion and
- * their divider. Zen hides the same three. */
+/* Vertical tabs are locked off (chrome-ui.yaml), but right-clicking the strip
+ * or a spring still offers the toggle (ToolbarContextMenu.sys.mjs). Zen hides
+ * the same three. */
 #toolbar-context-toggle-vertical-tabs,
 #toolbar-context-customize-sidebar,
 #sidebarRevampSeparator {
   display: none;
 }
 
-/* Row two: the page's row. --------------------------------------------------
- * Board button, tab strip, +. */
+/* Row two: the page's row. -------------------------------------------------- */
 
 #navigator-toolbox > #TabsToolbar {
-  /* Rows are declared, not accumulated: pill-plus-air and nothing else —
-   * content cannot inflate the row. (nav-bar has the same clamp; a
-   * content-derived row grows by whatever Firefox happens to put in it.) */
+  /* A declared height, as on nav-bar, so content cannot inflate the row. */
   height: var(--koi-chrome-height);
   min-height: 0;
   background-color: transparent;
@@ -263,21 +210,18 @@
   }
 }
 
-/* The page's controls lead the page's row: back/forward/reload (moved in
- * by koi-chrome.js — they operate the page, not the window), then the
- * board button, then the strip. Flex order arranges them. */
+/* Back, forward and reload (moved here by koi-chrome.js) lead the row, then
+ * the board button, then the strip. */
 #TabsToolbar :is(#back-button, #forward-button, #stop-reload-button) {
   order: -2;
 }
 
-/* Koi's board button (koi-board.js) in the chevron's old seat. */
+/* Koi's board button (koi-board.js). */
 #koi-board-button {
   order: -1;
 }
 
-/* The stock all-tabs chevron, replaced by the board: its list is the
- * board's cards, its search is ⌘L's switch-to-tab, its audio duties moved
- * onto the cards. Containers and groups get Koi UI when Koi adopts them. */
+/* The board replaces the all-tabs menu; ⌘L covers switching to a tab. */
 #alltabs-button {
   display: none;
 }
@@ -286,25 +230,22 @@
   display: none;
 }
 
-/* Row three: the bookmarks row, off by default. ------------------------------
- * View ▸ Toolbars can switch it on (the default is `never`,
- * prefs/firefox/chrome-ui.yaml), so it dresses like the rows above. It slots
- * under the tab strip; collapsed, Firefox clamps it to max-height: 0 and the
- * layout is as if it were never there. */
+/* Row three: bookmarks. ------------------------------------------------------
+ * Off by default (`never`, chrome-ui.yaml) but switchable from View ▸
+ * Toolbars, so it is dressed to match. */
 
 #navigator-toolbox > #PersonalToolbar {
-  /* Same clamp, one size down: the sub-row is its 24px pill and nothing
-   * else. Firefox's collapse animation still wins — max-height: 0 beats a
-   * fixed height, so toggling the toolbar off behaves as stock. */
+  /* A 24px row, one size down. Collapsed, Firefox's max-height: 0 still
+   * wins over this height. */
   height: var(--koi-space-24);
   min-height: 0;
   background-color: transparent;
   color: var(--koi-fg);
   padding: 0 var(--koi-chrome-pad);
 
-  /* Bookmarks wear small pills: quiet ink, the toolbar buttons' wash on
-   * hover (toolbarbuttons.css paints .bookmark-item from the same tokens),
-   * the tabs' favicon tile and 8px icon-to-label rhythm one size down. */
+  /* Small pills: quiet ink, the toolbar buttons' wash on hover
+   * (toolbarbuttons.css paints .bookmark-item from the same tokens), the
+   * tabs' favicon tile. */
   & #PlacesToolbarItems > .bookmark-item {
     padding: var(--koi-space-4) var(--koi-space-8);
     border-radius: var(--koi-radius-pill);
@@ -332,22 +273,20 @@
   }
 }
 
-/* Row four: notification bars, empty until something speaks. ----------------
- * Since 157 every tab's bars (popup blocked, a page slowing down) live in
- * this toolbar's deck, not on the page (Tabbrowser.sys.mjs
- * getNotificationBox), and the window-wide box is prepended here too. It sits
- * directly over the page card, so a bar wears the address pill's clothes —
- * the resting WELL in a hairline ring, white ink — instead of Proton's white
- * card with Firefox's purple-to-orange stripe down its edge (infobar.css).
- * The bar's tokens and its stripe live in its shadow root; rules from this
- * document outrank :host ones, so no patch is needed. */
+/* Row four: notification bars. --------------------------------------------
+ * Since 157 every tab's bars (popup blocked, a slow page) and the window's
+ * live in this toolbar, not on the page (Tabbrowser.sys.mjs
+ * getNotificationBox). Over the page card, a bar is dressed as the address
+ * pill (WELL, hairline, white ink) instead of Proton's white card with a
+ * gradient stripe (infobar.css). Its tokens and stripe are in a shadow root,
+ * which rules from this document outrank, so no patch is needed. */
 
 #navigator-toolbox > #notifications-toolbar {
   /* .browser-toolbar paints every non-titlebar toolbar opaque. */
   background-color: transparent;
   color-scheme: dark;
-  /* Inset like the card, and no block margin of its own: the tab row's air
-   * sits above a bar and the card's margin below it. */
+  /* Inset like the card, with no block margin: the tab row's air sits above
+   * a bar and the card's margin below it. */
   --info-bar-margin-inline: var(--koi-gutter);
   --info-bar-margin-block-start: 0;
   --info-bar-margin-block-end: 0;
@@ -370,28 +309,20 @@
 }
 
 /* Toolbar buttons ------------------------------------------------------------
- * Both rows: quiet glyphs that answer the pointer the way every Koi control
- * does — the ink lifts, the WASH appears behind it, and pressed or open sits
- * one rung up. Firefox's own state machine paints it (toolbarbuttons.css
- * draws :hover, :hover:active, [open] and [checked] from these two tokens),
- * so the menu button stays lit while its panel is open and the board
- * button, a .toolbarbutton-1, needs nothing of its own. The box is the
- * pill: 16px glyph plus 6px, 28px tall like a tab, on the pill radius.
- * Firefox gives the tab row that geometry itself above 900px; declared on
- * the toolbox, the top row's extensions, downloads and menu light up at the
- * same size as reload. Disabled dulls Firefox's way — the whole button at
- * --toolbarbutton-opacity-disabled, half the resting ink — unmistakably out
- * of reach. */
+ * Quiet glyphs: the ink lifts and the WASH appears on hover; pressed, open
+ * and checked sit one rung up. Firefox's own state rules paint all of it
+ * from these tokens (toolbarbuttons.css), so an open menu's button stays lit
+ * and Koi's buttons need nothing extra. The box is the pill: a 16px glyph in
+ * 28px, set on the toolbox so both rows match. Disabled buttons dim whole,
+ * Firefox's way (--toolbarbutton-opacity-disabled). */
 
 #navigator-toolbox {
   --toolbarbutton-background-color-hover: var(--koi-glass-wash);
   --toolbarbutton-background-color-active: var(--koi-glass-hover);
   --toolbarbutton-border-radius: var(--koi-radius-pill);
   --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - 16px) / 2);
-  /* Glyphs are drawn in the button's own ink. Firefox fills them from this
-   * token, and its browser-theme layer pins it to a fixed grey (gray-0 in
-   * dark, gray-70 in light — tokens-platform.css), so a color rule on the
-   * button never reached the glyph and every ink state below was invisible. */
+  /* Firefox pins glyph fill to a fixed grey (tokens-platform.css), which the
+   * button's colour never reaches; currentColor lets the ink states work. */
   --toolbarbutton-icon-fill: currentColor;
 
   & .toolbarbutton-1 {
@@ -409,18 +340,12 @@
 }
 
 /* The address pill -----------------------------------------------------------
- * Centered between Firefox's toolbar springs, capped at --koi-field-max.
- * The pill holds exactly two rungs of the glass ladder: WELL at rest —
- * focused included, focus is the caret's job — and HOVER under the pointer.
- * Only the open dropdown leaves the ladder for the near-opaque MENU tint: it
- * floats over page content, and a translucent film is unreadable there (see
- * koi-theme.css on glass).
- *
- * Firefox paints --urlbar-background-color-focus on `[focused]` OR `[open]`
- * (urlbar.css), and it focuses the urlbar on every blank tab — so
- * that variable must stay WELL or new tabs open with a dark field. `[open]`
- * takes the menu tint by rule instead. (`[popover-open]` is only ever set
- * while the view is open, so `[open]` covers both.) */
+ * WELL at rest (focused included: focus is the caret's job), HOVER under the
+ * pointer, and the MENU tint only while the dropdown is open, since it floats
+ * over page content. Firefox paints --urlbar-background-color-focus on
+ * [focused] or [open] (urlbar.css) and focuses the urlbar on every blank tab,
+ * so that variable stays WELL and [open] takes the tint by rule.
+ * [popover-open] is only set while open, so [open] covers it. */
 
 #urlbar-container {
   max-width: var(--koi-field-max);
@@ -433,12 +358,9 @@
   --urlbar-background-border-focused: none;
   --urlbar-background-border-radius: var(--koi-radius-pill);
   --urlbar-background-outline-focused: none;
-  /* The star, and the lock when Firefox gives it a chip (chromeUI, not
-   * secure, extension pages): nothing at rest or on focus — the pill has
-   * no chips — then the same wash and rung-up as every other control.
-   * Firefox's defaults fork on the colour scheme (an opaque button grey in
-   * light, a currentColor mix in dark); Koi's pill is one translucent
-   * surface in both. */
+  /* The star and lock boxes: transparent at rest and on focus, then the
+   * wash and one rung up like every control. Replaces Firefox's per-scheme
+   * defaults (an opaque grey in light). */
   --urlbar-box-background-color: transparent;
   --urlbar-box-background-color-focus: transparent;
   --urlbar-box-background-color-hover: var(--koi-glass-wash);
@@ -455,16 +377,14 @@
     background-color: var(--koi-glass-hover);
   }
 
-  /* The open dropdown: the MENU tint under the menu shadow, and a dark
-   * color-scheme so the view's light-dark() tokens agree with the tint
-   * whatever the OS theme says. */
+  /* The open dropdown: MENU tint and shadow, and a dark color-scheme so the
+   * view's light-dark() tokens match the tint in either OS appearance. */
   &[open] {
     color-scheme: dark;
-    /* Since 157 the open surface is a joint background: .urlbar-background
-     * paints the input half, and the view's popover paints the rest from
-     * these three tokens (urlbar.css, .urlbarView-background). The view is
-     * a child of #urlbar, so the open-scoped values reach it, and the focus
-     * colour can stay WELL everywhere else. */
+    /* Since 157 the open surface is joint: .urlbar-background paints the
+     * input half and the view's popover paints the rest from these tokens
+     * (urlbar.css .urlbarView-background). The view is inside #urlbar, so
+     * scoping them to [open] reaches it. */
     --urlbar-background-color-focus: var(--koi-glass-menu);
     --urlbar-background-border-open: none;
     --urlbar-background-box-shadow-open: var(--koi-shadow-menu);
@@ -488,8 +408,8 @@
     }
   }
 
-  /* The pill carries a lock and a star, not a paragraph — and not a
-   * search-engine chip or a go button (Enter commits). */
+  /* A lock and a star only: no identity label, tracking-protection icon,
+   * search-engine chip or go button (Enter commits). */
   & #identity-icon-label,
   & #tracking-protection-icon-container,
   & .searchmode-switcher,
@@ -497,20 +417,17 @@
     display: none;
   }
 
-  /* Suggestion rows arrive whole. Firefox slides each row's action label in
-   * from the side (urlbar/view-nova.css) — a flourish on a list that
-   * repaints on every keystroke. */
+  /* Rows arrive whole: no slide-in of each row's action label
+   * (view-nova.css) on a list that repaints every keystroke. */
   & .urlbarView-action[slide-in] {
     animation: none;
   }
 
-  /* A result's "…" opens its row menu — Remove from history, the only way
-   * to drop a page from suggestions, so it stays (Zen keeps it too). It is a
-   * panel-list Firefox draws inside the dropdown, so it wears the dropdown's
-   * MENU tint, not Firefox's panel grey; its tokens live in a shadow root
-   * that rules from this document outrank. "Learn more" leads to Mozilla's
-   * support site and goes; hidden items cannot take focus, so the keyboard
-   * walk skips it (panel-list.mjs). */
+  /* A result's "…" menu holds Remove from History, the only way to drop a
+   * page from suggestions, so it stays (as in Zen). It is a panel-list drawn
+   * inside the dropdown, so it takes the MENU tint; its tokens are in a
+   * shadow root this document outranks. "Learn more" (Mozilla's support
+   * site) goes; keyboard navigation skips hidden items (panel-list.mjs). */
   & .urlbarView-result-menu {
     --panel-list-background-color: var(--koi-glass-menu);
     --panel-list-border-color: var(--koi-hair);
@@ -522,10 +439,9 @@
 }
 
 /* The tab strip ---------------------------------------------------------------
- * Every tab is exactly as wide as every other: they narrow together to a
- * 100px floor (browser.tabs.tabMinWidth), then the strip scrolls sideways.
- * 178px ceiling from the spec. The 4px gap between pills is Firefox's own
- * 2px clip padding per tab (--tab-overflow-clip-margin) meeting itself. */
+ * All tabs share one width, from --koi-tab-max down to
+ * browser.tabs.tabMinWidth, then the strip scrolls. The 4px between pills is
+ * Firefox's 2px clip margin on each tab (--tab-overflow-clip-margin). */
 
 #tabbrowser-tabs[orient="horizontal"] {
   --tab-max-width: var(--koi-tab-max);
@@ -543,50 +459,40 @@
     font-weight: 500;
   }
 
-  /* Firefox's 16px favicon, on the spec's 4px-radius tile. */
+  /* Firefox's 16px favicon on a 4px-radius tile. */
   & .tab-icon-image {
     border-radius: var(--koi-radius-favicon);
   }
 
-  /* No load burst. Firefox pulses a ring out from the favicon across the
-   * pill when a page finishes loading (tabs.css); a page arriving is not an
-   * event, and the strip never asks for attention. Hidden, not cancelled:
-   * Firefox clears `bursting` in its animationend handler (tab.js), so
-   * `animation: none` left the attribute set and the ring parked at frame
-   * zero — a solid blue disc behind the favicon of every loaded tab. The
-   * keyframes animate only opacity and transform, so visibility holds. */
+  /* No load burst (the ring Firefox pulses from the favicon when a page
+   * loads, tabs.css). Hidden, not cancelled: tab.js clears [bursting] on
+   * animationend, so `animation: none` left a blue disc stuck behind every
+   * favicon. The keyframes never animate visibility, so this holds. */
   & .tab-loading-burst[bursting]::before {
     visibility: hidden;
   }
 
-  /* Empty pages fly the brand's own colours: Firefox stamps the branding
-   * raster on about:newtab/home tabs (FAVICON_DEFAULTS, tabbrowser.js) and
-   * Koi swaps in the same silver mark the empty state shows. Gecko cannot
-   * `content:`-replace an image, so the raster's content box is squeezed to
-   * nothing and the mark rides the padding box. */
+  /* Firefox gives about:newtab and about:home tabs the branding raster
+   * (tabbrowser.js FAVICON_DEFAULTS); Koi shows the empty state's mark. Gecko
+   * cannot `content:`-replace an image, so the raster's content box is
+   * squeezed to nothing and the mark is the background. */
   & .tab-icon-image[src="chrome://branding/content/icon32.png"] {
     box-sizing: border-box;
     padding-inline-start: 16px;
     background: url("chrome://browser/content/koi-common/koi-mark.svg") center / contain no-repeat;
   }
 
-  /* The × belongs to the hovered tab — any tab, the selected one included —
-   * and to nothing else: a strip of permanent close buttons is noise the
-   * spec deliberately leaves out. (v5 hid it on the selected tab too; "⌘W
-   * closes the active tab" read nice and tested badly.) */
+  /* The × shows on the hovered tab only, the selected one included. */
   &:not(:hover) .tab-close-button {
     display: none;
   }
 
   & .tab-close-button {
-    /* The 20px box (sized at :root) is pulled to 4px off the trailing edge
-     * (Firefox's stock -5px pull left 5px there against 2px vertically, and
-     * the mismatch showed). The glyph is close.svg, the 16px family the +
-     * and the toolbar glyphs come from — round caps, 1.5px stroke — drawn
-     * at 12px (14px read heavy). Firefox's tab default, close-12.svg, is a 12px glyph whose ×
-     * spans 8 of its 12px: beside the + it read at two-thirds the size and
-     * weight, with square ends. The icon is pinned to the content box so
-     * rounding cannot leave slack on one side and push the × off-centre. */
+    /* 4px off the trailing edge, matching the vertical air (Firefox's -5px
+     * pull left it uneven). The glyph is close.svg, from the same 16px family
+     * as the + and toolbar glyphs, drawn at 12px: Firefox's close-12.svg read
+     * at two-thirds the size of the + beside it. A fixed icon box keeps
+     * rounding from pushing the × off-centre. */
     list-style-image: url("chrome://global/skin/icons/close.svg");
     margin-inline-end: calc(var(--koi-space-4) - var(--tab-inline-padding));
     color: var(--koi-fg-2);
@@ -601,26 +507,22 @@
       background-color: var(--koi-glass-wash);
     }
 
-    /* Pressed sits one rung up, as every Koi control does. (Firefox's own
-     * close-icon.css presses to a currentColor mix, which is off the
-     * ladder.) */
+    /* Pressed sits one rung up, as every Koi control does (close-icon.css
+     * uses an off-ladder mix). */
     &:hover:active {
       background-color: var(--koi-glass-hover);
     }
   }
 }
 
-/* The audio button shares the ×'s 20px box (sized at :root) and wears a
- * 14px glyph, favicon radius, quiet ink over the wash on hover,
- * one rung up pressed. It is a moz-button — the glyph lives in its shadow
- * ::part(button) — so geometry and backgrounds ride its variable API and ink
- * rides the part. (Not .tab-icon-overlay — that is the pinned tab's corner
- * badge, a different element that keeps Firefox's geometry.) */
+/* The tab audio button shares the ×'s 20px box, with a 14px glyph. It is a
+ * moz-button: geometry and backgrounds go through its variables, ink through
+ * ::part(button). (.tab-icon-overlay is the pinned tab's corner badge, a
+ * different element.) */
 .tab-audio-button {
   --icon-size: 14px;
   --button-border-radius: var(--koi-radius-favicon);
-  /* A ghost moz-button paints its hovered and pressed backgrounds from
-   * these two (moz-button.css): the wash, then one rung up. */
+  /* A ghost moz-button paints hover and pressed from these (moz-button.css). */
   --button-background-color-ghost-hover: var(--koi-glass-wash);
   --button-background-color-ghost-active: var(--koi-glass-hover);
 
@@ -634,32 +536,20 @@
   }
 }
 
-/* The + button rides inside the strip right after the last tab
- * (#tabs-newtab-button) until the strip overflows, then #new-tab-button pins
- * it beside the strip. Both dress as toolbar buttons (above); only the
- * spacing is its own. */
+/* The + is #tabs-newtab-button inside the strip until it overflows, then
+ * #new-tab-button beside it. Both are dressed as toolbar buttons; only the
+ * spacing is their own. */
 :is(#tabs-newtab-button, #new-tab-button) {
-  /* The same 4px the pills keep between themselves, measured to the button's
-   * hover box: the last tab's 2px clip padding, plus the 2px outer padding a
-   * toolbarbutton keeps around its box (--toolbarbutton-padding-outer), plus
-   * this. The box is what reads as the pill, so it is what sits 4px off. */
+  /* 4px from the last tab, as between tabs, measured to the hover box: less
+   * the tab's 2px clip margin and the button's 2px outer padding. */
   margin-inline-start: calc(var(--koi-space-4) - var(--tab-overflow-clip-margin) - var(--toolbarbutton-padding-outer));
 }
 
 /* Overflow --------------------------------------------------------------------
- * When the strip fills, tabs hold the 100px floor and the strip scrolls
- * sideways. No scroll arrows and no stock smudge indicators — chrome asking
- * for attention — the strip's edge says it instead: the outermost pills fade
- * to nothing on whichever side is hiding tabs. Scrolling still has four ways
- * in: trackpad, wheel, dragging a tab against the edge, and ⌃Tab.
- *
- * The fade is a MASK, not an overlay. The chrome paints nothing, so there is
- * no colour an overlay could fade to — the only way to dissolve a pill into
- * the wallpaper is to make the pill itself transparent.
- *
- * The stop lengths are registered so they can transition: per the motion
- * doctrine a fade's appearance is a fade (koi-theme.css). If the engine ever
- * declines to animate mask stops, this degrades to an instant switch. */
+ * A full strip scrolls (trackpad, wheel, dragging a tab, ⌃Tab) with no scroll
+ * buttons or overflow indicators: the outermost tabs fade out on whichever
+ * side hides more. A mask, because the chrome paints nothing an overlay could
+ * fade to. The stop lengths are registered properties so the fade eases. */
 
 @property --koi-strip-fade-start {
   syntax: "<length>";
@@ -683,9 +573,9 @@
   }
 }
 
-/* Both fades are 0 whenever they have nothing to say: at an edge the host
- * carries scrolledtostart/scrolledtoend, and a non-overflowing strip carries
- * both (arrowscrollbox.js), collapsing the mask to identity. */
+/* Each stop is 0 at its edge ([scrolledtostart], [scrolledtoend]); a strip
+ * that does not overflow carries both (arrowscrollbox.js), so the mask is a
+ * no-op. */
 #tabbrowser-arrowscrollbox[orient="horizontal"] {
   --koi-strip-fade-start: 0px;
   --koi-strip-fade-end: 0px;
@@ -708,11 +598,9 @@
   }
 }
 
-/* The right cluster ------------------------------------------------------------
- * Extensions, downloads, menu, at the top row's end. Downloads is ordered
- * after extensions to match the spec (it autohides until something
- * downloads). The spec's hairline dividers are deliberately omitted for now —
- * the 12px rhythm carries the grouping on its own. */
+/* The right cluster: extensions, downloads (shown once something downloads),
+ * menu, in the spec's order. The spec's hairline dividers are omitted; the
+ * 12px spacing groups them. */
 
 #downloads-button {
   order: 1;

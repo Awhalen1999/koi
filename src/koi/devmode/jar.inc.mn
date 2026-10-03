@@ -2,12 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Included from browser/base/jar.mn, so source paths are relative to
-# browser/base/. See src/koi/common/jar.inc.mn for the ground rules
-# (no bare `*` flag, `%` is the preprocessor marker in .css).
+# Included through koi-assets.jar.inc.mn into browser/base/jar.mn, so source
+# paths are relative to browser/base/. Rules: src/koi/common/jar.inc.mn.
 #
-# The two .sys.mjs files are a window actor's modules, loaded by URL in the
-# parent and in content processes alike (KoiDevMode.sys.mjs).
+# The .sys.mjs files are a window actor's modules, loaded by URL in both the
+# parent and content processes (KoiDevMode.sys.mjs).
 
         content/browser/koi-devmode/koi-devmode.css             (../../koi/devmode/koi-devmode.css)
         content/browser/koi-devmode/koi-devmode.js              (../../koi/devmode/koi-devmode.js)

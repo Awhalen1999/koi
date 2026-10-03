@@ -2,32 +2,21 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Loaded into browser.xhtml, so the browser-window globals are real; the
- * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
- * they are declared here instead. */
+/* Browser-window globals (koi/ is outside eslint.config.mjs's browser-window
+ * paths). */
 /* global gBrowser, ConfirmationHint, PanelMultiView, ShortcutUtils,
    SiteDataManager, delayedStartupPromise */
 
-/* Developer mode — each window's half. KoiDevMode.sys.mjs is the app's.
- *
- * One switch in the ☰ menu turns it on; local pages have it regardless
- * (KoiDevMode.isActive). While the selected tab is in dev mode,
- * [koi-devmode] on :root shows two buttons at the head of row one's right
- * side:
- *
- *   Developer Tools  fires Firefox's own ⌥⌘I, so it opens and closes the
- *                    devtools exactly as the shortcut does; every panel is a
- *                    tab inside. Badged with the page's error count while
- *                    that is on.
- *   ⚒                the error count's switch, then the current tab's
- *                    switches (cache, JavaScript, styles, offline,
- *                    appearance), responsive design mode, the page's source,
- *                    its URL to the clipboard, a reload past the cache and
- *                    clearing the site's data.
- *                    Checked while the tab has any switch set, so an altered
- *                    tab never looks normal.
- *
- * Built after delayed startup, when the devtools register their keys. */
+/* Developer mode, each window's half (KoiDevMode.sys.mjs is the app's).
+ * While the selected tab is in dev mode (KoiDevMode.isActive), [koi-devmode]
+ * on :root shows two buttons before the extensions button:
+ *   Developer Tools — fires Firefox's ⌥⌘I key, so it toggles the toolbox
+ *     exactly as the shortcut does; badged with the page's error count.
+ *   ⚒ — the error count switch, the tab's switches, responsive design mode,
+ *     view source, copy URL, reload without cache, clear site data. Checked
+ *     while the tab has a switch set.
+ * Both are disabled on anything but a web page. Built after delayed startup,
+ * once the devtools have registered their keys. */
 
 (() => {
   const XHTML = "http://www.w3.org/1999/xhtml";
@@ -49,13 +38,12 @@
     };
 
     // ☰ ▸ Developer Mode, after More Tools. The view may still be in the
-    // app menu's template; a node placed there keeps its listener when the
-    // menu first opens and moves it into the document.
+    // menu's template; the node keeps its listener when the template is
+    // moved into the document on first open.
     const toggle = document.createElementNS(XHTML, "moz-toggle");
     toggle.id = "koi-appmenu-devmode";
     toggle.setAttribute("label", "Developer Mode");
-    // Label first, switch at the row's end, where the menu keeps its
-    // controls (the zoom row's buttons, every shortcut).
+    // Switch at the row's end, where the menu keeps its other controls.
     toggle.setAttribute("inputlayout", "inline-end");
     toggle.addEventListener("toggle", () => {
       KoiDevMode.enabled = toggle.pressed;
@@ -228,6 +216,11 @@
         toolsButton.removeAttribute("badge");
       }
       menuButton.toggleAttribute("checked", KoiDevMode.hasSwitches(browser));
+      // Only a web page has anything to inspect; Koi's empty state is chrome.
+      const { scheme } = browser.currentURI;
+      const inert = scheme != "http" && scheme != "https" && scheme != "file";
+      toolsButton.toggleAttribute("disabled", inert);
+      menuButton.toggleAttribute("disabled", inert);
     };
 
     const render = () => {
@@ -274,7 +267,7 @@
   addEventListener(
     "DOMContentLoaded",
     () => {
-      // Popups and other chromeless windows have no developer tools row.
+      // None in chromeless windows.
       if (window.toolbar.visible) {
         delayedStartupPromise.then(build);
       }
