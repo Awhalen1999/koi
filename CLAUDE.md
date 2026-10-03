@@ -43,9 +43,9 @@ Mozilla paths and ~500 whole files under `src/zen/`; Koi mirrors the split.
 - `design/` — Claude Design prototypes as `.dc.html`. **`Koi Shell v4` is the
   authoritative shell layout** (two rows, tabs below nav). v5 ("one line of
   chrome") was built, shipped and retired — one shared row needed DOM surgery
-  where v4 needs none — but **v5 stays authoritative for the floating
-  surfaces**: the palette (cmdOpen) and the empty-state card (noTabs). Read
-  values from the specs, not from screenshots or the brand kit.
+  where v4 needs none — but **v5 stays authoritative for the empty-state
+  card** (noTabs). Its palette (cmdOpen) was decided against (Decisions).
+  Read values from the specs, not from screenshots or the brand kit.
 
 The prototypes are inline styles with `{{template}}` bindings — port values,
 never markup. Where Koi deliberately departs from them, the code says so:
@@ -133,6 +133,17 @@ Do not `%include` Koi CSS into Firefox's own `browser/themes/*/browser.css`
   the root's `chromehidden` with `popup-window` / `chromeless-window`.
   When a rule mysteriously misses inside the tab strip, suspect its internal
   DOM and kill the thing at its variable (`--tabstrip-inner-border`).
+- **Set the token Firefox reads, where it reads it.** A token Firefox
+  derives at `:root` from another is computed there and inherited, so
+  overriding the source on a descendant does nothing. 157's tab buttons
+  read `--tab-content-button-size/-padding`, derived at `:root` from
+  `--tab-close-button-padding`; Koi's override of the latter on the button
+  was dead for a whole release.
+- **Shadow-DOM tokens need no patch.** Rules from the chrome document
+  outrank a shadow root's `:host` rules, so a custom element's tokens and
+  its host pseudo-elements can be set on the element itself: the infobars'
+  `--info-bar-*` and their `::before` stripe, the urlbar row menu's
+  `--panel-list-*`, the tab audio button's moz-button tokens.
 - **Before cancelling a Firefox animation, find what clears its state.**
   `animation: none` on the tab load burst left `[bursting]` stuck (tab.js
   clears it on `animationend`); the fix is `visibility: hidden`.
@@ -171,6 +182,8 @@ with a reason; the one `:has()` in koi-chrome.css carries it.
 ## Workflow
 
 - `npm run import` → `npm run build` → `npm start`
+- A pref-only change needs neither: `npm run prefs` then `npm run build:ui`
+  (the faster backend re-preprocesses `firefox.js`, which includes koi.js).
 - `npm start` runs `mach run --noprofile`, so it uses the real profile at
   `~/Library/Application Support/Koi`, not a throwaway one in the objdir.
 - mozbuild hides build output when it sees `CLAUDECODE` in the env. To see
@@ -259,6 +272,13 @@ Koi uses (git grep's ERE has no `\b`; use `-F`). 154 → 157 cost two
 context-shifted patches, one dead pref, two renamed urlbar variables, one
 renamed root attribute and one dead menu id.
 
+The grep catches renames, not new defaults or moved DOM. 157 also turned on
+split view, the trust panel and tab hover previews, moved every tab's
+notification bars into the toolbox (above the traffic lights, until Koi
+ordered them) and re-derived the tab button tokens — none of it visible to
+a dry run; a later audit against Zen's `prefs/` and styles found it. After
+a bump, diff Zen's prefs against Koi's again.
+
 ---
 
 ## App identity
@@ -324,6 +344,10 @@ Delete `obj-*/tmp/profile-default` (or the real profile) if that happens.
   crash-reports.mozilla.com under Firefox's GUID.
 - Add-on signing: `MOZ_REQUIRE_SIGNING=` + `--with-unsigned-addon-scopes=app,system`.
 - Runtime backstop in `prefs/firefox/telemetry.yaml`.
+- Mozilla's Terms of Use modal is bypassed only when `MOZILLA_OFFICIAL` is
+  unset (firefox.js), and `$KOI_RELEASE` sets it, so dev builds can never
+  show it. `termsofuse.bypassNotification: true` (onboarding.yaml) keeps a
+  release build's first launch clean, as Zen does.
 - Heavy release flags stay gated behind `$KOI_RELEASE` so local builds stay
   fast.
 
@@ -381,10 +405,10 @@ Either half alone looks like an ordinary opaque window.
 
 There is **no CSS blur anywhere in Koi's chrome**, and none is possible:
 `backdrop-filter` is a no-op over the chrome band (nothing painted to sample)
-and over the page card (content renders out of process). Popups get real
-blur from macOS instead (below); what Koi floats inside the window — the
-urlbar dropdown, the findbar, the board's cards — carries a 96% tint.
-koi-theme.css's glass section has the doctrine.
+and over the page card (content renders out of process). Popups macOS draws
+get its real blur instead; everything Firefox or Koi draws carries the 96%
+MENU tint (Decisions, "Every popup is native"). koi-theme.css's glass section
+has the doctrine.
 
 ### StaticPrefs plumbing
 
@@ -573,6 +597,10 @@ section is only the standing decisions and the open list.
   build or CustomizableUI evicts back/forward to the end of nav-bar. The +
   is pinned to the placement right after `tabbrowser-tabs`; anything between
   them sends it to the toolbar's far end (tabs.js `_updateNewTabVisibility`).
+  Every toolbox child that can show needs an `order`, or it sorts above the
+  lights: rows are nav-bar 1, tabs 2, bookmarks 3, `#notifications-toolbar`
+  4 (since 157 it holds every tab's notification bars, dressed as WELL
+  pills in koi-chrome.css).
 - **Customize mode is locked out.** The layout is opinionated; koi-chrome.css
   hides every entry point and koi-chrome.js disables the command.
 - **Nova is off and locked, matching Zen** (`browser.nova.enabled` and
@@ -591,13 +619,16 @@ section is only the standing decisions and the open list.
   A locked default can still be overridden by a Nimbus rollout (its `nova`
   feature sets the pref on the default branch), so if Nova reappears on a
   profile, look there first.
-- **The palette is shelved.** The address pill is a plain editable field
-  again; only the open dropdown takes the menu tint. The full palette is
-  `src/koi/palette/` in commit `ceefef2`, and the mechanism if it returns:
-  since 157 the urlbar view is a native popover in the top layer
-  (`[popover-open]` on the field, geometry in `urlbar.css`), so a palette is
-  a restyle of it, not a rebuild — the 154-era notes about `[breakout]` and
-  pinning `top` no longer apply as written; `gURLBar.view.autoOpen({event})`
+- **No floating search palette.** The address pill is a plain editable
+  field; only the open dropdown takes the MENU tint. A palette (v5's
+  cmdOpen; ⌘T/+ centred, click/⌘L in place) shipped in commit `ceefef2`,
+  was removed the same day, and was decided against again after weighing
+  Zen's floating urlbar. In 157 only the results view is a popover
+  (`this.panel = .urlbarView`, UrlbarInputBase.mjs) and the input stays in
+  the toolbar, so centring it means moving the input over the page card or
+  Zen's ~700-line UrlbarInputBase patch; the 154 code does not port. If it
+  returns: new destinations only, click and ⌘L stay in place, ⌘T keeps the
+  empty card, patch-free or not at all. `gURLBar.view.autoOpen({event})`
   opens rows without typed input; `browser.urlbar.openintab` turns commits
   into new tabs.
 - **Peek exists but has no trigger.** koi-board.js and .css carry a `peek`
@@ -621,7 +652,8 @@ section is only the standing decisions and the open list.
   `--panel-background-color` so the material shows; `[nonnative]` arrow
   panels take the menu appearance instead. The rule: what macOS draws wears
   its material, what Firefox or Koi draws wears the MENU tint (96% of a
-  near-black neutral) — the urlbar dropdown, the findbar, the board's cards
+  near-black neutral) — the urlbar dropdown and its row menu (the "…"
+  panel-list; its "Learn more" is hidden), the findbar, the board's cards
   and the bookmark menus (`.toolbar-menupopup`, Firefox-drawn because they
   need drag and drop). Handing the bookmark menus the native menu
   appearance instead, as Zen does, gets macOS 26's clear menu glass,
@@ -644,9 +676,9 @@ section is only the standing decisions and the open list.
   split view and vertical tabs locked off (the two-row layout assumes one
   horizontal strip and one card), the 157 trust panel off (the urlbar CSS
   targets the identity box; re-review when Mozilla removes it, as with
-  Nova), the "Firefox Suggest" group label, tab hover previews, the
-  auto-opening downloads panel, CFR, UITour, profiles and every AI feature
-  (prefs/firefox/ai.yaml). Firefox's accent tokens point at the system
+  Nova), the "Firefox Suggest" group label, trending searches, tab hover
+  previews, the auto-opening downloads panel, CFR, UITour, profiles and
+  every AI feature (prefs/firefox/ai.yaml). Firefox's accent tokens point at the system
   accent in the chrome; attention glyphs (the starred star, download
   progress) take their button's ink, as in Zen.
 - **Themes are off, Zen's way.** `koi.theme.disable-lightweight`
@@ -664,12 +696,32 @@ section is only the standing decisions and the open list.
 **Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to
 peek, re-pointing View › Show All Tabs at the board, a bookmarks surface
 with folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar
-decision, the palette's return, tab groups, the private-window empty state. Fox glyphs still inherited, each a product
-decision: `preferences/fox-ai.svg`, `sidebar/foxy.svg`,
+decision, tab groups, the private-window empty state, the link-hover status
+panel (still Firefox's grey label; only its corner padding is Koi's). Fox
+glyphs still inherited, each a product decision: `preferences/fox-ai.svg`, `sidebar/foxy.svg`,
 `fxa/avatar-fox*.svg`, `privatebrowsing/fox-tail.svg`,
 `icons/firefox-view.svg` (the app menu's `kit-signed-out.svg` is hidden, as
 Zen hides it). Strings naming Firefox literally ("Firefox Labs")
 want a strings pass of their own.
+
+**Known issues, found and not yet fixed:**
+
+- **Pages with no background of their own read black on dark.**
+  `browser.tabs.allow_transparent_browser` sets `transparent` on every tab's
+  browser (Tabbrowser.sys.mjs), not just blank ones, so an unstyled page in
+  dark mode shows Koi's #1c1c1e ground under its default black text. Zen
+  leaves the pref off. Likely fix: drop the pref and have koi-newtab.js
+  toggle `transparent` only while the tab shows nothing.
+- **macOS Light appearance has never been looked at.** The NSWindow's
+  appearance follows the chrome root's used `color-scheme`
+  (PresShell::SyncWindowPropertiesIfNeeded → nsCocoaWindow::SetColorScheme),
+  which Koi leaves at Firefox's `light dark`. The chrome's ink assumes dark;
+  `:root { color-scheme: dark }` would pin the window to match (content
+  keeps its own scheme). Check once in Light before deciding.
+- **An unfocused window dims only the tab row.** Firefox fades
+  `.browser-titlebar` to 0.6 when inactive, and that class sits on
+  TabsToolbar, not nav-bar — Koi's real titlebar row stays full strength,
+  and tab-row buttons compound with osx/browser.css's 0.5.
 
 **Deferred outright** (Zen has it, Koi does not need it yet): crowdin and
 multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
