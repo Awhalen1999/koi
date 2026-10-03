@@ -473,6 +473,17 @@ Still Mozilla's, deliberately: `background.png`, `dsstore`, `disk.icns`
 (DMG; no release to package yet), `document.icns` (file-type icon),
 `document_pdf.svg`.
 
+**`Assets.car` is Mozilla's too, and must stay unused.** It is the macOS 26
+asset-catalog icon, copied with the rest of `unofficial` — the blue globe —
+and Firefox's Info.plist names it (`CFBundleIconName` = `AppIcon`), which
+macOS 26 prefers over `firefox.icns`. So the Dock showed the globe however
+correct the icns was. `src/browser/app/macbuild/Contents/Info-plist-in.patch`
+drops the key, as Zen's `no_liquid_glass_icon.patch` does, and macOS falls
+back to Koi's icns. A Koi `Assets.car` (built from an Icon Composer file)
+would be the way to a native Liquid Glass icon; until then, a Dock icon
+that is wrong after a rebuild is LaunchServices' cache: `touch` the bundle
+and `lsregister -f` it, then relaunch.
+
 After a design change: regenerate rasters from `../koi-design/branding/`,
 then `npm run import`.
 
@@ -513,7 +524,16 @@ the parent process reads it fine. So the private tab icon and the indicator
 button show Koi's mark while the about:privatebrowsing logo (a child-process
 page) shows nothing until packaged — swapping the engine symlink for a real
 copy proved the asset itself is fine. The same explains the about:pdf promo
-never being seen rendered.
+never being seen rendered. Koi's own content-side code hits it too: the
+dev-mode error actor's child module fails to load in web processes
+("Failed to load chrome://…KoiPageErrorsChild.sys.mjs"), so dev builds
+count no errors on http(s) pages. The fix is dev-only and per profile —
+never ship it: `user_pref("security.sandbox.content.mac.testing_read_path1",
+"<repo>/src");` in the profile's user.js lets content processes read `src/`
+(ContentParent.cpp; the repo and obj dirs get the same grant automatically
+in unpackaged builds, which is why `engine/` paths work). Firefox copies
+user.js values into prefs.js, so deleting the line later is not enough:
+reset the pref in about:config too.
 
 ---
 
@@ -554,7 +574,7 @@ never being seen rendered.
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 31 rows, all
+After `npm run import`, `git -C engine status --short` shows 32 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -565,7 +585,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/config/appearance.mjs`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 14 patches |
+| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/config/appearance.mjs`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 15 patches |
 | ` T ` × 9 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -651,18 +671,28 @@ section is only the standing decisions and the open list.
   opens rows without typed input; `browser.urlbar.openintab` turns commits
   into new tabs.
 - **Developer mode** (`src/koi/devmode/`), off by default, switched on in
-  ☰ ▸ Developer Mode (`koi.devmode.enabled`). Two buttons, deliberately:
+  ☰ ▸ Developer Mode (`koi.devmode.enabled`). As in Arc, a local page
+  (localhost, `*.localhost`, 127.0.0.1, [::1]) is in dev mode whatever the
+  switch says, and so is any tab with a switch set, so an altered tab never
+  looks normal. Two buttons, deliberately:
   Developer Tools fires the devtools' own `key_toggleToolbox` (⌥⌘I; every
   panel is a tab inside, so per-panel buttons and a screenshot button were
   built and cut), and the wrench menu holds the rest. Nothing in it is
   rebuilt: the per-tab switches are the
-  BrowsingContext fields the devtools set (`defaultLoadFlags`,
-  `allowJavascript`, `forceOffline`, `prefersColorSchemeOverride`), and full
-  URLs are `browser.urlbar.trimURLs` shifted on the default branch. The
-  error count (its own switch, `koi.devmode.error-badge`) is a window actor:
-  page errors reach the parent without their window id
+  BrowsingContext fields the devtools and View ▸ Page Style set
+  (`defaultLoadFlags`, `allowJavascript`, `authorStyleDisabledDefault`,
+  `forceOffline`, `prefersColorSchemeOverride`); View Source and Reload
+  Without Cache are Firefox's commands; Clear Site Data is the identity
+  panel's SiteDataManager flow; full URLs are `browser.urlbar.trimURLs`
+  shifted on the default branch. Full URLs follow the switch alone (a pref
+  is global), which costs nothing on localhost: Firefox never trims an
+  insecure page's `http://`. The error count (its own switch,
+  `koi.devmode.error-badge`) counts uncaught errors, unhandled rejections and
+  `console.error()`, as Chromium's and Firefox's consoles do. It is a window
+  actor: page errors reach the parent without their window id
   (ContentParent::RecvScriptError), so only a per-page actor can attribute
-  them. A runtime-registered window actor must declare
+  them, and console calls are picked out of ConsoleAPIStorage's
+  process-wide listener by inner window id, as the devtools pick them. A runtime-registered window actor must declare
   `safeForUntrustedWebProcess` or it never runs in web or file processes;
   its modules load from Koi's own `chrome://` dir, no moz.build needed.
   Switch state lives in KoiDevMode.sys.mjs by browserId, because swapping a

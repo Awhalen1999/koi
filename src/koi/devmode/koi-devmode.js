@@ -5,20 +5,25 @@
 /* Loaded into browser.xhtml, so the browser-window globals are real; the
  * koi/ tree sits outside eslint.config.mjs's browser-window path list, so
  * they are declared here instead. */
-/* global gBrowser, PanelMultiView, ShortcutUtils, delayedStartupPromise */
+/* global gBrowser, ConfirmationHint, PanelMultiView, ShortcutUtils,
+   SiteDataManager, delayedStartupPromise */
 
 /* Developer mode — each window's half. KoiDevMode.sys.mjs is the app's.
  *
- * One switch in the ☰ menu turns it on, and [koi-devmode] on :root then shows
- * two buttons at the head of row one's right side:
+ * One switch in the ☰ menu turns it on; local pages have it regardless
+ * (KoiDevMode.isActive). While the selected tab is in dev mode,
+ * [koi-devmode] on :root shows two buttons at the head of row one's right
+ * side:
  *
  *   Developer Tools  fires Firefox's own ⌥⌘I, so it opens and closes the
  *                    devtools exactly as the shortcut does; every panel is a
  *                    tab inside. Badged with the page's error count while
  *                    that is on.
  *   ⚒                the error count's switch, then the current tab's
- *                    switches (cache, JavaScript, offline, appearance),
- *                    responsive design mode and a reload past the cache.
+ *                    switches (cache, JavaScript, styles, offline,
+ *                    appearance), responsive design mode, the page's source,
+ *                    its URL to the clipboard, a reload past the cache and
+ *                    clearing the site's data.
  *                    Checked while the tab has any switch set, so an altered
  *                    tab never looks normal.
  *
@@ -122,12 +127,36 @@
     const appearanceMenu = element("menu", { label: "Page Appearance" });
     appearanceMenu.append(appearancePopup);
 
+    // The URL as loaded, query and all: no tracker stripping here.
+    const copyURL = () => {
+      Cc["@mozilla.org/widget/clipboardhelper;1"]
+        .getService(Ci.nsIClipboardHelper)
+        .copyString(gBrowser.currentURI.spec);
+      ConfirmationHint.show(menuButton, "confirmation-hint-link-copied");
+    };
+
+    // The identity panel's Clear Cookies and Site Data, prompt and all
+    // (gIdentityHandler.clearSiteData, which waits on its own panel).
+    const clearSiteDataItem = element(
+      "menuitem",
+      { label: "Clear Site Data…" },
+      () => {
+        const baseDomain = SiteDataManager.getBaseDomainFromHost(
+          gBrowser.currentURI.host
+        );
+        if (SiteDataManager.promptSiteDataRemoval(window, [baseDomain])) {
+          SiteDataManager.remove(baseDomain);
+        }
+      }
+    );
+
     const devMenu = element("menupopup");
     devMenu.append(
       errorCountItem,
       element("menuseparator"),
       tabSwitch("Disable Cache", "cache", true),
       javascriptItem,
+      tabSwitch("Disable Styles", "styles", true),
       tabSwitch("Offline", "offline"),
       appearanceMenu,
       element("menuseparator"),
@@ -140,10 +169,18 @@
         () => document.getElementById("key_responsiveDesignMode")?.doCommand()
       ),
       element("menuitem", {
+        label: "View Source",
+        key: "key_viewSource",
+        command: "View:PageSource",
+      }),
+      element("menuitem", { label: "Copy URL" }, copyURL),
+      element("menuseparator"),
+      element("menuitem", {
         label: "Reload Without Cache",
         key: "key_reload_skip_cache",
         command: "Browser:ReloadSkipCache",
-      })
+      }),
+      clearSiteDataItem
     );
     devMenu.addEventListener("popupshowing", event => {
       if (event.target != devMenu) {
@@ -157,6 +194,11 @@
       for (const item of appearanceItems) {
         item.toggleAttribute("checked", item.value == state.appearance);
       }
+      const { scheme } = gBrowser.currentURI;
+      clearSiteDataItem.toggleAttribute(
+        "disabled",
+        scheme != "http" && scheme != "https"
+      );
     });
 
     const menuButton = element("toolbarbutton", {
@@ -173,6 +215,10 @@
     // Rendering. The window follows the module's state; it holds none.
     const renderTab = () => {
       const browser = gBrowser.selectedBrowser;
+      document.documentElement.toggleAttribute(
+        "koi-devmode",
+        KoiDevMode.isActive(browser)
+      );
       const errors = KoiDevMode.errorCountEnabled
         ? KoiDevMode.errorCount(browser)
         : 0;
@@ -185,9 +231,7 @@
     };
 
     const render = () => {
-      const enabled = KoiDevMode.enabled;
-      document.documentElement.toggleAttribute("koi-devmode", enabled);
-      toggle.toggleAttribute("pressed", enabled);
+      toggle.toggleAttribute("pressed", KoiDevMode.enabled);
       renderTab();
     };
 

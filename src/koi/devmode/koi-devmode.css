@@ -7,7 +7,7 @@
  * buttons beside them; the error count is Firefox's own toolbar badge, the
  * red an extension's count wears. */
 
-/* Built in every window, shown only while dev mode is on. */
+/* Built in every window, shown only while the selected tab is in dev mode. */
 :root:not([koi-devmode]) #koi-devtools {
   display: none;
 }

@@ -1,0 +1,13 @@
+diff --git a/browser/app/macbuild/Contents/Info.plist.in b/browser/app/macbuild/Contents/Info.plist.in
+index 2ba2614db9e152c750b2ed1bd16117c1988cd7ac..401a78bd5b2d60c79b2ce2e7f818478464e94181 100644
+--- a/browser/app/macbuild/Contents/Info.plist.in
++++ b/browser/app/macbuild/Contents/Info.plist.in
+@@ -190,8 +190,6 @@
+ 	<string>@MAC_APP_NAME@ @APP_VERSION@</string>
+ 	<key>CFBundleIconFile</key>
+ 	<string>firefox.icns</string>
+-	<key>CFBundleIconName</key>
+-	<string>AppIcon</string>
+ 	<key>CFBundleIdentifier</key>
+ 	<string>@MOZ_MACBUNDLE_ID@</string>
+ 	<key>CFBundleInfoDictionaryVersion</key>
