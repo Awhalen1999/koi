@@ -38,6 +38,13 @@ panel[type="arrow"]:not(#feature-callout) {
     -moz-default-appearance: menupopup;
     background-color: Menu;
   }
+
+  /* A pressed switch draws its knob in the panel's canvas colour
+   * (moz-toggle.tokens.css), which the clearing above made transparent: the
+   * knob vanished. White, as a macOS switch's is in either appearance. */
+  & moz-toggle {
+    --toggle-dot-background-color-on-pressed: white;
+  }
 }
 
 /* Bookmark menus — every bookmarks-toolbar folder, the » overflow, the

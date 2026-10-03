@@ -178,6 +178,14 @@ with a reason; the one `:has()` in koi-chrome.css carries it.
 - Do not read small differences off scaled screenshots.
 - When following Zen, take the whole thing: their C++, their CSS *and* their
   pref defaults. Each omission has cost a debugging cycle.
+- To read chrome state without touching the running Koi, start a second
+  instance on a throwaway profile: `koi --marionette
+  --remote-allow-system-access --no-remote --profile <dir>` (set
+  `marionette.port` in its user.js). Marionette speaks length-prefixed JSON
+  (`WebDriver:NewSession`, `Marionette:SetContext {value: "chrome"}`,
+  `WebDriver:ExecuteScript`); without `--remote-allow-system-access` the
+  chrome context is a null-principal sandbox. Capture its window by owner
+  PID, not owner name.
 
 ## Workflow
 
@@ -198,6 +206,9 @@ with a reason; the one `:has()` in koi-chrome.css carries it.
   visible Space. Capture by window id: `CGWindowListCopyWindowInfo([], …)`
   (empty option set) filtered to owner `Koi`, then `screencapture -l<id>`.
   Headless `--screenshot` cannot see chrome.
+- A new file under `src/koi/` needs `npm run import`: surfer symlinks each
+  file into `engine/koi/` at import, so a new one is invisible to the build
+  until then.
 - `npm start` pipes through `scripts/koi-log.mjs`: red/yellow = chrome JS
   errors/warnings (the bug radar), magenta = Koi's own files, gray = page JS
   and macOS noise.
@@ -597,6 +608,14 @@ section is only the standing decisions and the open list.
   build or CustomizableUI evicts back/forward to the end of nav-bar. The +
   is pinned to the placement right after `tabbrowser-tabs`; anything between
   them sends it to the toolbar's far end (tabs.js `_updateNewTabVisibility`).
+  The address pill is centred on the window, not between the clusters:
+  koi-chrome.js measures both sides (ResizeObserver) and gives the
+  narrower side's spring a head start (`--koi-nav-lead` / `--koi-nav-trail`
+  as flex-basis), so a right side that grows — dev mode, pinned extensions
+  — shrinks the pill symmetrically instead of pushing it left. Firefox's
+  `#nav-bar toolbarspring` `flex: 80 80` ties a plain selector; the rules
+  anchor on `#nav-bar-customization-target` to outrank it. Out of room, the
+  springs give first and the pill keeps Firefox's floor.
   Every toolbox child that can show needs an `order`, or it sorts above the
   lights: rows are nav-bar 1, tabs 2, bookmarks 3, `#notifications-toolbar`
   4 (since 157 it holds every tab's notification bars, dressed as WELL
@@ -631,6 +650,25 @@ section is only the standing decisions and the open list.
   empty card, patch-free or not at all. `gURLBar.view.autoOpen({event})`
   opens rows without typed input; `browser.urlbar.openintab` turns commits
   into new tabs.
+- **Developer mode** (`src/koi/devmode/`), off by default, switched on in
+  ☰ ▸ Developer Mode (`koi.devmode.enabled`). Two buttons, deliberately:
+  Developer Tools fires the devtools' own `key_toggleToolbox` (⌥⌘I; every
+  panel is a tab inside, so per-panel buttons and a screenshot button were
+  built and cut), and the wrench menu holds the rest. Nothing in it is
+  rebuilt: the per-tab switches are the
+  BrowsingContext fields the devtools set (`defaultLoadFlags`,
+  `allowJavascript`, `forceOffline`, `prefersColorSchemeOverride`), and full
+  URLs are `browser.urlbar.trimURLs` shifted on the default branch. The
+  error count (its own switch, `koi.devmode.error-badge`) is a window actor:
+  page errors reach the parent without their window id
+  (ContentParent::RecvScriptError), so only a per-page actor can attribute
+  them. A runtime-registered window actor must declare
+  `safeForUntrustedWebProcess` or it never runs in web or file processes;
+  its modules load from Koi's own `chrome://` dir, no moz.build needed.
+  Switch state lives in KoiDevMode.sys.mjs by browserId, because swapping a
+  tab's browsing context drops most of those fields; they are re-applied on
+  `browsing-context-attached`, as the devtools do. Settings ▸ General was
+  the alternative home and was declined: it needs three Firefox patches.
 - **Peek exists but has no trigger.** koi-board.js and .css carry a `peek`
   mode (one row of cards over the light scrim) that nothing opens; its
   trigger is hold-a-tab, not built. The board is ⇧⌘E.

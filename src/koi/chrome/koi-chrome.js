@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Chrome furniture that CSS cannot move — CustomizableUI placements.
+/* Chrome furniture that CSS cannot do alone: CustomizableUI placements, and
+ * the measurement that keeps the address pill centred on the window.
  *
  * Back, forward and reload live in the page's row, leading it (their order
  * is koi-chrome.css's). Placements persist in the profile, so this is
@@ -11,6 +12,10 @@
  * disables the command behind them, so the layout changes with the next
  * Koi build and nothing else. Runs per window; the moves are global and
  * checked first, so every window after the first is a no-op. */
+
+/* RTL_UI is a browser-window global (browser.js); the koi/ tree sits outside
+ * eslint.config.mjs's browser-window path list. */
+/* global RTL_UI */
 
 (() => {
   addEventListener(
@@ -101,5 +106,53 @@
       }
     },
     { once: true, capture: true }
+  );
+
+  // Row one centres the address pill on the window, not on the space the
+  // clusters leave it: Firefox's two springs split that space evenly, so a
+  // right side wider than the lights pushed the pill left. The narrower
+  // side's spring starts out as wide as the difference, and the evenly split
+  // remainder then centres the pill (koi-chrome.css applies the two
+  // values). CSS cannot balance groups it cannot measure. When room runs
+  // out the springs shrink first, the pill keeps Firefox's own floor
+  // (--urlbar-container-min-width), and Firefox's overflow takes over.
+  // Listening after Firefox's own DOMContentLoaded handler, which builds the
+  // springs.
+  addEventListener(
+    "DOMContentLoaded",
+    () => {
+      if (!window.toolbar.visible) {
+        return;
+      }
+      const navBar = document.getElementById("nav-bar");
+      const start = rect => (RTL_UI ? -rect.right : rect.left);
+      const end = rect => (RTL_UI ? -rect.left : rect.right);
+      const set = (name, px) => {
+        const value = `${Math.max(Math.round(px), 0)}px`;
+        if (navBar.style.getPropertyValue(name) != value) {
+          navBar.style.setProperty(name, value);
+        }
+      };
+
+      const balance = new ResizeObserver(() => {
+        const lead = navBar.querySelector(
+          "toolbarspring:not(#vertical-spacer)"
+        );
+        const trail = navBar.querySelector("#urlbar-container ~ toolbarspring");
+        if (!lead || !trail) {
+          return;
+        }
+        // Either spring resizes whenever a side gains or loses a button.
+        balance.observe(lead);
+        balance.observe(trail);
+        const bar = navBar.getBoundingClientRect();
+        const before = start(lead.getBoundingClientRect()) - start(bar);
+        const after = end(bar) - end(trail.getBoundingClientRect());
+        set("--koi-nav-lead", after - before);
+        set("--koi-nav-trail", before - after);
+      });
+      balance.observe(navBar);
+    },
+    { once: true }
   );
 })();

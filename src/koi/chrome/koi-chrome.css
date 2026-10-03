@@ -179,10 +179,21 @@
 /* toolbarbuttons.css caps springs at 112px. Capped springs cannot absorb the
  * row's free space, so the leftover piles up at the customization target's
  * end and shoves the pill off-center. Uncapped, the two springs split the
- * slack and the pill sits centered between the clusters — they are the
- * layout, so they get to grow. */
+ * slack — they are the layout, so they get to grow. Each starts from the
+ * width koi-chrome.js measures to balance the sides, so the pill sits on the
+ * window's centre line whatever either side holds. */
 #nav-bar toolbarspring {
   max-width: none;
+}
+
+/* Firefox sizes these with `flex: 80 80` from a selector this one only ties
+ * (toolbarbuttons.css); anchored on the target's id, these outrank it. */
+#nav-bar-customization-target > toolbarspring:not(#vertical-spacer) {
+  flex-basis: var(--koi-nav-lead, 0);
+}
+
+#nav-bar-customization-target > #urlbar-container ~ toolbarspring {
+  flex-basis: var(--koi-nav-trail, 0);
 }
 
 /* The vertical-tabs spacer has no place in either row. The springs stay:
