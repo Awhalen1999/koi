@@ -80,6 +80,13 @@
   /* Inside the pill: 10px inset, 8px favicon-to-label. */
   --tab-inline-padding: 10px;
   --tab-icon-end-margin: var(--koi-space-8);
+  /* The × and the audio button share one box (tabs.css): 20px, so the
+   * system's 4px of air surrounds it in the 28px pill; the padding (the
+   * ×'s alone) leaves a 12px glyph. These are the tokens Firefox reads; since 157 the older
+   * --tab-close-button-padding only feeds this one at :root, so setting it
+   * on the button did nothing. */
+  --tab-content-button-size: 20px;
+  --tab-content-button-padding: 4px;
   /* Firefox draws a separator before the strip whenever a toolbarbutton
    * precedes it in the DOM (tabs.css ::before) — our nav cluster does. Killed
    * at its token: every drawing of it consumes this variable, and the
@@ -545,22 +552,21 @@
   }
 
   & .tab-close-button {
-    /* The system's 4px of air on all four sides: a 20px box in the 28px
-     * pill, pulled to 4px off the trailing edge (Firefox's stock -5px pull
-     * left 5px there against 2px vertically, and the mismatch showed). The
-     * 3.5px padding renders the glyph at 13px — judged at 12, 13 and 14 —
-     * and the icon is pinned to the content box: unsized, the 12px-intrinsic
-     * SVG leaves slack that rounding drops on one side, and the × sits
-     * off-centre. */
-    width: 20px;
-    height: 20px;
-    --tab-close-button-padding: 3.5px;
+    /* The 20px box (sized at :root) is pulled to 4px off the trailing edge
+     * (Firefox's stock -5px pull left 5px there against 2px vertically, and
+     * the mismatch showed). The glyph is close.svg, the 16px family the +
+     * and the toolbar glyphs come from — round caps, 1.5px stroke — drawn
+     * at 12px (14px read heavy). Firefox's tab default, close-12.svg, is a 12px glyph whose ×
+     * spans 8 of its 12px: beside the + it read at two-thirds the size and
+     * weight, with square ends. The icon is pinned to the content box so
+     * rounding cannot leave slack on one side and push the × off-centre. */
+    list-style-image: url("chrome://global/skin/icons/close.svg");
     margin-inline-end: calc(var(--koi-space-4) - var(--tab-inline-padding));
     color: var(--koi-fg-2);
 
     & .toolbarbutton-icon {
-      width: 13px;
-      height: 13px;
+      width: 12px;
+      height: 12px;
     }
 
     &:hover {
@@ -577,16 +583,14 @@
   }
 }
 
-/* The audio button follows the ×'s convention: 20px box, 13px glyph,
- * favicon radius, quiet ink over the wash on hover, one rung up pressed.
- * It is a moz-button — the glyph lives in its shadow ::part(button) — so
- * geometry and backgrounds ride its variable API and ink rides the part.
- * (Not .tab-icon-overlay — that is the pinned tab's corner badge, a
- * different element that keeps Firefox's geometry.) */
+/* The audio button shares the ×'s 20px box (sized at :root) and wears a
+ * 14px glyph, favicon radius, quiet ink over the wash on hover,
+ * one rung up pressed. It is a moz-button — the glyph lives in its shadow
+ * ::part(button) — so geometry and backgrounds ride its variable API and ink
+ * rides the part. (Not .tab-icon-overlay — that is the pinned tab's corner
+ * badge, a different element that keeps Firefox's geometry.) */
 .tab-audio-button {
-  --button-size-icon-small: 20px;
-  --button-min-height-small: 20px;
-  --icon-size: 13px;
+  --icon-size: 14px;
   --button-border-radius: var(--koi-radius-favicon);
   /* A ghost moz-button paints its hovered and pressed backgrounds from
    * these two (moz-button.css): the wash, then one rung up. */

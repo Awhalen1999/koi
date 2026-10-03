@@ -134,11 +134,12 @@
   white-space: nowrap;
 }
 
-/* The header's two buttons — the × and the audio badge — wear the tab ×'s
- * exact clothes: 20px box, 13px glyph, quiet ink, the wash on hover, one
- * rung up pressed, the accent ring for the keyboard. Glyphs are backgrounds,
- * since these buttons have no XUL image machinery; the pill-height header
- * leaves them even air on every side. */
+/* The header's two buttons — the × and the audio badge — wear the tab
+ * strip's exact clothes: 20px box, the × at 12px and the badge at 14px
+ * (koi-chrome.css), quiet ink, the wash on hover, one rung up pressed, the
+ * accent ring for the keyboard. Glyphs are backgrounds, since these buttons
+ * have no XUL image machinery; the pill-height header leaves them even air
+ * on every side. */
 .koi-card-close,
 .koi-card-audio {
   appearance: none;
@@ -147,7 +148,7 @@
   width: 20px;
   height: 20px;
   border-radius: var(--koi-radius-favicon);
-  background: center / 13px no-repeat;
+  background: center / 14px no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
   transition:
@@ -170,7 +171,8 @@
 }
 
 .koi-card-close {
-  background-image: url("resource://content-accessible/close-12.svg");
+  background-image: url("chrome://global/skin/icons/close.svg");
+  background-size: 12px;
 }
 
 /* The audio badge: hidden unless the tab plays or is muted; the muted state
