@@ -1,8 +1,16 @@
 diff --git a/widget/cocoa/nsCocoaWindow.h b/widget/cocoa/nsCocoaWindow.h
-index 312011c1c2ac41e78affecbdef25d72766a7c882..a4a2a80203350045332b766925e737ebd1cb51ef 100644
+index 08b15d87df2e2149a2b90f101cc0b41fa9f8aa4f..1682d577cd71529bc59f77f4e428c7df5deee603 100644
 --- a/widget/cocoa/nsCocoaWindow.h
 +++ b/widget/cocoa/nsCocoaWindow.h
-@@ -423,6 +423,16 @@ class nsCocoaWindow final : public nsIWidget {
+@@ -140,6 +140,7 @@ class TextInputHandler;
+   NSPopover* mPopover;
+   NSViewController* mPopoverViewController;
+   BOOL mUsePopover;
++  NSRect mLastPopoverRect;
+ }
+ 
+ - (id)initWithContentRect:(NSRect)contentRect
+@@ -423,6 +424,16 @@ class nsCocoaWindow final : public nsIWidget {
      return mNonDraggableRegion.Region();
    }
  
@@ -19,7 +27,7 @@ index 312011c1c2ac41e78affecbdef25d72766a7c882..a4a2a80203350045332b766925e737eb
    void LookUpDictionary(const nsAString& aText,
                          const nsTArray<mozilla::FontRange>& aFontRangeArray,
                          const bool aIsVertical,
-@@ -664,6 +674,9 @@ class nsCocoaWindow final : public nsIWidget {
+@@ -663,6 +674,9 @@ class nsCocoaWindow final : public nsIWidget {
  
    bool mModal = false;
    bool mIsAnimationSuppressed = false;

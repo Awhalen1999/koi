@@ -1,5 +1,5 @@
 diff --git a/widget/cocoa/nsCocoaWindow.mm b/widget/cocoa/nsCocoaWindow.mm
-index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..571ea5550811325e3481ee92fb7c7dfaf60f43ce 100644
+index e467ce48f523859aaff26023633d4d2d3978818f..0a717d9e5f32d7686b3bf2437114742b6c62e93a 100644
 --- a/widget/cocoa/nsCocoaWindow.mm
 +++ b/widget/cocoa/nsCocoaWindow.mm
 @@ -84,6 +84,7 @@
@@ -145,7 +145,7 @@ index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..571ea5550811325e3481ee92fb7c7dfa
  void nsCocoaWindow::UpdateWindowDraggingRegion(
      const LayoutDeviceIntRegion& aRegion) {
    // mChildView returns YES from mouseDownCanMoveWindow, so we need to put
-@@ -4919,6 +5048,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
+@@ -4938,6 +5067,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
  nsCocoaWindow::~nsCocoaWindow() {
    NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
  
@@ -156,3 +156,27 @@ index 2efd02e4a92433fd29bbfdb707aa81cfec45031e..571ea5550811325e3481ee92fb7c7dfa
    RemoveAllChildren();
    if (mWindow && mWindowMadeHere) {
      CancelAllTransitions();
+@@ -5730,7 +5863,6 @@ static void SyncPopoverBounds(NSPopover* aPopover,
+   nsMenuPopupFrame* popupFrame = GetPopupFrame();
+   return [mWindow isKindOfClass:[PopupWindow class]] &&
+          [(PopupWindow*)mWindow usePopover] && popupFrame &&
+-         popupFrame->ShouldFollowAnchor() &&
+          !popupFrame->PopupElement().GetBoolAttr(nsGkAtoms::nonnative);
+ }
+ 
+@@ -9011,6 +9143,15 @@ - (void)showPopoverRelativeToRect:(NSRect)positioningRect
+     return;
+   }
+ 
++  if (!positioningRect.size.width && !positioningRect.size.height &&
++      mLastPopoverRect.size.width && mLastPopoverRect.size.height) {
++    // Sometimes, specially when downloading addons from unofficial sources,
++    // the popover is shown in a very fast motion and the positioningRect is
++    // empty.
++    positioningRect = mLastPopoverRect;
++  }
++  mLastPopoverRect = positioningRect;
++
+   // Close existing popover if it's already shown
+   if (mPopover.shown) {
+     [mPopover close];

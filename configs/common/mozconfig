@@ -17,7 +17,6 @@ ac_add_options --with-app-name=${binName}
 # Capitalised: this becomes application.ini's Name and the macOS profile
 # directory (~/Library/Application Support/Koi).
 export MOZ_APP_BASENAME=Koi
-export MOZ_USER_DIR="Koi"
 
 # The macOS bundle id is composed by toolkit/moz.configure as
 #   {distribution-id}.{surfer.json appId}

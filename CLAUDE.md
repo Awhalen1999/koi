@@ -574,7 +574,7 @@ reset the pref in about:config too.
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 32 rows, all
+After `npm run import`, `git -C engine status --short` shows 33 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -585,7 +585,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/config/appearance.mjs`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 15 patches |
+| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/config/appearance.mjs`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `toolkit/themes/shared/global-shared.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 16 patches |
 | ` T ` × 9 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -718,7 +718,13 @@ section is only the standing decisions and the open list.
   panels become NSPopovers via `widget.macos.native-popovers` (a Firefox
   pref Zen upstreamed, off by default), and koi-panels.css clears Firefox's
   `--panel-background-color` so the material shows; `[nonnative]` arrow
-  panels take the menu appearance instead. The rule: what macOS draws wears
+  panels take the menu appearance instead. Zen's fix for the pref
+  (Phabricator D299584, its `native_macos_popovers_fix.patch`) is taken
+  whole: panels opened at a point, not a button, become popovers too
+  instead of drawing bare; an empty anchor rect reuses the last one; and
+  Firefox's zeroed popover `--panel-padding` is deleted
+  (global-shared-css.patch — a Koi override could not restore the
+  per-panel values it zeroes, `.cui-widget-panel`'s among them). The rule: what macOS draws wears
   its material, what Firefox or Koi draws wears the MENU tint (96% of a
   near-black neutral) — the urlbar dropdown and its row menu (the "…"
   panel-list; its "Learn more" is hidden), the findbar, the board's cards
