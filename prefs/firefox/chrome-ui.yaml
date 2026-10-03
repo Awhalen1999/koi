@@ -84,3 +84,17 @@
 
 - name: browser.download.alwaysOpenPanel
   value: false
+
+# Arrow panels (the app menu, extensions, downloads, site information, the
+# bookmark editor, doorhangers) become real macOS NSPopovers: the OS's
+# blurred material, shadow and corners, matching the native menus. Off by
+# default upstream; Zen, which contributed it, ships it on. koi-panels.css
+# clears Firefox's paint so the material shows.
+- name: widget.macos.native-popovers
+  value: true
+
+# Firefox's multi-profile switcher: a "Create a New Profile" row near the top
+# of the app menu and a Profiles menu in the macOS menu bar. A feature to
+# learn on first launch; off, as Zen ships it.
+- name: browser.profiles.enabled
+  value: false

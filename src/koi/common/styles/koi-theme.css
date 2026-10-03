@@ -164,16 +164,21 @@
    *   RAISED — the active surface: the selected tab, the empty-state card.
    *            The most frosted thing on the shell.
    *
-   * Plus the one tint off the ladder, MENU, for anything floated over PAGE
-   * CONTENT (the urlbar's open dropdown, menus): near-opaque, because
-   * out-of-process pixels can't be blurred and a film is unreadable there
-   * (see above). */
+   * Plus the one tint off the ladder, MENU, for every floating surface Koi
+   * or Firefox draws itself — the urlbar's open dropdown, the findbar, the
+   * board's cards, the bookmark menus: 96% opaque, because out-of-process
+   * pixels can't be blurred and the leftover is an unblurred ghost of the
+   * page's text. At 90% that ghost read clearly through the dropdown. What
+   * macOS draws (menus, panels) wears its own blurred material instead
+   * (koi-panels.css), and MENU sits beside it, so it is the near-black
+   * neutral of a native popover over a dark page — not the spec's navy, nor
+   * a mid grey; both read as a different family next to the popovers. */
   --koi-glass-shell: rgba(255, 255, 255, 0.07);
   --koi-glass-wash: rgba(255, 255, 255, 0.12);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
   --koi-glass-hover: rgba(255, 255, 255, 0.22);
   --koi-glass-raised: rgba(255, 255, 255, 0.27);
-  --koi-glass-menu: rgba(22, 24, 30, 0.9);
+  --koi-glass-menu: rgba(30, 30, 32, 0.96);
 
   /* Scrims ------------------------------------------------------------------
    * Two weights, and the difference carries meaning: the board is a full

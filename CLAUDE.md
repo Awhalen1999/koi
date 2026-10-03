@@ -381,9 +381,10 @@ Either half alone looks like an ordinary opaque window.
 
 There is **no CSS blur anywhere in Koi's chrome**, and none is possible:
 `backdrop-filter` is a no-op over the chrome band (nothing painted to sample)
-and over the page card (content renders out of process). Floating surfaces
-carry themselves with near-opaque tints; koi-theme.css's glass section has
-the doctrine.
+and over the page card (content renders out of process). Popups get real
+blur from macOS instead (below); what Koi floats inside the window — the
+urlbar dropdown, the findbar, the board's cards — carries a 96% tint.
+koi-theme.css's glass section has the doctrine.
 
 ### StaticPrefs plumbing
 
@@ -613,9 +614,17 @@ section is only the standing decisions and the open list.
   a deliberate deviation from the spec's 380ms/1.36 (koi-theme.css). Arrow
   panels do not slide (`-moz-window-transform: none`; not swapped for a fade
   because Firefox skips `-moz-window-opacity` on Big Sur+, bug 1672091).
-- **Menupopups and plain panels stay native**; macOS gives them real
-  vibrancy. Arrow panels and the findbar take the menu tint through
-  `--panel-*`.
+- **Every popup is native, Zen's way.** Menupopups always were; arrow
+  panels become NSPopovers via `widget.macos.native-popovers` (a Firefox
+  pref Zen upstreamed, off by default), and koi-panels.css clears Firefox's
+  `--panel-background-color` so the material shows; `[nonnative]` arrow
+  panels take the menu appearance instead. The rule: what macOS draws wears
+  its material, what Firefox or Koi draws wears the MENU tint (96% of a
+  near-black neutral) — the urlbar dropdown, the findbar, the board's cards
+  and the bookmark menus (`.toolbar-menupopup`, Firefox-drawn because they
+  need drag and drop). Handing the bookmark menus the native menu
+  appearance instead, as Zen does, gets macOS 26's clear menu glass,
+  visibly greyer than the popovers.
 - **In-content pages keep Firefox's accent** (Settings, Add-ons). The lever
   is `browser.theme.native-theme`, which would also paint a native titlebar
   material on `#navigator-toolbox::after` (browser-shared.css) and need a
@@ -635,7 +644,7 @@ section is only the standing decisions and the open list.
   horizontal strip and one card), the 157 trust panel off (the urlbar CSS
   targets the identity box; re-review when Mozilla removes it, as with
   Nova), the "Firefox Suggest" group label, tab hover previews, the
-  auto-opening downloads panel, CFR, UITour and every AI feature
+  auto-opening downloads panel, CFR, UITour, profiles and every AI feature
   (prefs/firefox/ai.yaml). Firefox's accent tokens point at the system
   accent in the chrome; attention glyphs (the starred star, download
   progress) take their button's ink, as in Zen.
