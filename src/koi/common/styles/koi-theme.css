@@ -4,8 +4,8 @@
 
 /* Koi's design tokens — the vocabulary every other Koi stylesheet is written
  * in. Values come from the specs in ../koi-design/design/: Koi Shell v4 for
- * the shell layout, v5 for the floating surfaces (palette, empty state); the
- * brand kit is a summary of them and less complete.
+ * the shell layout, v5 for the empty state (its palette was decided
+ * against); the brand kit is a summary of them and less complete.
  *
  * Loaded into every browser window via browser/base/content/koi-assets.inc.xhtml,
  * after Firefox's own chrome stylesheets, so Koi rules win ties on equal
@@ -75,7 +75,6 @@
   --koi-radius-page: 12px;
   --koi-radius-pill: 8px;
   --koi-radius-favicon: 4px;
-  --koi-radius-palette: 16px;
 
   /* Control metrics ---------------------------------------------------------
    * One pill height for the tabs and the address field; every row derives
@@ -119,16 +118,13 @@
   --koi-fg-3: rgba(255, 255, 255, 0.42);
 
   /* The one colour in the chrome that is not a white film, and it always means
-   * "this one, now": the palette's selected row, the board's active card, the
-   * focus ring. Its value is the OS's own accent (the CSS AccentColor system
+   * "this one, now": the board's focused card, the focus ring. Its value is the OS's own accent (the CSS AccentColor system
    * keyword) — the wallpaper-borrowing doctrine taken to its end: Koi imposes
    * no colour at all, the user's Mac supplies it, live from System Settings.
    * The token stays the API; a brand hex is a one-line change back. Known
    * edge: the graphite setting yields a grey accent, which whispers where
-   * this should point — accepted. Variants derive from the base. */
+   * this should point — accepted. */
   --koi-accent: AccentColor;
-  --koi-accent-select: color-mix(in srgb, var(--koi-accent) 20%, transparent);
-  --koi-accent-inline: color-mix(in srgb, var(--koi-accent) 34%, transparent);
 
   /* Edges ---------------------------------------------------------------------
    * Two hairlines: white on glass surfaces, dark on the page card — the one
@@ -182,7 +178,7 @@
 
   /* Scrims ------------------------------------------------------------------
    * Two weights, and the difference carries meaning: the board is a full
-   * takeover, the palette is a lighter overlay you stay oriented behind.
+   * takeover, peek is a lighter overlay you stay oriented behind.
    * Dim only — scrim blurs cannot reach page pixels (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
   --koi-scrim-float: rgba(8, 10, 14, 0.28);
