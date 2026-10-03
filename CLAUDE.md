@@ -610,10 +610,11 @@ section is only the standing decisions and the open list.
   charCode, and Cmd+Shift+punctuation is layout-dependent — use letters), and
   `ShortcutKeyDefinitions.cpp`. ⌘E was dropped because it is macOS-wide "Use
   Selection for Find".
-- **Motion is macOS's.** The spring is `300ms cubic-bezier(0.22, 1.2, 0.36, 1)`,
-  a deliberate deviation from the spec's 380ms/1.36 (koi-theme.css). Arrow
-  panels do not slide (`-moz-window-transform: none`; not swapped for a fade
-  because Firefox skips `-moz-window-opacity` on Big Sur+, bug 1672091).
+- **The shell does not move.** The first pass is the shell, without
+  motion: no entrance animations (the empty card and the board used to rise
+  in), no spring, no hover lift. Only state eases — colour and opacity over
+  `--koi-fade` (150ms). Arrow panels do not slide
+  (`-moz-window-transform: none`). Motion returns as a pass of its own.
 - **Every popup is native, Zen's way.** Menupopups always were; arrow
   panels become NSPopovers via `widget.macos.native-popovers` (a Firefox
   pref Zen upstreamed, off by default), and koi-panels.css clears Firefox's

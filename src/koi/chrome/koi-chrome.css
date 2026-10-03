@@ -492,6 +492,22 @@
   & .urlbarView-action[slide-in] {
     animation: none;
   }
+
+  /* A result's "…" opens its row menu — Remove from history, the only way
+   * to drop a page from suggestions, so it stays (Zen keeps it too). It is a
+   * panel-list Firefox draws inside the dropdown, so it wears the dropdown's
+   * MENU tint, not Firefox's panel grey; its tokens live in a shadow root
+   * that rules from this document outrank. "Learn more" leads to Mozilla's
+   * support site and goes; hidden items cannot take focus, so the keyboard
+   * walk skips it (panel-list.mjs). */
+  & .urlbarView-result-menu {
+    --panel-list-background-color: var(--koi-glass-menu);
+    --panel-list-border-color: var(--koi-hair);
+  }
+
+  & .urlbarView-result-menuitem[data-command="help"] {
+    display: none;
+  }
 }
 
 /* The tab strip ---------------------------------------------------------------

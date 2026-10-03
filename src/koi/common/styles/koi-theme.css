@@ -200,51 +200,19 @@
   --koi-shadow-menu: 0 26px 64px rgba(0, 0, 0, 0.32);
 
   /* Motion ------------------------------------------------------------------
-   * Two speeds, chosen by what is changing rather than by which component is
-   * changing. Anything that moves or resizes springs; anything that only
-   * changes colour or opacity fades. Only the thing you touch ever moves.
-   *
-   * The spring is macOS's, not the spec's. The spec's 380ms/1.36 curve
-   * overshoots by 4% and lingers, which reads as a browser animating; this
-   * one lands at 60% of its 300ms with about 1% of overshoot and settles —
-   * felt as weight, never seen as bounce. (Firefox's own token, --animation-
-   * easing-function, is the same family with the overshoot removed.) */
-  --koi-spring: 300ms cubic-bezier(0.22, 1.2, 0.36, 1);
+   * The shell does not move. Nothing enters, rises, springs or lifts: a
+   * surface is simply there, as a macOS menu is. The one speed left is for
+   * state, not motion — a colour or opacity answering the pointer (hover,
+   * pressed, the strip's edge fade) eases over 150ms so it reads as a
+   * response rather than a flicker. The spec's entrance keyframes and its
+   * spring were built and taken out; motion returns as a deliberate pass of
+   * its own, not one surface at a time. */
   --koi-fade: 150ms linear;
 }
 
-/* Respect the system setting. The spring overshoots, which is exactly the kind
- * of motion this is meant to suppress. */
+/* Respect the system setting. */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --koi-spring: 0ms linear;
     --koi-fade: 0ms linear;
-  }
-}
-
-/* The spec's entrance keyframes, defined as they gain a user — a keyframe
- * with no animation is dead weight, so koiDrop and koiPop join when the
- * menus and palette do. Pair with the motion tokens:
- *   animation: koiRise var(--koi-spring) both;
- * and reduced-motion collapses the duration to zero for free. */
-@keyframes koiRise {
-  from {
-    opacity: 0;
-    transform: scale(0.965);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes koiFade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
   }
 }

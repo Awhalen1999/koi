@@ -19,7 +19,6 @@
   /* Dark throughout — the cards' light-dark() tokens and the grid's own
    * scrollbar alike agree with the scrim and the MENU tint. */
   color-scheme: dark;
-  animation: koiFade var(--koi-fade) both;
 }
 
 #koi-board[mode] {
@@ -36,7 +35,6 @@
 
 .koi-board-grid {
   width: 100%;
-  animation: koiRise var(--koi-spring) both;
 }
 
 /* Board: a responsive grid, scrolling when the window is short. */
@@ -68,7 +66,7 @@
  * keyboard's card wore the same ring could not say which was which:
  *
  *   hovered — the hairline steps up to a quiet 1px ring. Acknowledged, not
- *             chased; nothing moves, the board's one spring is its entrance.
+ *             chased; nothing moves.
  *   current — the selected tab's own clothes from the strip: the RAISED
  *             film on the header, the heavier title.
  *   focused — the accent ring, and only here. Arrows move it, Enter commits.

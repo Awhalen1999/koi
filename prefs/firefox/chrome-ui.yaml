@@ -76,6 +76,13 @@
 - name: browser.urlbar.groupLabels.enabled
   value: false
 
+# Trending searches: focusing an empty address field fills the dropdown with
+# ten of the search engine's trending queries — news noise, asking for
+# attention before anything is typed. Off, as Zen ships it; recent searches
+# and history still show.
+- name: browser.urlbar.trending.featureGate
+  value: false
+
 # Nothing pops up: no preview card on tab hover (the board is where tabs are
 # seen at a glance; its thumbnails do not read this pref) and no downloads
 # panel thrown open by every download — the button says it.

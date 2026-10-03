@@ -48,7 +48,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  animation: koiRise var(--koi-spring) both;
 }
 
 .koi-empty-mark {
@@ -114,20 +113,17 @@
   background: var(--koi-glass-wash);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   transition:
-    transform var(--koi-spring),
     background var(--koi-fade),
     box-shadow var(--koi-fade);
 
   &:hover {
-    transform: translateY(-2px);
     background: var(--koi-glass-hover);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   }
 
-  /* Pressed, the lift settles back to rest — the pin is pushed, not lit: a
+  /* Pressed, the shadow settles back to rest — the pin is pushed, not lit: a
    * letter tile's colour is its identity and holds under the press. */
   &:hover:active {
-    transform: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   }
 
