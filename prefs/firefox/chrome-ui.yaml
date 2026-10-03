@@ -46,3 +46,41 @@
 # so there is nothing there to switch off.
 - name: browser.tabs.groups.enabled
   value: false
+
+# Two rows assume horizontal tabs. 157 offers vertical tabs from the tab
+# strip's and the springs' context menu (koi-chrome.css hides the item) and
+# from Settings, where the lock leaves the control disabled. Locked, as Zen
+# locks it.
+- name: sidebar.verticalTabs
+  value: false
+  locked: true
+
+# Split view is on by default in 157 and nothing in Koi is designed for two
+# panels: the card, the empty state and the board each assume one page.
+# Off and locked, as Zen ships it, until it has a design (the tab-groups
+# rule above).
+- name: browser.tabs.splitView.enabled
+  value: false
+  locked: true
+
+# 157's trust panel replaces the address field's identity box with
+# #trust-icon-container and a "Not Secure" label of its own, which slips past
+# the pill's hide list (koi-chrome.css). Off, as Zen ships it, so the field
+# keeps the identity box Koi's CSS is written against. Re-review when Mozilla
+# removes the identity box.
+- name: browser.urlbar.trustPanel.featureGate
+  value: false
+
+# The "Firefox Suggest" header over history and open-tab results in the
+# address dropdown names Mozilla's product inside Koi's chrome.
+- name: browser.urlbar.groupLabels.enabled
+  value: false
+
+# Nothing pops up: no preview card on tab hover (the board is where tabs are
+# seen at a glance; its thumbnails do not read this pref) and no downloads
+# panel thrown open by every download — the button says it.
+- name: browser.tabs.hoverPreview.enabled
+  value: false
+
+- name: browser.download.alwaysOpenPanel
+  value: false

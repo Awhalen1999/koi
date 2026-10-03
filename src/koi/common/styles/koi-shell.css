@@ -85,6 +85,13 @@ body {
     0 0 0 0.5px var(--koi-page-ring);
 }
 
+/* The link-hover status panel sits in the card's bottom corner and pads
+ * itself clear of --window-border-radius (content-area.css), its only
+ * consumer. In Koi the corner that clips it is the card's, not the window's. */
+:root {
+  --window-border-radius: var(--koi-radius-page);
+}
+
 /* The page ground: what shows behind a page that has not painted yet, and
  * behind one that paints no background of its own. The two rules below need it
  * keyed two different ways — `.browserContainer` inherits the chrome's scheme

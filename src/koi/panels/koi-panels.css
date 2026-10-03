@@ -63,3 +63,17 @@ panel[type="arrow"] {
     }
   }
 }
+
+/* The app menu's account area carries two pieces of Firefox's brand, both
+ * hidden as Zen hides them: the "zap" separator under the account row,
+ * drawn in Firefox's purple-to-orange gradient whenever no theme is set
+ * (panelUI-shared.css) — always, in Koi — and the fox illustration
+ * (kit-signed-out.svg) on the sign-in promo a never-signed-in profile shows
+ * at the top of the menu. Without its gradient the separator is a plain rule. */
+toolbarseparator.proton-zap {
+  --panel-separator-zap-gradient: none;
+}
+
+.fxa-menu-sign-in-promo-image {
+  display: none;
+}

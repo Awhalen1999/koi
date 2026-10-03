@@ -20,3 +20,24 @@
 # Suppresses the first-run rights notification.
 - name: browser.rights.3.shown
   value: true
+
+# Contextual recommendations: ASRouter's add-on and feature doorhangers and
+# callouts. ASRouter starts at every launch (BrowserGlue) whether or not the
+# new tab page is on, so these are switched off at their own prefs, as Zen
+# does.
+- name: browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons
+  value: false
+
+- name: browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features
+  value: false
+
+# UITour lets mozilla.org pages open and highlight parts of the chrome.
+- name: browser.uitour.enabled
+  value: false
+
+# Mozilla's Terms of Use modal is bypassed only when MOZILLA_OFFICIAL is
+# unset (firefox.js), so dev builds never show it — but the release build
+# (configs/macos/mozconfig, $KOI_RELEASE) sets it, and would greet a new user
+# with Mozilla's terms. Zen ships the same bypass.
+- name: termsofuse.bypassNotification
+  value: true

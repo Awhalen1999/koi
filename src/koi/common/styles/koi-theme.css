@@ -119,8 +119,8 @@
   --koi-fg-3: rgba(255, 255, 255, 0.42);
 
   /* The one colour in the chrome that is not a white film, and it always means
-   * "this one, now": the palette's selected row, the board's active card, a set
-   * bookmark. Its value is the OS's own accent (the CSS AccentColor system
+   * "this one, now": the palette's selected row, the board's active card, the
+   * focus ring. Its value is the OS's own accent (the CSS AccentColor system
    * keyword) — the wallpaper-borrowing doctrine taken to its end: Koi imposes
    * no colour at all, the user's Mac supplies it, live from System Settings.
    * The token stays the API; a brand hex is a one-line change back. Known

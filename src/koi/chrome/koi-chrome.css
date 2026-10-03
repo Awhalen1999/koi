@@ -88,13 +88,24 @@
    * the grouping. */
   --tabstrip-inner-border: none;
 
-  /* Keyboard focus rings in the system accent, as the board's ring already
-   * is; Firefox's default is its own brand blue. */
-  --focus-outline-color: var(--koi-accent);
+  /* The chrome's accent is the system's (koi-theme.css). Firefox's browser
+   * theme pins these to its own blue/cyan on macOS (tokens-platform.css):
+   * primary buttons in doorhangers, toggles, and the focus ring, which the
+   * tokens derive from --color-accent-primary. Hover and active darken it the
+   * way Firefox's native-theme layer does. This sheet is the chrome document
+   * only, so Settings and Add-ons keep Firefox's accent. */
+  --color-accent-primary: var(--koi-accent);
+  --color-accent-primary-hover: color-mix(in srgb, black 10%, var(--koi-accent));
+  --color-accent-primary-active: color-mix(in srgb, black 20%, var(--koi-accent));
+  /* Attention glyphs — the starred star, download progress, the translations
+   * chip — are drawn in their button's own ink, as Zen does: the state is the
+   * glyph's shape, not a colour. */
+  --toolbarbutton-icon-fill-attention: currentColor;
 }
 
 /* Nav above tabs — Firefox ships them inverted. A toolbox is already a column
- * flexbox (xul.css), so this is only the order. */
+ * flexbox (xul.css), so this is only the order. Every child that can show
+ * needs one: an unordered child sorts first, above the traffic lights. */
 #navigator-toolbox {
   & > #nav-bar {
     order: 1;
@@ -106,6 +117,10 @@
 
   & > #PersonalToolbar {
     order: 3;
+  }
+
+  & > #notifications-toolbar {
+    order: 4;
   }
 }
 
@@ -200,6 +215,17 @@
 }
 /* stylelint-enable stylelint-plugin-mozilla/no-has-selector */
 
+/* Two rows assume horizontal tabs, so vertical tabs are locked off
+ * (prefs/firefox/chrome-ui.yaml). Right-clicking the strip or a toolbar
+ * spring — the springs are most of row one — still offers the toggle
+ * (ToolbarContextMenu.sys.mjs), so it goes, with its sidebar companion and
+ * their divider. Zen hides the same three. */
+#toolbar-context-toggle-vertical-tabs,
+#toolbar-context-customize-sidebar,
+#sidebarRevampSeparator {
+  display: none;
+}
+
 /* Row two: the page's row. --------------------------------------------------
  * Board button, tab strip, +. */
 
@@ -285,6 +311,43 @@
   /* The first-run "Import bookmarks…" message. */
   & #personal-toolbar-empty-description {
     color: var(--koi-fg-3);
+  }
+}
+
+/* Row four: notification bars, empty until something speaks. ----------------
+ * Since 157 every tab's bars (popup blocked, a page slowing down) live in
+ * this toolbar's deck, not on the page (Tabbrowser.sys.mjs
+ * getNotificationBox), and the window-wide box is prepended here too. It sits
+ * directly over the page card, so a bar wears the address pill's clothes —
+ * the resting WELL in a hairline ring, white ink — instead of Proton's white
+ * card with Firefox's purple-to-orange stripe down its edge (infobar.css).
+ * The bar's tokens and its stripe live in its shadow root; rules from this
+ * document outrank :host ones, so no patch is needed. */
+
+#navigator-toolbox > #notifications-toolbar {
+  /* .browser-toolbar paints every non-titlebar toolbar opaque. */
+  background-color: transparent;
+  color-scheme: dark;
+  /* Inset like the card, and no block margin of its own: the tab row's air
+   * sits above a bar and the card's margin below it. */
+  --info-bar-margin-inline: var(--koi-gutter);
+  --info-bar-margin-block-start: 0;
+  --info-bar-margin-block-end: 0;
+
+  & notification-message.infobar {
+    --info-bar-background-color: var(--koi-glass-well);
+    --info-bar-text-color: var(--koi-fg);
+    --info-bar-box-shadow: inset 0 0 0 0.5px var(--koi-hair);
+    --message-bar-border-color: transparent;
+    --message-bar-border-radius: var(--koi-radius-pill);
+
+    &::before {
+      display: none;
+    }
+
+    & + notification-message.infobar {
+      margin-block-start: var(--koi-space-4);
+    }
   }
 }
 

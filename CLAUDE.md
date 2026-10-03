@@ -629,6 +629,16 @@ section is only the standing decisions and the open list.
   means a C++ flag, so nothing is hidden.
 - **Tab groups are off** (`browser.tabs.groups.enabled`) until the strip has
   a design for a group label.
+- **Zen is the reference for what to switch off.** Its `prefs/` and
+  `src/zen/common/styles/` were audited against 157 and Koi follows it:
+  split view and vertical tabs locked off (the two-row layout assumes one
+  horizontal strip and one card), the 157 trust panel off (the urlbar CSS
+  targets the identity box; re-review when Mozilla removes it, as with
+  Nova), the "Firefox Suggest" group label, tab hover previews, the
+  auto-opening downloads panel, CFR, UITour and every AI feature
+  (prefs/firefox/ai.yaml). Firefox's accent tokens point at the system
+  accent in the chrome; attention glyphs (the starred star, download
+  progress) take their button's ink, as in Zen.
 - **Themes are off, Zen's way.** `koi.theme.disable-lightweight`
   (prefs/koi/theme.yaml, default true) makes `LightweightThemeConsumer`
   treat any installed theme as the default one, hides the Themes category in
@@ -647,7 +657,8 @@ with folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar
 decision, the palette's return, tab groups, the private-window empty state. Fox glyphs still inherited, each a product
 decision: `preferences/fox-ai.svg`, `sidebar/foxy.svg`,
 `fxa/avatar-fox*.svg`, `privatebrowsing/fox-tail.svg`,
-`icons/firefox-view.svg`. Strings naming Firefox literally ("Firefox Labs")
+`icons/firefox-view.svg` (the app menu's `kit-signed-out.svg` is hidden, as
+Zen hides it). Strings naming Firefox literally ("Firefox Labs")
 want a strings pass of their own.
 
 **Deferred outright** (Zen has it, Koi does not need it yet): crowdin and
