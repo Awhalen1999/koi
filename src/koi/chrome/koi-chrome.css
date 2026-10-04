@@ -278,13 +278,20 @@
  * Toolbars, so it is dressed to match. */
 
 #navigator-toolbox > #PersonalToolbar {
-  /* A 24px row, one size down. Collapsed, Firefox's max-height: 0 still
-   * wins over this height. */
-  height: var(--koi-space-24);
+  /* Pills one size down (24px), with the 4px of air the other rows keep
+   * around theirs (--koi-chrome-height). */
+  height: calc(var(--koi-space-24) + 2 * var(--koi-space-4));
   min-height: 0;
   background-color: transparent;
   color: var(--koi-fg);
   padding: 0 var(--koi-chrome-pad);
+
+  /* The air is the pills' margin, not the row's padding, which would survive
+   * Firefox's collapsing max-height: 0 as a strip. The » chevron takes it
+   * too: Firefox stretches its icon to the row (toolbarbuttons.css). */
+  & :is(#PlacesToolbarItems > .bookmark-item, .toolbarbutton-1) {
+    margin-block: var(--koi-space-4);
+  }
 
   /* Small pills: quiet ink, the toolbar buttons' wash on hover
    * (toolbarbuttons.css paints .bookmark-item from the same tokens), the

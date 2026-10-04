@@ -1,0 +1,44 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* REMOVE BEFORE LAUNCH: this file, its lines in common/jar.inc.mn and
+ * koi-assets.inc.xhtml, prefs/koi/debug.yaml and its CLAUDE.md note.
+ *
+ * Debug outlines for measuring the chrome's layout: the rows, the shape of
+ * every control and the page card. Off unless koi.debug.outline is true
+ * (about:config, applies live). Outlines take no space, so nothing moves.
+ * The toolbox's rows are also tinted, so a seam no row owns shows dark.
+ *
+ *   red      rows: the toolbox's four and the findbar
+ *   yellow   controls, as drawn: button pills, tabs, the address pill,
+ *            bookmarks, the private label
+ *   magenta  the page card, drawn just outside it (the page covers inside) */
+
+@media -moz-pref("koi.debug.outline") {
+  #navigator-toolbox > toolbar {
+    background-color: rgb(255 69 58 / 0.1) !important;
+  }
+
+  #navigator-toolbox > toolbar,
+  findbar {
+    outline: 1px solid #ff453a !important;
+    outline-offset: -1px !important;
+  }
+
+  #navigator-toolbox {
+    & .toolbarbutton-1 > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack),
+    & .tab-background,
+    & #urlbar,
+    & #PlacesToolbarItems > .bookmark-item,
+    & .private-browsing-indicator-with-label {
+      outline: 1px solid #ffd60a !important;
+      outline-offset: -1px !important;
+    }
+  }
+
+  .browserSidebarContainer {
+    outline: 1px solid #ff40ff !important;
+    outline-offset: 0 !important;
+  }
+}

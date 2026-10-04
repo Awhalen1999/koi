@@ -1,0 +1,8 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Outlines the chrome's rows, controls and page card, to measure spacing and
+# layout (src/koi/common/styles/koi-outline.css). Applies live.
+- name: koi.debug.outline
+  value: false

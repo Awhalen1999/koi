@@ -170,9 +170,12 @@ rules in koi-chrome.css and koi-panels.css carry one.
 - When a rule seems not to work, do not reason about why: build it with an
   unmissable value (24px padding, red background, 3px outline) and look.
   Serving a file over `chrome://` proves it is registered, not applied.
-- Vertical spacing off? Paint every box in the stack a different translucent
-  colour in one throwaway build. A dark seam is an unowned gap; a colour
-  outgrowing its children is that element inflating the row.
+- Spacing or sizing off? Set `koi.debug.outline` in about:config (live):
+  koi-outline.css outlines the rows, every control's drawn shape and the
+  page card, and tints the rows, so a dark seam is an unowned gap. To go
+  deeper, paint every box in the stack a different translucent colour in one
+  throwaway build: a colour outgrowing its children is that element inflating
+  the row.
 - Change one variable per measurement, and do not read small differences off
   scaled screenshots.
 - When following Zen, take the whole thing: their C++, CSS *and* pref
@@ -716,8 +719,9 @@ Labs") want a strings pass of their own.
 multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
 `.python-version` pin. Before a release: a Google Safe Browsing API key
-(without one, phishing and malware protection is silently off) and the
-macOS updater's signing team id.
+(without one, phishing and malware protection is silently off), the
+macOS updater's signing team id, and removing the debug outlines
+(koi-outline.css's header lists the pieces).
 
 ## Known startup output
 
