@@ -19,13 +19,6 @@
 - name: browser.startup.homepage
   value: about:blank
 
-# Browsers paint no background of their own, so the wallpaper reaches the
-# empty card. Firefox applies it to every tab, not only blank ones, so a page
-# with no background shows koi-shell.css's page ground (CLAUDE.md, known
-# issues).
-- name: browser.tabs.allow_transparent_browser
-  value: true
-
 # No yellow flash when the findbar opens (findbar.js _flash); the focused
 # field is the cue.
 - name: accessibility.typeaheadfind.flashBar
@@ -38,9 +31,9 @@
 - name: browser.tabs.groups.enabled
   value: false
 
-# The two-row layout assumes horizontal tabs. Locked, as in Zen: Settings
-# shows the control disabled, and koi-chrome.css hides the context-menu
-# toggle.
+# The two-row layout assumes horizontal tabs. Locked, as in Zen; Settings
+# leaves out its control (preferences-js.patch) and koi-chrome.css hides the
+# context-menu toggle.
 - name: sidebar.verticalTabs
   value: false
   locked: true

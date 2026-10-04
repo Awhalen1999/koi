@@ -90,9 +90,10 @@ way (below). If it conflicts on a Firefox update, delete both files.
   CSP, chrome:// assets reachable only because `content browser` is
   `contentaccessible=yes`, and `light-dark()` following the *chrome* scheme
   because an about: page is a chrome document.
-- **koi-theme.css splits when a second content page lands.** It mixes
+- **koi-theme.css splits when a content page needs its scale.** It mixes
   chrome-only ink with a universal scale/type/radii vocabulary, which is why
-  koi-rights.css hand-rolls its spacing.
+  koi-rights.css and koi-private.css hand-roll their handful of values
+  (koi-private.css also repeats `--koi-private`).
 
 ### jar.inc.mn: the `*` flag
 
@@ -161,8 +162,8 @@ around it). `src/-stylelintrc-js.patch` turns off `use-design-tokens` with
 `null`, the only "off" stylelint accepts (`false` silently skips every rule).
 **A clean run proves nothing on its own: plant an error once to prove the
 linter saw the file.** Koi's CSS and JS lint clean; keep it that way. 157's
-`no-has-selector` asks for an inline disable with a reason; the one `:has()`
-in koi-chrome.css carries it.
+`no-has-selector` asks for an inline disable with a reason; the `:has()`
+rules in koi-chrome.css and koi-panels.css carry one.
 
 ### Debugging chrome
 
@@ -485,12 +486,15 @@ listed in `engine/.gitignore`. Zero patches. Koi replaces nine:
 - `src/browser/themes/shared/sidebar/firefox.svg` — the monochrome "this
   browser" glyph (About Koi nav item, Settings headers). Bare mark,
   `fill="context-fill"`. Not the fox on the default-browser card.
-- `src/browser/themes/shared/privatebrowsing/favicon.svg`,
-  `src/toolkit/themes/shared/icons/indicator-private-browsing.svg` and
-  `src/browser/themes/shared/privatebrowsing/pbm-logo.svg` — the private tab
-  mask, the old indicator pill, and the mask 157 draws as the indicator
-  button and the about:privatebrowsing logo. All the app icon, viewBox
-  trimmed to the tile.
+- `src/browser/themes/shared/privatebrowsing/favicon.svg` — the private
+  tab's icon: the mask (Firefox's Proton glyph) in `context-fill`, matching
+  the tab row's private pill and about:privatebrowsing.
+- `src/toolkit/themes/shared/icons/indicator-private-browsing.svg` and
+  `src/browser/themes/shared/privatebrowsing/pbm-logo.svg` — the private
+  badge in about:addons and the address bar's quick action (Koi's tab-row
+  label swaps it for the mask, koi-chrome.css), and the logo of Firefox's
+  private page and Nova's indicator button, neither shown in Koi. Both the
+  app icon, viewBox trimmed to the tile.
 - `src/toolkit/themes/shared/illustrations/kit-{concerned,happy,confetti,holding-lock,in-circle}.svg`
   — the fox-kit illustrations, one Koi file under five names. Every consumer
   is a `moz-promo`, four of them `imagedisplay="cover"` (cropped to the
@@ -543,7 +547,7 @@ the sandbox pref (Workflow).
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 33 rows, all
+After `npm run import`, `git -C engine status --short` shows 34 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -554,7 +558,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/config/appearance.mjs`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `toolkit/themes/shared/global-shared.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 16 patches |
+| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `toolkit/themes/shared/global-shared.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 17 patches |
 | ` T ` × 9 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -648,13 +652,31 @@ named.
   on `#navigator-toolbox::after` (browser-shared.css) that koi-shell.css
   would have to neutralise.
 - **about: pages.** `about:rights` is Koi's own static page (Firefox made it
-  a redirect to Mozilla's Terms of Use). `about:credits` stays mozilla.org:
+  a redirect to Mozilla's Terms of Use), and so is `about:privatebrowsing`
+  (below). `about:credits` stays mozilla.org:
   Gecko is their work. `about:home` still loads the activity stream;
   typed-only, so it does not earn a patch. `about:studies` and
   `about:crashes` are compiled out (`#ifdef MOZ_NORMANDY` /
   `MOZ_CRASHREPORTER`); hiding a page that exists would need a C++ flag, so
   nothing is hidden.
+- **Private windows are violet**, the chrome's one colour besides the
+  accent (`--koi-private`), so one is never mistaken for a normal window:
+  the window's glass is tinted (koi-shell.css), the tab row ends in a violet
+  "Private browsing" pill (koi-chrome.css), and every new private tab is
+  Koi's own `about:privatebrowsing` (src/koi/about/koi-private.html). The
+  AboutRedirector patch retargets that entry but keeps Firefox's flags, so
+  the page still loads in the privileged about process, where
+  `RPMIsWindowPrivate()` lets it say "This isn't a private window" when
+  opened elsewhere.
 - **Tab groups are off** until the strip has a design for a group label.
+- **Settings leaves groups out rather than hiding them.**
+  preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
+  built and search cannot find them: Firefox Home (Koi's new windows and tabs
+  are the empty state), the vertical-tabs layout, Mozilla's help and feedback,
+  the themes group and Appearance's related links. Hiding by CSS, Zen's way,
+  leaves search matching them: a pane heading over nothing. The nav's help
+  button is `hidden` in preferences-xhtml.patch. "Firefox Relay" stays: it
+  names Mozilla's service.
 - **Zen is the reference for what to switch off.** Its `prefs/` and
   `src/zen/common/styles/` were audited against 157 and Koi follows it:
   split view and vertical tabs locked off, the trust panel off, the
@@ -662,8 +684,16 @@ named.
   auto-opening downloads panel, CFR, UITour, profiles and every AI feature.
 - **Themes are off, Zen's way** (koi/theme.yaml): a theme over vibrancy
   half-applies, so the mechanism is off, not just the UI. Three small
-  patches, one pref, an about:config escape hatch. Website appearance
-  (light/dark for content) is untouched.
+  patches, one pref, an about:config escape hatch. **The chrome is always dark**, in macOS Light too: its ink is white
+  (koi-theme.css has no light variant), so
+  LightweightThemeConsumer-sys-mjs.patch reports a dark toolbar
+  scheme, which sets the chrome's `prefers-color-scheme`, the NSWindow's
+  appearance (vibrancy, native menus and popovers) and
+  `browser.theme.toolbar-theme`. A CSS `color-scheme: dark` pin is not
+  enough: Firefox's own chrome keys some colours on the media query. Website
+  appearance (`browser.theme.content-theme`) still follows the system.
+  Test Light without switching the Mac: `ui.systemUsesDarkTheme = 0` on a
+  throwaway profile.
 - **The startup page is the empty state**: `browser.startup.homepage` is
   about:blank and session restore is on request (History ▸ Restore Previous
   Session).
@@ -671,32 +701,14 @@ named.
 **Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to peek,
 re-pointing View › Show All Tabs at the board, a bookmarks surface with
 folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, tab
-groups, the private-window empty state, the link-hover status panel (still
-Firefox's grey label; only its corner padding is Koi's). Fox glyphs still
-inherited, each a product decision: `preferences/fox-ai.svg`,
-`sidebar/foxy.svg`, `fxa/avatar-fox*.svg`, `privatebrowsing/fox-tail.svg`,
-`icons/firefox-view.svg`, `addons/extensions-panel-empty-onboarding.svg` (the
-extensions panel with nothing installed). Strings naming Firefox literally
-("Firefox Labs") want a strings pass of their own.
+groups. No fox shows by default; the urlbar's "Firefox View" quick action
+(typed) still has one, as in Zen. Help ▸ Get Help, Share Ideas and Feedback
+and Switching to a New Device still lead to Mozilla's Firefox pages, as in
+Zen, until Koi has its own. Strings naming Firefox literally ("Firefox
+Labs") want a strings pass of their own.
 
 **Known issues, found and not yet fixed:**
 
-- **Pages with no background of their own read black on dark.**
-  `browser.tabs.allow_transparent_browser` sets `transparent` on every tab's
-  browser (Tabbrowser.sys.mjs), not just blank ones, so an unstyled page in
-  dark mode shows the #1c1c1e ground under its default black text. Zen
-  leaves the pref off. Likely fix: drop the pref and have koi-newtab.js
-  toggle `transparent` only while the tab shows nothing.
-- **macOS Light appearance has never been looked at.** The NSWindow's
-  appearance follows the chrome root's used `color-scheme`
-  (PresShell::SyncWindowPropertiesIfNeeded → nsCocoaWindow::SetColorScheme),
-  which Koi leaves at Firefox's `light dark`. The chrome's ink assumes dark;
-  `:root { color-scheme: dark }` would pin the window to match (content
-  keeps its own scheme). Check once in Light before deciding.
-- **An unfocused window dims only the tab row.** Firefox fades
-  `.browser-titlebar` to 0.6 when inactive, and that class sits on
-  TabsToolbar, not nav-bar, so Koi's real titlebar row stays full strength
-  while tab-row buttons compound with osx/browser.css's 0.5.
 - **`.gitignore` is GitHub's stock Node template**, ~140 lines for tools Koi
   does not use; only the Firefox and surfer entries at the end matter.
 

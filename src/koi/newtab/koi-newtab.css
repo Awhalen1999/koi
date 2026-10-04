@@ -8,9 +8,8 @@
  * over the window's vibrancy (koi-theme.css). */
 
 /* While the card shows, the page ground and the page card's frame are
- * cleared so the wallpaper shows. Blank browsers already paint nothing
- * (browser.tabs.allow_transparent_browser; koi-shell.css skips
- * [transparent="true"]). */
+ * cleared so the wallpaper shows; the tab's browser is already transparent
+ * (koi-newtab.js). */
 :root[koi-empty] #tabbrowser-tabpanels .browserSidebarContainer {
   box-shadow: none;
 

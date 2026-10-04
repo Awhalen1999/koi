@@ -1,7 +1,16 @@
 diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
-index ef00297de7f44f6c2942a5595264addc4559d96e..898594a584da19cdfd1ec2183197c0ec4a25953b 100644
+index ef00297de7f44f6c2942a5595264addc4559d96e..a7983ad93c8879fb793513a19a39eca1a1fa6ed4 100644
 --- a/browser/components/about/AboutRedirector.cpp
 +++ b/browser/components/about/AboutRedirector.cpp
+@@ -108,7 +108,7 @@ static const RedirEntry kRedirMap[] = {
+      nsIAboutModule::ALLOW_SCRIPT | nsIAboutModule::IS_SECURE_CHROME_UI},
+     {"preferences", "chrome://browser/content/preferences/preferences.xhtml",
+      nsIAboutModule::ALLOW_SCRIPT | nsIAboutModule::IS_SECURE_CHROME_UI},
+-    {"privatebrowsing", "chrome://browser/content/aboutPrivateBrowsing.html",
++    {"privatebrowsing", "chrome://browser/content/koi-about/koi-private.html",
+      nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+          nsIAboutModule::URI_MUST_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+          nsIAboutModule::URI_CAN_LOAD_IN_PRIVILEGEDABOUT_PROCESS},
 @@ -130,9 +130,8 @@ static const RedirEntry kRedirMap[] = {
           nsIAboutModule::HIDE_FROM_ABOUTABOUT},
      {"restartrequired", "chrome://browser/content/aboutRestartRequired.xhtml",

@@ -97,6 +97,27 @@
   }
 }
 
+/* An unfocused window fades its whole titlebar, the macOS behaviour
+ * (browser-shared.css). Firefox fades only .browser-titlebar, which in Koi is
+ * the tab row, and fades every button again (osx/browser.css), so row two
+ * dimmed twice and row one not at all. Here the rows fade once, together, and
+ * buttons keep their active-window opacity. */
+#navigator-toolbox > :is(#nav-bar, #TabsToolbar, #PersonalToolbar) {
+  transition: opacity var(--koi-fade);
+
+  &:-moz-window-inactive {
+    opacity: var(--inactive-titlebar-opacity);
+  }
+}
+
+#navigator-toolbox :is(.toolbarbutton-1, .bookmark-item):-moz-window-inactive {
+  opacity: 1;
+
+  &[disabled] {
+    opacity: var(--toolbarbutton-opacity-disabled);
+  }
+}
+
 /* Row one: the window's row and the titlebar. ------------------------------- */
 
 #navigator-toolbox > #nav-bar {
@@ -228,6 +249,28 @@
 
 #firefox-view-button {
   display: none;
+}
+
+/* A private window's label, at the tab row's end: a violet pill with the
+ * mask. Koi's replacement for the label's own icon is the app icon
+ * (CLAUDE.md, Replacing a Mozilla asset), which does not say private. */
+.private-browsing-indicator-with-label {
+  align-self: center;
+  gap: 6px;
+  height: var(--koi-space-24);
+  padding-inline: var(--koi-space-8) 10px;
+  border-radius: var(--koi-radius-pill);
+  background-color: var(--koi-private);
+  color: var(--koi-fg);
+  font-size: var(--koi-text-12);
+}
+
+.private-browsing-indicator-icon {
+  list-style-image: url("chrome://browser/skin/privateBrowsing.svg");
+  -moz-context-properties: fill;
+  fill: currentColor;
+  width: 14px;
+  height: 14px;
 }
 
 /* Row three: bookmarks. ------------------------------------------------------

@@ -3,9 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # No themes: the chrome borrows the wallpaper, and a theme over vibrancy
-# half-applies. As in Zen, an installed theme is ignored
-# (LightweightThemeConsumer-sys-mjs.patch), and about:addons' Themes category
-# and Settings' "Manage themes" link are hidden. False restores Firefox's
-# behaviour.
+# half-applies. As in Zen, LightweightThemeConsumer-sys-mjs.patch ignores an
+# installed theme and aboutaddons-css.patch hides about:addons' Themes
+# category. The first also keeps the chrome dark whatever the system
+# appearance; pages still follow it. False restores Firefox's behaviour,
+# except Settings' "Browser theme" group, which preferences-js.patch leaves
+# out.
 - name: koi.theme.disable-lightweight
   value: true

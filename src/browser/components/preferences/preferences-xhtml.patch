@@ -1,0 +1,12 @@
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+index bb84d15bec4008ae48324a950a4d5ba7bec1d010..fadaecfd608025f7003bf9a5ae95d4ace32ffbec 100644
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -216,6 +216,7 @@
+       >
+       </html:moz-page-nav-button>
+       <html:moz-page-nav-button id="helpButton"
++        hidden="true"
+         slot="secondary-nav"
+         support-page="preferences"
+         iconsrc="chrome://global/skin/icons/help.svg"

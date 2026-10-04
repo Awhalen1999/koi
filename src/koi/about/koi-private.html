@@ -1,0 +1,50 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!-- about:privatebrowsing: every new tab in a private window, in place of
+   - Firefox's page. AboutRedirector.cpp keeps the entry's flags, so it still
+   - loads in the privileged about process, where koi-private.js can ask
+   - which kind of window it is in. -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src chrome:; object-src 'none'"
+    />
+    <title>Private Browsing</title>
+    <link
+      rel="stylesheet"
+      href="chrome://browser/content/koi-about/koi-private.css"
+    />
+    <script src="chrome://browser/content/koi-about/koi-private.js"></script>
+  </head>
+
+  <body>
+    <main>
+      <div class="mark">
+        <img
+          src="chrome://browser/content/koi-about/koi-private-mask.svg"
+          alt=""
+        />
+      </div>
+      <h1 class="private">This is a private window</h1>
+      <h1 class="normal">This isn’t a private window</h1>
+      <p class="private">
+        Koi erases its history, cookies and site data when you close your last
+        private window.
+      </p>
+      <p class="aside private">
+        Private isn’t invisible: the sites you visit and your network can still
+        see what you do.
+      </p>
+      <p class="normal">
+        Pages you visit here stay in your history. ⇧⌘P opens a private window.
+      </p>
+      <p class="hint">Press <kbd>⌘L</kbd> to go anywhere</p>
+    </main>
+  </body>
+</html>

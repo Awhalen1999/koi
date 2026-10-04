@@ -10,3 +10,7 @@
 
         content/browser/koi-about/koi-rights.html               (../../koi/about/koi-rights.html)
         content/browser/koi-about/koi-rights.css                (../../koi/about/koi-rights.css)
+        content/browser/koi-about/koi-private.html              (../../koi/about/koi-private.html)
+        content/browser/koi-about/koi-private.css               (../../koi/about/koi-private.css)
+        content/browser/koi-about/koi-private.js                (../../koi/about/koi-private.js)
+        content/browser/koi-about/koi-private-mask.svg          (../../koi/about/koi-private-mask.svg)

@@ -1,0 +1,49 @@
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+index 35e044bd84bb0d2c38cfdc54c7aadfb39f749d38..25db2fe3a610df0f30063e8a621a4485eadb6e87 100644
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -241,10 +241,15 @@ var gCurrentHistoryEntryId = null;
+  * @type {Record<string, SettingPaneConfig>}
+  */
+ const CONFIG_PANES = Object.freeze({
++  // Koi: a group left out of these lists is never built, so search cannot
++  // find it either. Out: Firefox Home ("homepage", "home"), as new windows and
++  // tabs are Koi's empty state; vertical tabs ("browserLayout"), locked off;
++  // Mozilla's help and feedback ("support"); themes ("browserTheme"); and
++  // Appearance's "relatedSettings", links to Home, the layout and Accessibility.
+   about: {
+     l10nId: "about-firefox-header",
+     iconSrc: "chrome://browser/skin/sidebar/firefox.svg",
+-    groupIds: ["updates", "support"],
++    groupIds: ["updates"],
+     module: "chrome://browser/content/preferences/config/about-firefox.mjs",
+     visible: () => srdSectionPrefs.all,
+   },
+@@ -265,10 +270,8 @@ const CONFIG_PANES = Object.freeze({
+     l10nId: "preferences-appearance-header",
+     groupIds: [
+       "appearance",
+-      "browserTheme",
+       "browserIconEntry",
+       "windowDensity",
+-      "relatedSettings",
+     ],
+     module: "chrome://browser/content/preferences/config/appearance.mjs",
+     iconSrc: "chrome://global/skin/icons/eye.svg",
+@@ -340,7 +343,7 @@ const CONFIG_PANES = Object.freeze({
+   home: {
+     l10nId: "home-section",
+     iconSrc: "chrome://browser/skin/home.svg",
+-    groupIds: ["defaultBrowserHome", "startupHome", "homepage", "home"],
++    groupIds: ["defaultBrowserHome", "startupHome"],
+     module: "chrome://browser/content/preferences/config/home-startup.mjs",
+     replaces: "home",
+   },
+@@ -471,7 +474,6 @@ const CONFIG_PANES = Object.freeze({
+   tabsBrowsing: {
+     l10nId: "tabs-browsing-section",
+     groupIds: [
+-      "browserLayout",
+       "tabs",
+       "pageNavigation",
+       "keyboardShortcuts",

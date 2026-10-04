@@ -1,0 +1,88 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* about:privatebrowsing (koi-private.html). Deliberately unlike the normal
+ * empty state, so a private window is never mistaken for one: the page paints
+ * its own violet ground instead of showing the wallpaper, and the mask leads.
+ * The violet is koi-theme.css's --koi-private; keep them in step. */
+
+:root {
+  color-scheme: dark;
+
+  --koi-private: rgb(122, 92, 255);
+  --koi-private-ground: #141019;
+  --koi-private-ink-2: rgba(255, 255, 255, 0.62);
+}
+
+/* In a normal window the page says so, in neutral colours. */
+:root.normal {
+  --koi-private: rgba(255, 255, 255, 0.16);
+  --koi-private-ground: #1c1c1e;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--koi-private) 28%, transparent), transparent 70%), var(--koi-private-ground);
+  color: #fff;
+  font:
+    15px/1.6 -apple-system,
+    system-ui,
+    sans-serif;
+  text-align: center;
+}
+
+main {
+  max-width: 30rem;
+  padding: 32px;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: var(--koi-private);
+
+  & img {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 12px;
+}
+
+.aside,
+.hint {
+  color: var(--koi-private-ink-2);
+  font-size: 13px;
+}
+
+.hint {
+  margin-top: 32px;
+}
+
+kbd {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  font: inherit;
+}
+
+:root:not(.normal) .normal,
+:root.normal .private {
+  display: none;
+}

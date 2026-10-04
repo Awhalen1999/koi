@@ -9,9 +9,11 @@
 
 /* The empty state (Koi Shell v5's noTabs card): chrome, not a page, shown
  * over the page card while the selected tab shows nothing. The wallpaper
- * shows through because browser.tabs.allow_transparent_browser makes blank
- * browsers paint nothing and koi-newtab.css clears the page ground while
- * [koi-empty] is set.
+ * shows through because this script makes that tab's browser transparent
+ * and koi-newtab.css clears the page ground while [koi-empty] is set. Only
+ * the empty tab is transparent, as in Zen: the
+ * browser.tabs.allow_transparent_browser pref would make every tab so, and a
+ * page with no background of its own would lose its white canvas.
  *
  * Owns [koi-empty] on :root and the #koi-empty-state subtree; the look is
  * koi-newtab.css. */
@@ -20,9 +22,8 @@
   addEventListener(
     "DOMContentLoaded",
     () => {
-      // None in chromeless windows, nor in private ones: their blank tab is
-      // about:privatebrowsing, which paints its own UI, and bookmarks do not
-      // belong there. A private empty state is a design still to do.
+      // None in chromeless windows, nor in private ones: their new tabs are
+      // about:privatebrowsing, Koi's private page (src/koi/about/).
       if (
         !window.toolbar.visible ||
         window.PrivateBrowsingUtils?.isWindowPrivate(window)
@@ -190,9 +191,14 @@
       };
 
       const update = () => {
-        const empty = showsNothing(gBrowser.selectedTab);
+        const tab = gBrowser.selectedTab;
+        const empty = showsNothing(tab);
         const was = document.documentElement.hasAttribute("koi-empty");
         document.documentElement.toggleAttribute("koi-empty", empty);
+        // Read live (XULFrameElement). Tabbrowser resets it on every
+        // navigation, before it calls the progress listener below, so this
+        // runs last.
+        tab.linkedBrowser.toggleAttribute("transparent", empty);
         if (empty && !was) {
           refreshPins();
         }

@@ -80,6 +80,31 @@ panel[type="arrow"]:not(#feature-callout) {
   }
 }
 
+/* The link-hover status label, over the page card's bottom corner: a MENU
+ * pill inset from the card's edge, in the address field's type. Firefox
+ * styles each side by id, mirror and text direction (content-area.css); the
+ * second rule ties that specificity and wins by order. */
+#statuspanel:not([hidden]) {
+  padding-inline: var(--koi-space-8);
+  padding-block-end: var(--koi-space-8);
+}
+
+#statuspanel-label {
+  border-width: 0;
+  background-color: var(--koi-glass-menu);
+  color: var(--koi-fg);
+  color-scheme: dark;
+  box-shadow: inset 0 0 0 0.5px var(--koi-hair);
+  font-family: var(--koi-font-mono);
+  font-size: var(--koi-text-11-5);
+}
+
+#statuspanel:not([hidden]) > #statuspanel-label:-moz-locale-dir(ltr),
+#statuspanel:not([hidden]) > #statuspanel-label:-moz-locale-dir(rtl) {
+  padding: 3px var(--koi-space-8);
+  border-radius: var(--koi-radius-pill);
+}
+
 /* Firefox branding in the app menu's account area: the gradient "zap"
  * separator (panelUI-shared.css) becomes a plain rule; the sign-in promo's
  * fox (kit-signed-out.svg) is hidden, as in Zen; and its violet card turns a
@@ -96,3 +121,20 @@ toolbarseparator.proton-zap {
   --promo-background-color-vibrant: color-mix(in srgb, currentColor 8%, transparent);
   --promo-message-text-color-vibrant: currentColor;
 }
+
+/* The extensions panel's empty state. Both its illustrations are the fox, so
+ * every state keeps only its text. Zen hides the whole box. */
+#unified-extensions-empty-state > img {
+  display: none;
+}
+
+/* With nothing installed, the text pitches recommendations Koi turns off
+ * (about-pages.yaml), so it goes too, and the separator under the empty list,
+ * which would double the header's. */
+/* stylelint-disable stylelint-plugin-mozilla/no-has-selector -- the separator
+   sits outside the box that holds the state. */
+#unified-extensions-empty-state > .extensions-onboardingpanel-state ~ *,
+.panel-subview-body:has(> #unified-extensions-empty-state:not([hidden]) > .extensions-onboardingpanel-state) + toolbarseparator {
+  display: none;
+}
+/* stylelint-enable stylelint-plugin-mozilla/no-has-selector */

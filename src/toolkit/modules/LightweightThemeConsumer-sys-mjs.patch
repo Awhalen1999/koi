@@ -1,5 +1,5 @@
 diff --git a/toolkit/modules/LightweightThemeConsumer.sys.mjs b/toolkit/modules/LightweightThemeConsumer.sys.mjs
-index 2bef680f15680b37fe59593ec77040fe93bbcbe8..aa197b7382b16f6baf48c54e4a59627ed3196a2e 100644
+index 2bef680f15680b37fe59593ec77040fe93bbcbe8..d221f0f7abf32d7e964213a28294daf92e336aef 100644
 --- a/toolkit/modules/LightweightThemeConsumer.sys.mjs
 +++ b/toolkit/modules/LightweightThemeConsumer.sys.mjs
 @@ -417,7 +417,11 @@ LightweightThemeConsumer.prototype = {
@@ -15,3 +15,15 @@ index 2bef680f15680b37fe59593ec77040fe93bbcbe8..aa197b7382b16f6baf48c54e4a59627e
        theme = { id: DEFAULT_THEME_ID };
      }
      let builtinThemeConfig = lazy.BuiltInThemeConfig.get(theme.id);
+@@ -471,6 +475,11 @@ LightweightThemeConsumer.prototype = {
+     _setDarkModeAttributes(this._doc, root, theme, processedColors, hasTheme);
+ 
+     let toolbarColorScheme = (() => {
++      // Koi: the chrome has no light variant (koi-theme.css). Pages still
++      // follow the system (browser.theme.content-theme).
++      if (Services.prefs.getBoolPref("koi.theme.disable-lightweight", false)) {
++        return "dark";
++      }
+       if (useDarkTheme || themeData.darkTheme) {
+         return useDarkTheme ? "dark" : "light";
+       }

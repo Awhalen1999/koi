@@ -76,6 +76,11 @@
    * Koi imposes no colour of its own; Graphite makes it grey, accepted. */
   --koi-accent: AccentColor;
 
+  /* Private windows' violet: the window's tint, the tab row's label and
+   * about:privatebrowsing (koi-private.css repeats it), so a private window is
+   * never mistaken for a normal one. The chrome's only other colour. */
+  --koi-private: rgb(122, 92, 255);
+
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);
   --koi-page-ring: rgba(0, 0, 0, 0.06);

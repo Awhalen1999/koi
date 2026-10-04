@@ -22,6 +22,11 @@ body {
   will-change: auto;
 }
 
+/* A private window's film is violet (koi-theme.css, --koi-private). */
+:root[privatebrowsingmode="temporary"] {
+  --koi-glass-shell: color-mix(in srgb, var(--koi-private) 30%, transparent);
+}
+
 /* Not !important, so Firefox's opaque fullscreen toolbox
  * (`.fullscreen-floating-toolbox`) and `[pendingpaint]` rules still win.
  * `background-color`, not the shorthand, which would also reset background
@@ -64,13 +69,6 @@ body {
     0 0 0 0.5px var(--koi-page-ring);
 }
 
-/* The link-hover status panel pads itself clear of --window-border-radius
- * (content-area.css, its only consumer); in Koi the corner that clips it is
- * the card's. */
-:root {
-  --window-border-radius: var(--koi-radius-page);
-}
-
 /* The page ground, behind a page that has not painted yet or paints no
  * background. The page's colours, not the chrome's, so not in koi-theme.css.
  * koi-rights.css repeats the literals (a content page cannot read chrome
@@ -95,10 +93,12 @@ body {
   }
 }
 
-/* The tab panels are transparent, so a page with no background of its own
- * would show the desktop. Scoped to tab content (a bare browser[type=content]
- * also matches the sidebar, picture-in-picture and devtools), and outside the
- * fullscreen guard because the panels are transparent in every window state. */
-#tabbrowser-tabpanels .browserSidebarContainer browser[type="content"]:not([transparent="true"]) {
+/* The tab panels are transparent, so every browser but the empty tab's
+ * (koi-newtab.js) keeps the ground behind it. [transparent] is matched by
+ * presence: Firefox toggles it with toggleAttribute. Scoped to tab content (a
+ * bare browser[type=content] also matches the sidebar, picture-in-picture and
+ * devtools), and outside the fullscreen guard because the panels are
+ * transparent in every window state. */
+#tabbrowser-tabpanels .browserSidebarContainer browser[type="content"]:not([transparent]) {
   background: light-dark(var(--koi-ground-light), var(--koi-ground-dark));
 }
