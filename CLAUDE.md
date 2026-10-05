@@ -474,14 +474,14 @@ listed in `engine/.gitignore`. Zero patches. Koi replaces nine:
   browser" glyph (About Koi nav item, Settings headers). Bare mark,
   `fill="context-fill"`. Not the fox on the default-browser card.
 - `src/browser/themes/shared/privatebrowsing/favicon.svg` — the private
-  tab's icon: the mask (Firefox's Proton glyph) in `context-fill`, matching
-  the tab row's private pill and about:privatebrowsing.
+  tab's icon: the ghost, Koi's private-browsing glyph, in `context-fill`.
+  The tab row's private pill uses it too (koi-chrome.css), and
+  about:privatebrowsing a white copy (koi-private-ghost.svg).
 - `src/toolkit/themes/shared/icons/indicator-private-browsing.svg` and
   `src/browser/themes/shared/privatebrowsing/pbm-logo.svg` — the private
-  badge in about:addons and the address bar's quick action (Koi's tab-row
-  label swaps it for the mask, koi-chrome.css), and the logo of Firefox's
-  private page and Nova's indicator button, neither shown in Koi. Both the
-  app icon, viewBox trimmed to the tile.
+  badge in about:addons and the address bar's quick action, and the logo of
+  Firefox's private page and Nova's indicator button, neither shown in Koi.
+  One file under two names: the ghost on a `--koi-private` disk.
 - `src/toolkit/themes/shared/illustrations/kit-{concerned,happy,confetti,holding-lock,in-circle}.svg`
   — the fox-kit illustrations, one Koi file under five names. Every consumer
   is a `moz-promo`, four of them `imagedisplay="cover"` (cropped to the

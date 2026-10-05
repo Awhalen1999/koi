@@ -13,4 +13,4 @@
         content/browser/koi-about/koi-private.html              (../../koi/about/koi-private.html)
         content/browser/koi-about/koi-private.css               (../../koi/about/koi-private.css)
         content/browser/koi-about/koi-private.js                (../../koi/about/koi-private.js)
-        content/browser/koi-about/koi-private-mask.svg          (../../koi/about/koi-private-mask.svg)
+        content/browser/koi-about/koi-private-ghost.svg          (../../koi/about/koi-private-ghost.svg)

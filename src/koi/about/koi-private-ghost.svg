@@ -1,10 +1,8 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-<!-- Koi: the private tab's icon is the ghost, Koi's private-browsing glyph,
-   - as on the tab row's "Private browsing" pill (koi-chrome.css) and
-   - about:privatebrowsing (koi-private-ghost.svg), in the tab's own ink
-   - (tabs.css sets fill). The eyes are cut out, so the tab shows through. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="context-fill">
+<!-- The private-browsing ghost (privatebrowsing/favicon.svg) in white: a
+   - content page cannot use its context-fill. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#fff">
   <path fill-rule="evenodd" d="M2.25 13.6V6.75A5.75 5.75 0 0 1 13.75 6.75V13.6Q12.6 15.4 11.45 13.6T9.15 13.6T6.85 13.6T4.55 13.6T2.25 13.6ZM4.8 6.9a1.1 1.55 0 1 0 2.2 0a1.1 1.55 0 1 0-2.2 0ZM9 6.9a1.1 1.55 0 1 0 2.2 0a1.1 1.55 0 1 0-2.2 0Z"/>
 </svg>

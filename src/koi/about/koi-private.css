@@ -5,7 +5,7 @@
 /* about:privatebrowsing (koi-private.html), on koi-theme.css's tokens.
  * Deliberately unlike the normal empty state, so a private window is never
  * mistaken for one: the page is the solid under a violet glow instead of the
- * wallpaper, and the mask leads. */
+ * wallpaper, and the ghost leads. */
 
 :root {
   color-scheme: dark;

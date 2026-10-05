@@ -245,8 +245,8 @@
 }
 
 /* A private window's label, at the tab row's end: a violet pill with the
- * mask. Koi's replacement for the label's own icon is the app icon
- * (CLAUDE.md, Replacing a Mozilla asset), which does not say private. */
+ * ghost. The label's own icon is the ghost on a violet disk, which would
+ * vanish into the pill, so it takes the private tab's bare glyph. */
 .private-browsing-indicator-with-label {
   align-self: center;
   gap: 6px;
@@ -259,7 +259,7 @@
 }
 
 .private-browsing-indicator-icon {
-  list-style-image: url("chrome://browser/skin/privateBrowsing.svg");
+  list-style-image: url("chrome://browser/skin/privatebrowsing/favicon.svg");
   -moz-context-properties: fill;
   fill: currentColor;
   width: 14px;
