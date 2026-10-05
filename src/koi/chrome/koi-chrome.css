@@ -565,12 +565,14 @@
   }
 }
 
-/* The tab audio button shares the ×'s 20px box, with a 14px glyph. It is a
- * moz-button: geometry and backgrounds go through its variables, ink through
+/* The tab audio button shares the ×'s 20px box. Its glyph is 10px to the
+ * ×'s 12px because Firefox's speaker fills its canvas while the × keeps a
+ * margin inside its own, so both draw about 9px. It is a moz-button:
+ * geometry and backgrounds go through its variables, ink through
  * ::part(button). (.tab-icon-overlay is the pinned tab's corner badge, a
  * different element.) */
 .tab-audio-button {
-  --icon-size: 14px;
+  --icon-size: 10px;
   --button-border-radius: var(--koi-radius-favicon);
   /* A ghost moz-button paints hover and pressed from these (moz-button.css). */
   --button-background-color-ghost-hover: var(--koi-glass-wash);

@@ -125,7 +125,7 @@
 }
 
 /* The × and the audio badge match the tab strip's (koi-chrome.css): a 20px
- * box with a 12px × and 14px badge, the wash on hover, one rung up pressed,
+ * box with a 12px × and 10px badge, the wash on hover, one rung up pressed,
  * the accent ring for keyboard focus. Glyphs are backgrounds because these
  * are HTML buttons, without XUL's image attribute. */
 .koi-card-close,
@@ -136,7 +136,7 @@
   width: 20px;
   height: 20px;
   border-radius: var(--koi-radius-favicon);
-  background: center / 14px no-repeat;
+  background: center / 12px no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
   transition:
@@ -160,7 +160,6 @@
 
 .koi-card-close {
   background-image: url("chrome://global/skin/icons/close.svg");
-  background-size: 12px;
 }
 
 /* Hidden unless the tab plays or is muted; muted swaps the glyph. */
@@ -169,6 +168,7 @@
   /* 4px to the ×, trimmed from the header's 8px gap; a hidden badge leaves
    * no gap. */
   margin-inline-end: calc(var(--koi-space-4) - var(--koi-space-8));
+  background-size: 10px;
   background-image: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg");
 
   &:is(.playing, .muted) {
