@@ -50,11 +50,7 @@
 - name: browser.urlbar.trustPanel.featureGate
   value: false
 
-# Nothing pops up: no tab hover preview (the board's thumbnails do not read
-# this pref) and no downloads panel opening on every download.
-- name: browser.tabs.hoverPreview.enabled
-  value: false
-
+# Nothing pops up: no downloads panel opening on every download.
 - name: browser.download.alwaysOpenPanel
   value: false
 

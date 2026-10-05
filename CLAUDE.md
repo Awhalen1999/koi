@@ -675,8 +675,9 @@ named.
 - **Zen is the reference for what to switch off.** Its `prefs/` and
   `src/zen/common/styles/` were audited against 157 and Koi follows it:
   split view and vertical tabs locked off, the trust panel off, the
-  "Firefox Suggest" label, trending searches, hover previews, the
-  auto-opening downloads panel, CFR, UITour, profiles and every AI feature.
+  "Firefox Suggest" label, trending searches, the auto-opening downloads
+  panel, CFR, UITour, profiles and every AI feature. Unlike Zen, Koi keeps
+  Firefox's tab hover previews, on trial.
 - **The address bar suggests only the user's own things**
   (firefox/urlbar.yaml): history, bookmarks, open tabs, recent searches, top
   sites and the engine's plain suggestions. Firefox Suggest is locked
