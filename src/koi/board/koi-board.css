@@ -4,7 +4,7 @@
 
 /* The board and peek (koi-board.js). [mode] switches the layout: board is a
  * grid over the heavy scrim, peek one row over the light one. Scrims only dim
- * (page pixels cannot be blurred, koi-theme.css); cards take the MENU tint. */
+ * (page pixels cannot be blurred, koi-theme.css); cards are the solid. */
 
 #koi-board {
   display: none;
@@ -57,7 +57,7 @@
   flex: none;
 }
 
-/* A card: a MENU-tinted header over the thumbnail. Each state has its own
+/* A card: a solid header over the thumbnail. Each state has its own
  * mark, so the current card and the keyboard's card are never confused:
  *   hovered — the hairline becomes a quiet 1px ring
  *   current — the selected tab's look from the strip: RAISED header, heavier
@@ -70,15 +70,15 @@
   flex-direction: column;
   border-radius: var(--koi-radius-page);
   overflow: clip;
-  background: var(--koi-glass-menu);
+  background: var(--koi-solid);
   box-shadow:
-    var(--koi-shadow-menu),
+    var(--koi-shadow-high),
     0 0 0 0.5px var(--koi-hair);
   transition: box-shadow var(--koi-fade);
 
   &:hover {
     box-shadow:
-      var(--koi-shadow-menu),
+      var(--koi-shadow-high),
       0 0 0 1px var(--koi-fg-3);
   }
 
@@ -125,7 +125,7 @@
 }
 
 /* The × and the audio badge match the tab strip's (koi-chrome.css): a 20px
- * box with a 12px × and 10px badge, the wash on hover, one rung up pressed,
+ * box with a 12px × and 10px badge, WELL on hover, one rung up pressed,
  * the accent ring for keyboard focus. Glyphs are backgrounds because these
  * are HTML buttons, without XUL's image attribute. */
 .koi-card-close,
@@ -145,7 +145,7 @@
 
   &:hover {
     fill: var(--koi-fg);
-    background-color: var(--koi-glass-wash);
+    background-color: var(--koi-glass-well);
   }
 
   &:hover:active {

@@ -7,7 +7,7 @@
 /* global gBrowser, openTrustedLinkIn, PrivateBrowsingUtils,
    isBlankPageURL, BrowserUIUtils */
 
-/* The empty state (Koi Shell v5's noTabs card): chrome, not a page, shown
+/* The empty state: chrome, not a page, shown
  * over the page card while the selected tab shows nothing. The wallpaper
  * shows through because this script makes that tab's browser transparent
  * and koi-newtab.css clears the page ground while [koi-empty] is set. Only
@@ -49,8 +49,8 @@
         return node;
       };
 
-      // The spec's card: mark, the ⌘L line, pins, and a label showing the
-      // hovered pin's host.
+      // The card: mark, the ⌘L line, pins, and a label showing the hovered
+      // pin's host.
       const card = el("div");
       card.id = "koi-empty-state";
 

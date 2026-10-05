@@ -2,23 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* about:rights. An about: page is a chrome document, so light-dark() follows
- * the chrome's scheme (browser.theme.toolbar-theme), not the content one.
- * koi-theme.css is not loaded: its white ink is for the wallpaper. The
- * background matches koi-shell.css's page ground so the card does not flash
- * while loading; keep them in step. */
+/* about:rights, on koi-theme.css's tokens. An about: page is a chrome
+ * document, so light-dark() follows the chrome's scheme, not the content
+ * one. The ground is the page's solid (koi-shell.css), so the card does not
+ * flash while loading. Koi's ink is light only, so the light scheme's ink is
+ * this page's own: the one colour Koi writes outside koi-theme.css, besides
+ * the empty state's letter tiles. */
 
 :root {
   color-scheme: light dark;
 
-  --koi-rights-bg: light-dark(#fff, #1c1c1e);
-  --koi-rights-ink: light-dark(#16181c, #f2f3f5);
-  --koi-rights-ink-2: light-dark(rgba(22, 24, 28, 0.58), rgba(242, 243, 245, 0.56));
+  --koi-rights-ink: light-dark(#16181c, var(--koi-fg));
+  --koi-rights-ink-2: light-dark(rgba(22, 24, 28, 0.58), var(--koi-fg-2));
 }
 
 body {
   margin: 0;
-  background: var(--koi-rights-bg);
+  background: light-dark(var(--koi-solid-light), var(--koi-solid));
   color: var(--koi-rights-ink);
   font:
     15px/1.65 -apple-system,
@@ -64,13 +64,12 @@ p {
   margin: 0;
 }
 
-/* The user's system accent (koi-theme.css). */
 a {
-  color: AccentColor;
-  text-decoration-color: color-mix(in srgb, AccentColor 40%, transparent);
+  color: var(--koi-accent);
+  text-decoration-color: color-mix(in srgb, var(--koi-accent) 40%, transparent);
   text-underline-offset: 2px;
 
   &:hover {
-    text-decoration-color: AccentColor;
+    text-decoration-color: var(--koi-accent);
   }
 }

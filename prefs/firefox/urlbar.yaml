@@ -1,0 +1,61 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# What the address bar suggests: only what comes from the user (history,
+# bookmarks, open tabs, recent searches, top sites) and the search engine's
+# suggestions as you type. Mozilla's commercial layer and network nudges are
+# off, as in Zen.
+
+# Firefox Suggest, Mozilla's sponsored and partner suggestions (shopping ads,
+# Wikipedia, add-ons, weather). Locked: at startup Suggest rewrites its own
+# defaults by region (QuickSuggest.sys.mjs), and a locked default cannot be
+# changed (Preferences.cpp, SetDefaultValue). The master switch gates every
+# Suggest feature; the two below hold even if a Nimbus rollout overrides it.
+- name: browser.urlbar.quicksuggest.enabled
+  value: false
+  locked: true
+
+- name: browser.urlbar.suggest.quicksuggest.sponsored
+  value: false
+  locked: true
+
+- name: browser.urlbar.suggest.quicksuggest.nonsponsored
+  value: false
+  locked: true
+
+# The search engine's trending queries in an empty dropdown.
+- name: browser.urlbar.trending.featureGate
+  value: false
+
+# Search suggestions as plain text, without the engine's entity cards (photos
+# and captions; SearchSuggestionController.sys.mjs).
+- name: browser.urlbar.richSuggestions.featureGate
+  value: false
+
+# No section headings: "Firefox Suggest" heads every history result as you
+# type, not only Suggest's (UrlbarView.mjs, #rowLabel), and cannot be turned
+# off alone. Recent searches carry a clock instead.
+- name: browser.urlbar.groupLabels.enabled
+  value: false
+
+# Top sites in the empty dropdown, from the user's own history and bookmarks:
+# the standalone list (TopSites.sys.mjs), since the new tab page's feed never
+# starts in Koi (newtab.yaml). The address bar shows them only with both of
+# these on (UrlbarProviderTopSites.sys.mjs).
+- name: browser.topsites.component.enabled
+  value: true
+
+- name: browser.newtabpage.activity-stream.feeds.system.topsites
+  value: true
+
+# Without Mozilla's regional default sites, which fill in behind history
+# (Wikipedia, YouTube, Reddit, an "Add-ons for Firefox" tile).
+- name: browser.topsites.useRemoteSetting
+  value: false
+
+# Without "search shortcuts", which rewrite a history site matching one of
+# Mozilla's search partners to the partner's own address (amazon.ca becomes
+# amazon.com; NewTabUtils.sys.mjs).
+- name: browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts
+  value: false

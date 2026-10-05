@@ -50,15 +50,6 @@
 - name: browser.urlbar.trustPanel.featureGate
   value: false
 
-# The "Firefox Suggest" header in the address dropdown.
-- name: browser.urlbar.groupLabels.enabled
-  value: false
-
-# The search engine's trending queries in an empty address dropdown. Off, as
-# in Zen; recent searches and history still show.
-- name: browser.urlbar.trending.featureGate
-  value: false
-
 # Nothing pops up: no tab hover preview (the board's thumbnails do not read
 # this pref) and no downloads panel opening on every download.
 - name: browser.tabs.hoverPreview.enabled

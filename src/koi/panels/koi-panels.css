@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* Floating surfaces. What macOS draws keeps its own material (a real blur);
- * what Firefox or Koi draws over the page takes the MENU tint (koi-theme.css).
+ * what Firefox or Koi draws over the page takes the solid (koi-theme.css).
  *
  * Menupopups are native menus already (popup.css). Arrow panels (app menu,
  * extensions, downloads, site information, bookmark editor, doorhangers)
@@ -40,30 +40,30 @@ panel[type="arrow"]:not(#feature-callout) {
 /* Bookmark menus (toolbar folders, the » overflow, the Bookmarks button)
  * need drag and drop, so Firefox draws them itself ([nonnative],
  * browserPlacesViews.js) in its panel grey (panelUI-shared.css). They take
- * the MENU tint. Zen gives them the native menu appearance instead, which on
+ * the solid. Zen gives them the native menu appearance instead, which on
  * macOS 26 is a clear glass visibly greyer than the popovers. Same selectors
  * as Firefox's, so this later sheet wins. */
 .toolbar-menupopup {
   &,
   menupopup {
-    --panel-background-color: var(--koi-glass-menu);
+    --panel-background-color: var(--koi-solid);
     --panel-border-color: var(--koi-hair);
     color-scheme: dark;
   }
 }
 
-/* The findbar sits over the page card's bottom edge, so it takes the MENU
- * tint. Its border keeps its 1px (findBar.css's hidden-state margin counts
+/* The findbar sits over the page card's bottom edge, so it takes the
+ * solid. Its border keeps its 1px (findBar.css's hidden-state margin counts
  * it) but not its grey line. */
 .browserContainer > findbar {
-  background-color: var(--koi-glass-menu);
+  background-color: var(--koi-solid);
   color: var(--koi-fg);
   color-scheme: dark;
   border-top-color: transparent;
 
-  /* Dressed as the address field: WELL, hairline ring, pill radius, focus
-   * left to the caret. The notfound red and the flash state (off by pref,
-   * chrome-ui.yaml) keep Firefox's colours. */
+  /* A WELL field: hairline ring, pill radius, focus left to the caret. The
+   * notfound red and the flash state (off by pref, chrome-ui.yaml) keep
+   * Firefox's colours. */
   & .findbar-textbox {
     border: none;
     border-radius: var(--koi-radius-pill);
@@ -80,7 +80,7 @@ panel[type="arrow"]:not(#feature-callout) {
   }
 }
 
-/* The link-hover status label, over the page card's bottom corner: a MENU
+/* The link-hover status label, over the page card's bottom corner: a solid
  * pill inset from the card's edge, in the address field's type. Firefox
  * styles each side by id, mirror and text direction (content-area.css); the
  * second rule ties that specificity and wins by order. */
@@ -91,7 +91,7 @@ panel[type="arrow"]:not(#feature-callout) {
 
 #statuspanel-label {
   border-width: 0;
-  background-color: var(--koi-glass-menu);
+  background-color: var(--koi-solid);
   color: var(--koi-fg);
   color-scheme: dark;
   box-shadow: inset 0 0 0 0.5px var(--koi-hair);
@@ -107,8 +107,8 @@ panel[type="arrow"]:not(#feature-callout) {
 
 /* Firefox branding in the app menu's account area: the gradient "zap"
  * separator (panelUI-shared.css) becomes a plain rule; the sign-in promo's
- * fox (kit-signed-out.svg) is hidden, as in Zen; and its violet card turns a
- * faint film of the panel's ink, leaving the Sign in button's accent. */
+ * fox (kit-signed-out.svg) is hidden, as in Zen; and its violet card turns
+ * the SHELL film, leaving the Sign in button's accent. */
 toolbarseparator.proton-zap {
   --panel-separator-zap-gradient: none;
 }
@@ -118,7 +118,7 @@ toolbarseparator.proton-zap {
 }
 
 :is(#appMenu-fxa-sign-in-promo, #PanelUI-fxa-menu-sign-in-promo) {
-  --promo-background-color-vibrant: color-mix(in srgb, currentColor 8%, transparent);
+  --promo-background-color-vibrant: var(--koi-glass-shell);
   --promo-message-text-color-vibrant: currentColor;
 }
 

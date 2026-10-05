@@ -2,16 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Koi's design tokens. Every Koi stylesheet is written in them; all are
- * --koi-* because Firefox defines hundreds of custom properties on the same
- * :root. Values are ported from ../koi-design/design/ (Koi Shell v4 for the
- * shell, v5 for the empty state). Some tokens serve surfaces not built yet;
- * delete one only when no spec or feature claims it. Koi's sheets load after
- * Firefox's (koi-assets.inc.xhtml), so they win specificity ties without
- * !important.
+/* Koi's design tokens. Every Koi stylesheet is written in them, and no
+ * colour or shadow is written anywhere else (the empty state's letter tiles
+ * aside). All are --koi-* because Firefox defines hundreds of custom
+ * properties on the same :root. A token nothing uses is deleted. Koi's
+ * chrome sheets load after Firefox's (koi-assets.inc.xhtml), so they win
+ * specificity ties without !important; the about: pages link this file
+ * too.
  *
- * The chrome always sits on the wallpaper, so its ink is always light: there
- * is no light variant. */
+ * Three families: GLASS, see-through films on the wallpaper; SOLID, the one
+ * opaque surface for everything on or over the page; INK, the text. The
+ * chrome always sits on the wallpaper, so its ink is always light: there is
+ * no light variant. */
 
 :root {
   /* Scale: every size, gap and radius is a multiple of 4px. Named for the
@@ -31,9 +33,9 @@
   --koi-chrome-pad: var(--koi-space-12);
   --koi-gutter: var(--koi-space-4);
 
-  /* The address field's ceiling: 60% of the window, held to 640–1200px (the
-   * spec's 520 is too small for the row's centrepiece). In a narrow window the
-   * field shrinks below it. Tabs share one width, narrowing from --koi-tab-max
+  /* The address field's ceiling: 60% of the window, held to 640–1200px, so
+   * it stays the row's centrepiece. In a narrow window the field shrinks
+   * below it. Tabs share one width, narrowing from --koi-tab-max
    * to browser.tabs.tabMinWidth (chrome-ui.yaml; Firefox's own layout reads
    * it) before the strip scrolls. */
   --koi-field-max: clamp(640px, 60vw, 1200px);
@@ -45,28 +47,22 @@
   --koi-radius-favicon: 4px;
 
   /* One pill height for tabs and the address field; every row derives from
-   * it. 28px is tuned by eye: the spec's 24 is too short, Firefox's 36 too
-   * tall. Helium uses 28 as well. */
+   * it. 28px is tuned by eye: 24 is too short, Firefox's 36 too tall.
+   * Helium uses 28 as well. */
   --koi-pill-height: 28px;
-  --koi-dot: var(--koi-space-8);
 
   /* Type: one mono stack, spelled once, since quoted family names are where
    * stacks drift. No sans token: the chrome's `font: menu` is already SF. The
-   * sizes are the spec's nine; the half-pixel ones are prototype drift, to be
-   * settled in a type pass. */
+   * half-pixel size is drift, to be settled in a type pass. */
   --koi-font-mono: ui-monospace, "SF Mono", monospace;
 
-  --koi-text-8: 8px;
-  --koi-text-10: 10px;
-  --koi-text-10-5: 10.5px;
   --koi-text-11: 11px;
   --koi-text-11-5: 11.5px;
   --koi-text-12: 12px;
-  --koi-text-12-5: 12.5px;
   --koi-text-13: 13px;
   --koi-text-15: 15px;
 
-  /* Ink: white at three levels of emphasis. */
+  /* Ink: white at three levels of emphasis, on glass and solid alike. */
   --koi-fg: #fff;
   --koi-fg-2: rgba(255, 255, 255, 0.62);
   --koi-fg-3: rgba(255, 255, 255, 0.42);
@@ -77,8 +73,8 @@
   --koi-accent: AccentColor;
 
   /* Private windows' violet: the window's tint, the tab row's label and
-   * about:privatebrowsing (koi-private.css repeats it), so a private window is
-   * never mistaken for a normal one. The chrome's only other colour. */
+   * about:privatebrowsing, so a private window is never mistaken for a normal
+   * one. The chrome's only other colour. */
   --koi-private: rgb(122, 92, 255);
 
   /* Hairlines: white on glass, dark on the page card. */
@@ -89,38 +85,43 @@
    * CSS cannot blur anything in Koi's chrome. The shell's blur is the desktop,
    * which only the NSVisualEffectView behind the window samples (widget/cocoa
    * patch), and page content renders out of process; backdrop-filter has
-   * nothing to sample in either place. These tints carry every surface.
+   * nothing to sample in either place. These films carry the chrome band.
    *
-   * A ladder of white films, 5% apart:
+   * A ladder of white films:
    *   SHELL  — the window's own film (body, bevel, outline)
-   *   WASH   — a hovered bare glyph (+, tab ×, key cap)
-   *   WELL   — a resting pill, focused included (focus is the caret's job)
-   *   HOVER  — a hovered pill
-   *   RAISED — the active surface (selected tab, empty-state card)
-   *
-   * MENU, off the ladder, is every floating surface Firefox or Koi draws over
-   * the page: urlbar dropdown, findbar, board cards, bookmark menus. 96%
-   * opaque because unblurred page text ghosts through anything lighter (it
-   * read clearly at 90%); near-black to match the native popovers beside it
-   * (koi-panels.css). */
+   *   WELL   — a resting pill, and any glyph's hover (focus is the caret's job)
+   *   HOVER  — a hovered pill, a pressed glyph
+   *   RAISED — the active surface (selected tab or row, empty-state card) */
   --koi-glass-shell: rgba(255, 255, 255, 0.07);
-  --koi-glass-wash: rgba(255, 255, 255, 0.12);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
   --koi-glass-hover: rgba(255, 255, 255, 0.22);
   --koi-glass-raised: rgba(255, 255, 255, 0.27);
-  --koi-glass-menu: rgba(30, 30, 32, 0.96);
+
+  /* Solid ------------------------------------------------------------------
+   * The one opaque surface: the ground behind a page that paints no
+   * background, the address field, and everything Firefox or Koi floats
+   * over the page (the address dropdown, findbar, status label, bookmark
+   * menus, board cards).
+   * Opaque because nothing behind it can be blurred and page text ghosts
+   * through anything less. The depth of Zen's solids (#1c1c1c); edged by
+   * --koi-hair, so a surface over a dark page still reads. Light pages get
+   * --koi-solid-light. */
+  --koi-solid: #1c1c1e;
+  --koi-solid-light: #fff;
 
   /* Scrims: the board is a full takeover, peek a lighter overlay. Dim only
    * (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
   --koi-scrim-float: rgba(8, 10, 14, 0.28);
 
-  /* Shadows. The ring is composed at the use site, so each rule picks its own:
-   *   box-shadow: var(--koi-shadow-float), 0 0 0 0.5px var(--koi-hair);
+  /* Shadows: LOW for small things at rest, HIGH for anything lifted or large
+   * (the page card, the empty-state card, board cards, a hovered pin), TEXT
+   * for ink on the wallpaper. A ring is composed at the use site:
+   *   box-shadow: var(--koi-shadow-high), 0 0 0 0.5px var(--koi-hair);
    * The window's own shadow is the window server's; no CSS reaches it. */
-  --koi-shadow-page: 0 6px 28px rgba(0, 0, 0, 0.22);
-  --koi-shadow-float: 0 32px 80px rgba(0, 0, 0, 0.42);
-  --koi-shadow-menu: 0 26px 64px rgba(0, 0, 0, 0.32);
+  --koi-shadow-low: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --koi-shadow-high: 0 8px 28px rgba(0, 0, 0, 0.24);
+  --koi-shadow-text: 0 1px 12px rgba(0, 0, 0, 0.28);
 
   /* Motion: the shell does not move (no entrances, springs or lifts; motion
    * returns as a pass of its own). Only state eases — a colour or opacity

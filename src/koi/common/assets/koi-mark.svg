@@ -1,8 +1,7 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-<!-- The Koi mark, silver — the empty state's silhouette over the wallpaper.
-   - Path and gradient are verbatim from Koi Shell v5.dc.html (koiLandSil). -->
+<!-- The Koi mark, silver — the empty state's silhouette over the wallpaper. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
   <defs>
     <linearGradient id="koi-mark-silver" gradientUnits="userSpaceOnUse" x1="120" y1="0" x2="330" y2="512">

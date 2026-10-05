@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The empty state (Koi Shell v5's noTabs card). koi-newtab.js builds
+/* The empty state. koi-newtab.js builds
  * #koi-empty-state and sets [koi-empty] on :root while the selected tab is
  * blank; every rule here keys on that attribute. The card is the RAISED film
  * over the window's vibrancy (koi-theme.css). */
@@ -31,9 +31,8 @@
   inset: var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   background: var(--koi-glass-raised);
-  /* The spec's empty-card shadow, softer than the page card's. */
   box-shadow:
-    0 6px 28px rgba(0, 0, 0, 0.14),
+    var(--koi-shadow-high),
     inset 0 0 0 0.5px var(--koi-hair);
   display: flex;
   flex-direction: column;
@@ -53,7 +52,7 @@
   margin-top: var(--koi-space-32);
   font-size: var(--koi-text-13);
   color: var(--koi-fg);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+  text-shadow: var(--koi-shadow-text);
 }
 
 .koi-empty-key {
@@ -62,7 +61,7 @@
   align-items: center;
   padding: 0 var(--koi-space-8);
   border-radius: 6px;
-  background: var(--koi-glass-wash);
+  background: var(--koi-glass-well);
   font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
   color: var(--koi-fg);
@@ -100,20 +99,20 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--koi-radius-page);
-  background: var(--koi-glass-wash);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  background: var(--koi-glass-well);
+  box-shadow: var(--koi-shadow-low);
   transition:
     background var(--koi-fade),
     box-shadow var(--koi-fade);
 
   &:hover {
     background: var(--koi-glass-hover);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+    box-shadow: var(--koi-shadow-high);
   }
 
   /* Pressed, the shadow returns to rest; a letter tile keeps its colour. */
   &:hover:active {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--koi-shadow-low);
   }
 
   /* Keyboard focus: the accent ring, outside the tile. */
@@ -129,8 +128,8 @@
   border-radius: var(--koi-radius-favicon);
 }
 
-/* A pin with no favicon in Places: the site's initial on one of the v5
- * mock's six colours, hashed from the host. After the hover rule at equal
+/* A pin with no favicon in Places: the site's initial on one of six
+ * colours, hashed from the host. After the hover rule at equal
  * specificity, so the colour holds under the pointer. */
 .koi-empty-pin-letter {
   font-size: var(--koi-text-15);
@@ -170,7 +169,7 @@
   font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
   color: var(--koi-fg-2);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+  text-shadow: var(--koi-shadow-text);
   opacity: 0;
   transition: opacity var(--koi-fade);
 

@@ -2,10 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Sponsored suggestions in the address bar.
-- name: browser.urlbar.suggest.quicksuggest.sponsored
-  value: false
-
 # Mozilla product upsell pane in Settings.
 - name: browser.preferences.moreFromMozilla
   value: false

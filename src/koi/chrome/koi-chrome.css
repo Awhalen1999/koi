@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The two-row chrome (Koi Shell v4.dc.html). Row one acts on the window:
+/* The two-row chrome. Row one acts on the window:
  * traffic lights, the centred address pill, tools. Row two acts on the page:
  * back, forward, reload, the board button, tabs, +. Firefox already ships
  * both rows (tabs above nav), so the layout is a flex `order` swap with no
@@ -33,13 +33,6 @@
    * derives the view's outsets from this at :root (urlbar.css), so it is
    * zeroed here, not on #urlbar, for both halves to agree. */
   --urlbar-background-overhang-open: 0px;
-  /* The open dropdown is painted in two halves (input and view), each
-   * overlapping the seam and clipped back to it, with a margin kept for the
-   * shadow. Firefox sizes both for its 14px blur, which would cut Koi's MENU
-   * shadow (64px blur, 26px drop) into a hard halo: the overlap exceeds the
-   * blur, the margin exceeds blur plus drop. */
-  --urlbar-joint-background-overlap: 72px;
-  --urlbar-joint-background-shadow-margin: 96px;
 
   /* Tab pills (tab.tokens.css): HOVER under the pointer, RAISED selected. */
   --tab-border-radius: var(--koi-radius-pill);
@@ -293,7 +286,7 @@
     margin-block: var(--koi-space-4);
   }
 
-  /* Small pills: quiet ink, the toolbar buttons' wash on hover
+  /* Small pills: quiet ink, the toolbar buttons' WELL on hover
    * (toolbarbuttons.css paints .bookmark-item from the same tokens), the
    * tabs' favicon tile. */
   & #PlacesToolbarItems > .bookmark-item {
@@ -359,7 +352,7 @@
 }
 
 /* Toolbar buttons ------------------------------------------------------------
- * Quiet glyphs: the ink lifts and the WASH appears on hover; pressed, open
+ * Quiet glyphs: the ink lifts and the WELL appears on hover; pressed, open
  * and checked sit one rung up. Firefox's own state rules paint all of it
  * from these tokens (toolbarbuttons.css), so an open menu's button stays lit
  * and Koi's buttons need nothing extra. The box is the pill: a 16px glyph in
@@ -367,7 +360,7 @@
  * Firefox's way (--toolbarbutton-opacity-disabled). */
 
 #navigator-toolbox {
-  --toolbarbutton-background-color-hover: var(--koi-glass-wash);
+  --toolbarbutton-background-color-hover: var(--koi-glass-well);
   --toolbarbutton-background-color-active: var(--koi-glass-hover);
   --toolbarbutton-border-radius: var(--koi-radius-pill);
   --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - 16px) / 2);
@@ -390,60 +383,56 @@
 }
 
 /* The address pill -----------------------------------------------------------
- * WELL at rest (focused included: focus is the caret's job), HOVER under the
- * pointer, and the MENU tint only while the dropdown is open, since it floats
- * over page content. Firefox paints --urlbar-background-color-focus on
- * [focused] or [open] (urlbar.css) and focuses the urlbar on every blank tab,
- * so that variable stays WELL and [open] takes the tint by rule.
- * [popover-open] is only set while open, so [open] covers it. */
+ * The solid, ringed by the hairline, in every state (focus is the caret's
+ * job); open, its results extend it as one surface. Firefox paints
+ * --urlbar-background-color at rest and --urlbar-background-color-focus on
+ * [focused] or [open] (urlbar.css), so both are the solid. [popover-open] is
+ * only set while open, so [open] covers it. */
 
 #urlbar-container {
   max-width: var(--koi-field-max);
 }
 
 #urlbar {
-  --urlbar-background-color: var(--koi-glass-well);
-  --urlbar-background-color-focus: var(--koi-glass-well);
+  --urlbar-background-color: var(--koi-solid);
+  --urlbar-background-color-focus: var(--koi-solid);
   --urlbar-background-border: none;
   --urlbar-background-border-focused: none;
   --urlbar-background-border-radius: var(--koi-radius-pill);
   --urlbar-background-outline-focused: none;
   /* The star and lock boxes: transparent at rest and on focus, then the
-   * wash and one rung up like every control. Replaces Firefox's per-scheme
+   * WELL and one rung up like every control. Replaces Firefox's per-scheme
    * defaults (an opaque grey in light). */
   --urlbar-box-background-color: transparent;
   --urlbar-box-background-color-focus: transparent;
-  --urlbar-box-background-color-hover: var(--koi-glass-wash);
+  --urlbar-box-background-color-hover: var(--koi-glass-well);
   --urlbar-box-background-color-active: var(--koi-glass-hover);
   margin-inline: 0;
   color: var(--koi-fg);
 
-  /* One hairline ring, every state. */
   & > .urlbar-background {
     box-shadow: inset 0 0 0 0.5px var(--koi-hair);
   }
 
-  &:hover:not([open]) > .urlbar-background {
-    background-color: var(--koi-glass-hover);
-  }
-
-  /* The open dropdown: MENU tint and shadow, and a dark color-scheme so the
-   * view's light-dark() tokens match the tint in either OS appearance. */
+  /* Open: since 157 the surface is joint. .urlbar-background paints the
+   * input half and the view's popover the rest, each clipped at the seam,
+   * from these tokens (urlbar.css .urlbarView-background); the view is
+   * inside #urlbar, so scoping them to [open] reaches it. The dark
+   * color-scheme suits the view's light-dark() tokens to the solid in either
+   * OS appearance. */
   &[open] {
     color-scheme: dark;
-    /* Since 157 the open surface is joint: .urlbar-background paints the
-     * input half and the view's popover paints the rest from these tokens
-     * (urlbar.css .urlbarView-background). The view is inside #urlbar, so
-     * scoping them to [open] reaches it. */
-    --urlbar-background-color-focus: var(--koi-glass-menu);
-    --urlbar-background-border-open: none;
-    --urlbar-background-box-shadow-open: var(--koi-shadow-menu);
+    --urlbar-background-border-open: 0.5px solid var(--koi-hair);
+    --urlbar-background-box-shadow-open: none;
+    /* Rows take the tabs' films, HOVER under the pointer and RAISED selected,
+     * in place of Firefox's own selection (urlbarview.tokens.css). */
+    --urlbarview-background-color-hover: var(--koi-glass-hover);
+    --urlbarview-background-color-selected: var(--koi-glass-raised);
+    --urlbarview-text-color-selected: var(--koi-fg);
 
+    /* The hairline is the joint border above; the resting ring goes. */
     & > .urlbar-background {
-      background-color: var(--koi-glass-menu);
-      box-shadow:
-        var(--koi-shadow-menu),
-        inset 0 0 0 0.5px var(--koi-hair);
+      box-shadow: none;
     }
   }
 
@@ -459,12 +448,25 @@
   }
 
   /* A lock and a star only: no identity label, tracking-protection icon,
-   * search-engine chip or go button (Enter commits). */
+   * engine button or go button (Enter commits). The engine button is hidden
+   * until its menu takes mouse clicks as a native popover (CLAUDE.md, known
+   * issues); its dressing below stays for when it returns. */
   & #identity-icon-label,
   & #tracking-protection-icon-container,
   & .searchmode-switcher,
   & .urlbar-go-button {
     display: none;
+  }
+
+  /* The engine button takes the lock's place while the field is empty or
+   * being typed in, so it is dressed like the lock: clear at rest, the WELL
+   * on hover, one rung up pressed or open. A muted moz-button paints its pill
+   * from these (moz-button.css). */
+  & .searchmode-switcher {
+    --button-background-color-muted: var(--urlbar-box-background-color);
+    --button-background-color-muted-hover: var(--urlbar-box-background-color-hover);
+    --button-background-color-muted-active: var(--urlbar-box-background-color-active);
+    --button-border-radius: var(--urlbar-inner-border-radius);
   }
 
   /* Rows arrive whole: no slide-in of each row's action label
@@ -475,11 +477,11 @@
 
   /* A result's "…" menu holds Remove from History, the only way to drop a
    * page from suggestions, so it stays (as in Zen). It is a panel-list drawn
-   * inside the dropdown, so it takes the MENU tint; its tokens are in a
+   * inside the dropdown, so it takes the solid; its tokens are in a
    * shadow root this document outranks. "Learn more" (Mozilla's support
    * site) goes; keyboard navigation skips hidden items (panel-list.mjs). */
   & .urlbarView-result-menu {
-    --panel-list-background-color: var(--koi-glass-menu);
+    --panel-list-background-color: var(--koi-solid);
     --panel-list-border-color: var(--koi-hair);
   }
 
@@ -554,7 +556,7 @@
 
     &:hover {
       color: var(--koi-fg);
-      background-color: var(--koi-glass-wash);
+      background-color: var(--koi-glass-well);
     }
 
     /* Pressed sits one rung up, as every Koi control does (close-icon.css
@@ -575,7 +577,7 @@
   --icon-size: 10px;
   --button-border-radius: var(--koi-radius-favicon);
   /* A ghost moz-button paints hover and pressed from these (moz-button.css). */
-  --button-background-color-ghost-hover: var(--koi-glass-wash);
+  --button-background-color-ghost-hover: var(--koi-glass-well);
   --button-background-color-ghost-active: var(--koi-glass-hover);
 
   &::part(button) {
@@ -651,8 +653,7 @@
 }
 
 /* The right cluster: extensions, downloads (shown once something downloads),
- * menu, in the spec's order. The spec's hairline dividers are omitted; the
- * 12px spacing groups them. */
+ * menu. No dividers; the 12px spacing groups them. */
 
 #downloads-button {
   order: 1;

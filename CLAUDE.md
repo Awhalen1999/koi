@@ -40,23 +40,11 @@ Mozilla paths plus ~500 whole files under `src/zen/`; Koi mirrors the split.
 | `prefs/**/*.yaml` | Default prefs, generated into `engine/browser/app/profile/koi.js`. |
 | `scripts/` | Node tooling: prefs generator, surfer postinstall patcher, lint runner, log filter. |
 
-## Design sources
+## Brand sources
 
-`../koi-design/`, outside this repo and unversioned (the only copy).
-
-- `branding/` — SVG masters for `configs/branding/release/`.
-  `identity-icons-brand.svg` is dead: its target no longer exists
-  (`sidebar/firefox.svg` replaced it).
-- `design/` — Claude Design prototypes (`.dc.html`). **Koi Shell v4 is the
-  authoritative shell layout** (two rows, tabs below nav). **v5 is
-  authoritative only for the empty-state card** (noTabs); its one-row layout
-  and its palette (cmdOpen) were dropped. Read values from the specs, not
-  from screenshots or the brand kit.
-
-The prototypes are inline styles with `{{template}}` bindings: port values,
-never markup. Deliberate departures are commented where they live
-(koi-theme.css for glass, motion and the field cap; koi-chrome.css for the
-omitted dividers).
+`../koi-design/branding/`, outside this repo and unversioned (the only copy):
+the SVG masters for `configs/branding/release/`. `identity-icons-brand.svg`
+is dead: its target no longer exists (`sidebar/firefox.svg` replaced it).
 
 ### The four-hop bridge
 
@@ -86,14 +74,11 @@ way (below). If it conflicts on a Firefox update, delete both files.
   in koi-newtab.js and koi-board.js, and two copies cost less than the
   indirection.
 - **`src/koi/about/` is the content-page dir**, with rules no chrome dir has:
-  no koi-theme.css (its ink is chrome ink), its own `default-src chrome:`
-  CSP, chrome:// assets reachable only because `content browser` is
+  its own `default-src chrome:` CSP, chrome:// assets (koi-theme.css
+  included) reachable only because `content browser` is
   `contentaccessible=yes`, and `light-dark()` following the *chrome* scheme
-  because an about: page is a chrome document.
-- **koi-theme.css splits when a content page needs its scale.** It mixes
-  chrome-only ink with a universal scale/type/radii vocabulary, which is why
-  koi-rights.css and koi-private.css hand-roll their handful of values
-  (koi-private.css also repeats `--koi-private`).
+  because an about: page is a chrome document. Koi's ink is light only, so a
+  page with a light scheme (about:rights) keeps its own light ink.
 
 ### jar.inc.mn: the `*` flag
 
@@ -395,8 +380,7 @@ koi-shell.css makes `body`, `#tabbrowser-tabpanels`, `#navigator-toolbox`
 and `#browser` transparent; either half alone looks like an ordinary opaque
 window.
 
-- The material chooses the blur; the spec's `blur(52px) saturate(160%)`
-  does not port. Default material 1 (HUD window); 7
+- The material chooses the blur; no CSS blur value ports. Default material 1 (HUD window); 7
   (`UnderWindowBackground`) is nearly invisible and looks like a broken
   patch. Numbering matches Zen's.
 - `koi.widget.macos.window-vibrancy` (bool) and
@@ -414,8 +398,8 @@ window.
 There is **no CSS blur anywhere in Koi's chrome**, and none is possible:
 `backdrop-filter` has nothing to sample over the chrome band or over the
 page card (content renders out of process). Popups macOS draws get its real
-blur; everything Firefox or Koi draws over the page takes the 96% MENU tint
-(koi-theme.css, Glass).
+blur; everything Firefox or Koi draws over the page is the opaque solid
+(koi-theme.css, Solid).
 
 ### StaticPrefs plumbing
 
@@ -591,7 +575,7 @@ path) and `~/.mozbuild/mach_func_cache`.
 Standing decisions and the open list. How each is built is in the files
 named.
 
-- **Two rows, v4** (koi-chrome.css, koi-chrome.js). Firefox ships tabs above
+- **Two rows** (koi-chrome.css, koi-chrome.js). Firefox ships tabs above
   nav, so the layout is a flex `order` swap plus nav-bar's own traffic-light
   buttonbox. Back/forward/reload and + are placed through CustomizableUI,
   imported from
@@ -611,8 +595,8 @@ named.
   bars, the identity panel and menus were never looked at). A Nimbus
   rollout can override a locked default (its `nova` feature sets the default
   branch): if Nova reappears on a profile, look there first.
-- **No floating search palette.** The address pill is a plain field; only the
-  open dropdown takes the MENU tint. A palette (v5's cmdOpen) shipped in
+- **No floating search palette.** The address pill is a plain solid field;
+  open, its results extend it as one surface. A palette shipped in
   `ceefef2`, was removed, and was decided against again: in 157 only the
   results view is a popover (UrlbarInputBase.mjs), so centring the input
   means moving it over the page card or Zen's ~700-line patch. If it
@@ -646,10 +630,11 @@ named.
   upstreamed), with Zen's fix for that pref taken whole (D299584, in the
   nsCocoaWindow patches and global-shared-css.patch; a Koi override could not
   restore the per-panel padding Firefox zeroes). What macOS draws keeps its
-  material; what Firefox or Koi draws over the page takes the MENU tint: the
-  urlbar dropdown and its "…" menu, the findbar, the board's cards and the
-  bookmark menus (Firefox-drawn for drag and drop; Zen's native appearance
-  for them is macOS 26's clear glass, greyer than the popovers).
+  material; what Firefox or Koi draws over the page is the solid: the
+  address dropdown's results and "…" menu, the findbar, the status label, the
+  board's cards and the bookmark menus (Firefox-drawn for drag and drop;
+  Zen's native appearance for them is macOS 26's clear glass, greyer than
+  the popovers).
 - **In-content pages keep Firefox's accent** (Settings, Add-ons). The lever,
   `browser.theme.native-theme`, would also paint a native titlebar material
   on `#navigator-toolbox::after` (browser-shared.css) that koi-shell.css
@@ -672,6 +657,13 @@ named.
   `RPMIsWindowPrivate()` lets it say "This isn't a private window" when
   opened elsewhere.
 - **Tab groups are off** until the strip has a design for a group label.
+- **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
+  GLASS (shell, well, hover, raised: see-through films on the wallpaper),
+  one SOLID for everything on or over the page, INK (three whites), hair,
+  accent, private, two scrims and three shadows (low, high, text). No colour
+  or shadow is written anywhere else, except the empty state's letter tiles
+  and about:rights' light-scheme ink. A new surface picks a family; a new
+  value goes into koi-theme.css first.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
   built and search cannot find them: Firefox Home (Koi's new windows and tabs
@@ -685,11 +677,17 @@ named.
   split view and vertical tabs locked off, the trust panel off, the
   "Firefox Suggest" label, trending searches, hover previews, the
   auto-opening downloads panel, CFR, UITour, profiles and every AI feature.
+- **The address bar suggests only the user's own things**
+  (firefox/urlbar.yaml): history, bookmarks, open tabs, recent searches, top
+  sites and the engine's plain suggestions. Firefox Suggest is locked
+  off, as in Zen; top sites come from the standalone list without Mozilla's
+  default sites or partner search shortcuts; no headings, trending or rich
+  suggestions. Unlike Zen, Koi keeps the engine's suggestions as you type.
 - **Themes are off, Zen's way** (koi/theme.yaml): a theme over vibrancy
   half-applies, so the mechanism is off, not just the UI. Three small
-  patches, one pref, an about:config escape hatch. **The chrome is always dark**, in macOS Light too: its ink is white
-  (koi-theme.css has no light variant), so
-  LightweightThemeConsumer-sys-mjs.patch reports a dark toolbar
+  patches, one pref, an about:config escape hatch. **The chrome is always
+  dark**, in macOS Light too: its ink is white (koi-theme.css has no light
+  variant), so LightweightThemeConsumer-sys-mjs.patch reports a dark toolbar
   scheme, which sets the chrome's `prefers-color-scheme`, the NSWindow's
   appearance (vibrancy, native menus and popovers) and
   `browser.theme.toolbar-theme`. A CSS `color-scheme: dark` pin is not
@@ -712,6 +710,18 @@ Labs") want a strings pass of their own.
 
 **Known issues, found and not yet fixed:**
 
+- **The address bar's engine button is hidden** (koi-chrome.css) because its
+  menu, a panel-list in a native popover, ignores real mouse clicks: the
+  dropdown keeps the keyboard and clicks on an engine do nothing. Arrows and
+  Enter work, and synthesized clicks (Marionette) pass, so only a real mouse
+  shows it. First test before re-adding: the same clicks with
+  `widget.macos.native-popovers` off.
+- **Nimbus rollouts are on** (`nimbus.rollouts.enabled`, firefox.js), and
+  they ignore the telemetry and studies switches, so Mozilla can still change
+  Firefox-targeted features in Koi remotely; a rollout's Nimbus variable even
+  outranks a locked fallback pref. Zen leaves them on too. Turning them off is
+  one pref, but it also stops fixes Mozilla ships as rollouts; decide before
+  a release.
 - **`.gitignore` is GitHub's stock Node template**, ~140 lines for tools Koi
   does not use; only the Firefox and surfer entries at the end matter.
 

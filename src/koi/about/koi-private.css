@@ -2,23 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* about:privatebrowsing (koi-private.html). Deliberately unlike the normal
- * empty state, so a private window is never mistaken for one: the page paints
- * its own violet ground instead of showing the wallpaper, and the mask leads.
- * The violet is koi-theme.css's --koi-private; keep them in step. */
+/* about:privatebrowsing (koi-private.html), on koi-theme.css's tokens.
+ * Deliberately unlike the normal empty state, so a private window is never
+ * mistaken for one: the page is the solid under a violet glow instead of the
+ * wallpaper, and the mask leads. */
 
 :root {
   color-scheme: dark;
-
-  --koi-private: rgb(122, 92, 255);
-  --koi-private-ground: #141019;
-  --koi-private-ink-2: rgba(255, 255, 255, 0.62);
 }
 
 /* In a normal window the page says so, in neutral colours. */
 :root.normal {
-  --koi-private: rgba(255, 255, 255, 0.16);
-  --koi-private-ground: #1c1c1e;
+  --koi-private: var(--koi-glass-well);
 }
 
 body {
@@ -26,8 +21,8 @@ body {
   place-items: center;
   min-height: 100vh;
   margin: 0;
-  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--koi-private) 28%, transparent), transparent 70%), var(--koi-private-ground);
-  color: #fff;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--koi-private) 28%, transparent), transparent 70%), var(--koi-solid);
+  color: var(--koi-fg);
   font:
     15px/1.6 -apple-system,
     system-ui,
@@ -67,7 +62,7 @@ p {
 
 .aside,
 .hint {
-  color: var(--koi-private-ink-2);
+  color: var(--koi-fg-2);
   font-size: 13px;
 }
 
@@ -78,7 +73,7 @@ p {
 kbd {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--koi-glass-well);
   font: inherit;
 }
 
