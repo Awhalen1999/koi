@@ -3,8 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* The board and peek (koi-board.js). [mode] switches the layout: board is a
- * grid over the heavy scrim, peek one row over the light one. Scrims only dim
- * (page pixels cannot be blurred, koi-theme.css); cards are the solid. */
+ * grid over the heavy scrim, peek one row over the light one, each under the
+ * row of spaces. Scrims only dim (page pixels cannot be blurred,
+ * koi-theme.css); cards are the solid. */
 
 #koi-board {
   display: none;
@@ -19,6 +20,7 @@
 
 #koi-board[mode] {
   display: flex;
+  flex-direction: column;
 }
 
 #koi-board[mode="board"] {
@@ -29,8 +31,85 @@
   background: var(--koi-scrim-float);
 }
 
+/* The spaces, as pills like the one in row one, cropped at its width: icon,
+ * name, tab count. Over the page they take the solid, as the cards do, with
+ * the hairline ring; the films go on top: WELL under the pointer, RAISED for
+ * the space shown (a film over the solid needs no second ring). Empty, and
+ * gone, in a private window. */
+.koi-board-spaces {
+  flex: none;
+  display: flex;
+  gap: var(--koi-space-8);
+  padding: var(--koi-space-24) var(--koi-space-24) 0;
+
+  &:empty {
+    display: none;
+  }
+
+  /* The cards sit 16px under the row, as between cards. */
+  &:not(:empty) + .koi-board-grid {
+    padding-top: var(--koi-space-16);
+  }
+}
+
+.koi-board-space {
+  appearance: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--koi-pill-height);
+  max-width: 180px;
+  padding: 0 10px;
+  border-radius: var(--koi-radius-pill);
+  background: var(--koi-solid);
+  box-shadow: 0 0 0 0.5px var(--koi-hair);
+  color: var(--koi-fg-2);
+  font: inherit;
+  font-size: var(--koi-text-12);
+  font-weight: 500;
+  transition:
+    background-color var(--koi-fade),
+    color var(--koi-fade);
+
+  &:hover {
+    background: linear-gradient(var(--koi-glass-well), var(--koi-glass-well)) var(--koi-solid);
+    color: var(--koi-fg);
+  }
+
+  &.koi-board-space-shown {
+    background: linear-gradient(var(--koi-glass-raised), var(--koi-glass-raised)) var(--koi-solid);
+    color: var(--koi-fg);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+  }
+
+  & > img {
+    width: 14px;
+    height: 14px;
+    -moz-context-properties: fill;
+    fill: currentColor;
+  }
+}
+
+.koi-board-space-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.koi-board-space-count {
+  color: var(--koi-fg-2);
+  font-weight: 400;
+}
+
+/* Stretched to the board's width by the column; a width of its own would
+ * add the padding on top and overflow. */
 .koi-board-grid {
-  width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Board: a responsive grid, scrolling when the window is short. */

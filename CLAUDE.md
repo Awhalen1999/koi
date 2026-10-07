@@ -674,9 +674,17 @@ named.
   panel. The menu's items carry no icons, unlike the design: Cocoa gives a
   checkbox or radio item no image (`nsMenuItemX::SetupIcon`), and the check
   mark won. A native menu item's icon otherwise comes from its rendered
-  `html:img` (`NativeMenu::GetIcon`), not the `image` attribute. `browser.tabs.closeWindowWithLastTab` is off, as in Zen: Firefox
-  counts only visible tabs as "the last tab" and would close the window with
-  the hidden spaces in it. Private windows have no spaces. The icons are
+  `html:img` (`NativeMenu::GetIcon`), not the `image` attribute.
+  `browser.tabs.closeWindowWithLastTab` is off, as in Zen: Firefox counts
+  only visible tabs as "the last tab" and would close the window with the
+  hidden spaces in it. Closing a space's last tab instead goes to the
+  window's most recently used tab in another space, or closes the window
+  when no tab holds anything (a hidden empty tab holds nothing): ⌘W is never
+  a dead end and never closes a tab unseen. The board shows a row of the
+  spaces above its cards (koi-board.js, through `window.gKoiSpaces`, the
+  window's view of the feature in Firefox's `gBrowser` idiom): a click peeks
+  at a space's cards, picking a card or Enter on a pill commits. Private
+  windows have no spaces. The icons are
   Lucide's (ISC), converted to Koi's `stroke="context-fill"` glyph format.
 - **Tab groups are off** until the strip has a design for a group label.
 - **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
@@ -719,7 +727,8 @@ named.
   Test Light without switching the Mac: `ui.systemUsesDarkTheme = 0` on a
   throwaway profile.
 - **The startup page is the empty state**: `browser.startup.homepage` is
-  about:blank and session restore is on request (History ▸ Restore Previous
+  about:newtab, the + tab's page, so the first tab gets the mark like every
+  other, and session restore is on request (History ▸ Restore Previous
   Session).
 
 **Not yet done:** the field-as-progress-bar tint, hold-a-tab to peek,

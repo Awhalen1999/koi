@@ -12,12 +12,14 @@
 - name: browser.tabs.tabMinWidth
   value: 100
 
-# Startup opens about:blank, which shows the empty state (src/koi/newtab/).
+# Startup opens the same page as +, about:newtab (blank with the newtab page
+# off), which shows the empty state (src/koi/newtab/) and takes Firefox's
+# default favicon, Koi's mark; about:blank would show no icon.
 # browser.startup.page stays at Firefox's 1 (homepage), so a launch is a
 # fresh window, not yesterday's tabs; History ▸ Restore Previous Session
 # restores on request, and 3 would restore automatically.
 - name: browser.startup.homepage
-  value: about:blank
+  value: about:newtab
 
 # No yellow flash when the findbar opens (findbar.js _flash); the focused
 # field is the cue.
@@ -50,10 +52,10 @@
 - name: browser.urlbar.trustPanel.featureGate
   value: false
 
-# Closing a window's last visible tab leaves an empty tab instead of closing
-# the window, as in Zen. Firefox counts only visible tabs as "the last tab",
-# so a space's last tab would otherwise take the window, hidden spaces and
-# all, with it (src/koi/spaces/koi-spaces.js).
+# Firefox counts only visible tabs as "the last tab", so closing a space's
+# last tab would take the window, hidden spaces and all, with it. Off, as in
+# Zen, so Firefox leaves an empty tab instead; koi-spaces.js then goes to the
+# window's remaining tabs, or closes the window when none holds anything.
 - name: browser.tabs.closeWindowWithLastTab
   value: false
 

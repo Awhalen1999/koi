@@ -23,16 +23,23 @@
  *     koi.spaces, as CustomizableUI keeps its placements. Every window
  *     observes it, so a rename or a deletion reaches all of them; a new
  *     window opens in the last-used space.
- * Closing a space's last tab leaves an empty tab in it, because
- * browser.tabs.closeWindowWithLastTab is off (chrome-ui.yaml): Firefox counts
- * only visible tabs as "the last tab" and would otherwise close the window
- * with the hidden spaces in it.
+ * Closing a space's last tab goes to the window's most recently used tab in
+ * any other space, or closes the window when none holds anything, so ⌘W is
+ * never a dead end and never closes a tab unseen. Firefox would close the
+ * window at the last visible tab, hidden spaces and all, so
+ * browser.tabs.closeWindowWithLastTab is off (chrome-ui.yaml) and the
+ * handler below decides instead.
  *
  * The pill after the traffic lights shows the active space and opens a
  * native menu: the spaces with ⌃1–⌃9, New Space and Edit "…". New and edit
  * share one arrow panel: a name and sixteen icons, no colour. Edits apply as
  * they are made; a new space is switched to on creation. A private window
- * has none of this: its tabs are one private space. */
+ * has none of this: its tabs are one private space.
+ *
+ * window.gKoiSpaces is the window's view of it for the board (koi-board.js),
+ * Firefox's own way of sharing a window's feature (gBrowser, gURLBar):
+ * the list, the active id, iconURL and switchTo. Undefined in a private
+ * window. */
 
 (() => {
   const PREF = "koi.spaces";
@@ -77,11 +84,44 @@
   addEventListener(
     "DOMContentLoaded",
     () => {
-      if (
-        !window.toolbar.visible ||
-        !window.gBrowser ||
-        PrivateBrowsingUtils.isWindowPrivate(window)
-      ) {
+      if (!window.toolbar.visible || !window.gBrowser) {
+        return;
+      }
+
+      // With closeWindowWithLastTab off, Firefox opens an empty tab in place
+      // of a window's last visible one while that one is still closing; no
+      // other tab ever opens then. Once the removal has finished (as Zen
+      // defers its own), the window goes to the most recently used tab that
+      // still holds something, a page or a pending (unrestored) tab, and
+      // selecting it switches to its space; the empty tab a space was left
+      // on holds nothing. With nothing held, the window closes. Every
+      // window, private ones included.
+      gBrowser.tabContainer.addEventListener("TabOpen", event => {
+        if (!gBrowser.tabs.some(tab => tab.closing)) {
+          return;
+        }
+        setTimeout(() => {
+          if (window.closed) {
+            return;
+          }
+          const held = gBrowser.tabs.filter(
+            tab =>
+              tab !== event.target &&
+              tab.isOpen &&
+              (tab.hasAttribute("pending") || !tab.isEmpty)
+          );
+          if (held.length) {
+            gBrowser.selectedTab = held.reduce((best, tab) =>
+              tab.lastAccessed > best.lastAccessed ? tab : best
+            );
+          } else {
+            document.getElementById("cmd_closeWindow").doCommand();
+          }
+        });
+      });
+
+      // A private window's tabs are one private space: none of the rest.
+      if (PrivateBrowsingUtils.isWindowPrivate(window)) {
         return;
       }
 
@@ -410,6 +450,17 @@
         .after(pill);
       document.documentElement.append(keyset);
       document.getElementById("mainPopupSet").append(panel);
+
+      window.gKoiSpaces = {
+        get spaces() {
+          return store.spaces;
+        },
+        get activeId() {
+          return activeId;
+        },
+        iconURL,
+        switchTo,
+      };
 
       for (const tab of gBrowser.tabs) {
         tag(tab, activeId);
