@@ -1,0 +1,7 @@
+<!-- Lucide (lucide.dev), ISC: see LICENSE beside this file. Drawn as Koi's
+   - glyphs are (koi-board.svg): a line icon whose stroke takes context-fill.
+   - 24-unit grid shown at 16px, so 2.25 units is a 1.5px line. -->
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="context-fill" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
+  <path d="m21.854 2.147-10.94 10.939" />
+</svg>

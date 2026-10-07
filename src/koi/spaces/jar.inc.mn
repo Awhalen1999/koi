@@ -1,0 +1,29 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Included through koi-assets.jar.inc.mn into browser/base/jar.mn, so source
+# paths are relative to browser/base/. Rules: src/koi/common/jar.inc.mn.
+#
+# The icons are Lucide's (ISC, icons/LICENSE), converted to Koi's glyph
+# format once. Listed one by one: jar.py's wildcard resolves a glob against
+# the source root, then looks each hit up relative to browser/base/ again.
+
+        content/browser/koi-spaces/koi-spaces.css               (../../koi/spaces/koi-spaces.css)
+        content/browser/koi-spaces/koi-spaces.js                (../../koi/spaces/koi-spaces.js)
+        content/browser/koi-spaces/icons/house.svg              (../../koi/spaces/icons/house.svg)
+        content/browser/koi-spaces/icons/briefcase.svg          (../../koi/spaces/icons/briefcase.svg)
+        content/browser/koi-spaces/icons/book-open.svg          (../../koi/spaces/icons/book-open.svg)
+        content/browser/koi-spaces/icons/code.svg               (../../koi/spaces/icons/code.svg)
+        content/browser/koi-spaces/icons/message-square.svg     (../../koi/spaces/icons/message-square.svg)
+        content/browser/koi-spaces/icons/music.svg              (../../koi/spaces/icons/music.svg)
+        content/browser/koi-spaces/icons/square-play.svg        (../../koi/spaces/icons/square-play.svg)
+        content/browser/koi-spaces/icons/shopping-cart.svg      (../../koi/spaces/icons/shopping-cart.svg)
+        content/browser/koi-spaces/icons/send.svg               (../../koi/spaces/icons/send.svg)
+        content/browser/koi-spaces/icons/heart.svg              (../../koi/spaces/icons/heart.svg)
+        content/browser/koi-spaces/icons/star.svg               (../../koi/spaces/icons/star.svg)
+        content/browser/koi-spaces/icons/flask-conical.svg      (../../koi/spaces/icons/flask-conical.svg)
+        content/browser/koi-spaces/icons/camera.svg             (../../koi/spaces/icons/camera.svg)
+        content/browser/koi-spaces/icons/pencil.svg             (../../koi/spaces/icons/pencil.svg)
+        content/browser/koi-spaces/icons/folder.svg             (../../koi/spaces/icons/folder.svg)
+        content/browser/koi-spaces/icons/globe.svg              (../../koi/spaces/icons/globe.svg)

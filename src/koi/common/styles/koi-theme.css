@@ -77,6 +77,10 @@
    * one. The chrome's only other colour. */
   --koi-private: rgb(122, 92, 255);
 
+  /* The one red, for the one destructive action (a space's Delete): macOS's
+   * system red, as the debug outlines use. */
+  --koi-danger: #ff453a;
+
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);
   --koi-page-ring: rgba(0, 0, 0, 0.06);

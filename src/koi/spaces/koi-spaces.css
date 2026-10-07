@@ -1,0 +1,236 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Spaces (koi-spaces.js): the pill in row one and the new/edit panel; the
+ * menu is native and unstyled. The pill sits between the traffic lights and
+ * the address pill's spring, so koi-chrome.js counts it when centring the
+ * address pill. */
+
+/* The pill: icon, name, chevron. WELL at rest, HOVER under the pointer or
+ * while its menu is open ([open], set by XUL). 12px after the lights is
+ * their margin (koi-chrome.css); a long name crops at the pill's width.
+ * The lights' container is nav-bar's last child, ordered first
+ * (browser-shared.css); the pill shares its order and follows it in the
+ * DOM. */
+#koi-space-button {
+  appearance: none;
+  order: -1;
+  flex: none;
+  gap: 6px;
+  height: var(--koi-pill-height);
+  max-width: 180px;
+  margin: 0;
+  padding: 0 var(--koi-space-8) 0 10px;
+  border-radius: var(--koi-radius-pill);
+  background-color: var(--koi-glass-well);
+  color: var(--koi-fg);
+  font-size: var(--koi-text-12);
+  font-weight: 500;
+  transition: background-color var(--koi-fade);
+
+  &:hover,
+  &[open] {
+    background-color: var(--koi-glass-hover);
+  }
+
+  & > .toolbarbutton-icon {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    padding: 0;
+    -moz-context-properties: fill;
+    fill: currentColor;
+  }
+
+  /* An icons-mode toolbar hides every button's label (toolbarbuttons.css). */
+  & > .toolbarbutton-text {
+    display: block;
+    margin: 0;
+  }
+
+  &::after {
+    content: "";
+    flex: none;
+    width: 10px;
+    height: 10px;
+    background: url("chrome://global/skin/icons/arrow-down.svg") center / 10px no-repeat;
+    -moz-context-properties: fill;
+    fill: var(--koi-fg-2);
+  }
+}
+
+/* The panel ------------------------------------------------------------------
+ * A native popover (koi-panels.css clears Firefox's paint); the panel only
+ * sizes its content. [mode] picks the actions: Cancel and Create for a new
+ * space, Delete for an edit, Cancel and Delete to confirm. */
+
+#koi-space-panel {
+  color: var(--koi-fg);
+  color-scheme: dark;
+  font-size: var(--koi-text-13);
+
+  &[mode="new"] .koi-space-delete,
+  &[mode="edit"] .koi-space-cancel,
+  &:not([mode="new"]) .koi-space-create {
+    display: none;
+  }
+}
+
+.koi-space-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--koi-space-12);
+  /* Eight 28px icons and seven 8px gaps. */
+  width: 280px;
+  padding: var(--koi-space-12);
+}
+
+/* The name: a WELL ringed by the hairline with the chosen icon inside, the
+ * accent ring while focused. */
+.koi-space-field {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-8);
+  height: var(--koi-space-32);
+  padding-inline: 10px;
+  border-radius: var(--koi-radius-pill);
+  background: var(--koi-glass-well);
+  box-shadow: inset 0 0 0 0.5px var(--koi-hair);
+
+  &:focus-within {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-outline-inset);
+  }
+}
+
+.koi-space-field-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg);
+}
+
+.koi-space-name {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--koi-fg);
+  font: inherit;
+
+  &::placeholder {
+    color: var(--koi-fg-3);
+    opacity: 1;
+  }
+}
+
+/* The icons, two rows of eight: pills with a 16px glyph, WELL under the
+ * pointer, RAISED and ringed when chosen. */
+.koi-space-icons {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--koi-space-8);
+}
+
+.koi-space-icon {
+  appearance: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--koi-pill-height);
+  padding: 0;
+  border-radius: var(--koi-radius-pill);
+  background: transparent;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
+  transition:
+    background-color var(--koi-fade),
+    fill var(--koi-fade);
+
+  &:hover {
+    background-color: var(--koi-glass-well);
+    fill: var(--koi-fg);
+  }
+
+  &[aria-checked="true"] {
+    background-color: var(--koi-glass-raised);
+    box-shadow: 0 0 0 0.5px var(--koi-hair);
+    fill: var(--koi-fg);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+  }
+
+  & > img {
+    width: 16px;
+    height: 16px;
+    -moz-context-properties: fill;
+    fill: inherit;
+  }
+}
+
+/* The actions, right-aligned pills: Cancel on the WELL, Create on the
+ * accent, Delete on the one red. */
+.koi-space-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--koi-space-8);
+}
+
+.koi-space-actions > button {
+  appearance: none;
+  border: none;
+  height: var(--koi-pill-height);
+  padding: 0 var(--koi-space-12);
+  border-radius: var(--koi-radius-pill);
+  color: var(--koi-fg);
+  font: inherit;
+  transition: background-color var(--koi-fade);
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+  }
+
+  &:disabled {
+    opacity: var(--toolbarbutton-opacity-disabled);
+  }
+}
+
+.koi-space-cancel {
+  background-color: var(--koi-glass-well);
+
+  &:hover {
+    background-color: var(--koi-glass-hover);
+  }
+}
+
+/* Hover and pressed darken as the accent's do (koi-chrome.css). */
+.koi-space-delete {
+  background-color: var(--koi-danger);
+
+  &:hover {
+    background-color: color-mix(in srgb, black 10%, var(--koi-danger));
+  }
+
+  &:hover:active {
+    background-color: color-mix(in srgb, black 20%, var(--koi-danger));
+  }
+}
+
+.koi-space-create {
+  background-color: var(--color-accent-primary);
+
+  &:hover {
+    background-color: var(--color-accent-primary-hover);
+  }
+
+  &:hover:active {
+    background-color: var(--color-accent-primary-active);
+  }
+}

@@ -128,9 +128,9 @@
   -moz-window-dragging: drag;
 
   /* 12px each side of the lights (osx/browser.css gives none after them);
-   * the trailing side discounts the next button's inner padding. */
+   * the space pill follows (koi-spaces.css). */
   & .titlebar-buttonbox {
-    margin-inline: var(--koi-space-12) calc(var(--koi-space-12) - var(--toolbarbutton-padding-inner));
+    margin-inline: var(--koi-space-12);
   }
 
   /* Firefox's 40px titlebar spacers; the margin above is the inset here. */

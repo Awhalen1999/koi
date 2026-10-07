@@ -50,6 +50,13 @@
 - name: browser.urlbar.trustPanel.featureGate
   value: false
 
+# Closing a window's last visible tab leaves an empty tab instead of closing
+# the window, as in Zen. Firefox counts only visible tabs as "the last tab",
+# so a space's last tab would otherwise take the window, hidden spaces and
+# all, with it (src/koi/spaces/koi-spaces.js).
+- name: browser.tabs.closeWindowWithLastTab
+  value: false
+
 # Nothing pops up: no downloads panel opening on every download.
 - name: browser.download.alwaysOpenPanel
   value: false

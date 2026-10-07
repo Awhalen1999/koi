@@ -80,6 +80,12 @@ way (below). If it conflicts on a Firefox update, delete both files.
   because an about: page is a chrome document. Koi's ink is light only, so a
   page with a light scheme (about:rights) keeps its own light ink.
 
+### jar.inc.mn: no wildcards
+
+jar.py's wildcard resolves a glob against the source root (a leading `/`),
+then looks each hit up relative to `browser/base/` again and fails. List
+every file (koi/spaces/jar.inc.mn lists its sixteen icons).
+
 ### jar.inc.mn: the `*` flag
 
 A leading `*` preprocesses the file, and `jar.py` then fails with `no
@@ -656,6 +662,22 @@ named.
   the page still loads in the privileged about process, where
   `RPMIsWindowPrivate()` lets it say "This isn't a private window" when
   opened elsewhere.
+- **Spaces** (src/koi/spaces/): Zen's model on Firefox's primitives, no
+  patch. A tab's space is a SessionStore custom value mirrored to a
+  `koi-space` attribute; the other spaces' tabs are `hideTab`-hidden, so the
+  strip, the board, ⌃Tab and ⌘1–9 see one space; pinned tabs show everywhere
+  (Zen's essentials: `hideTab` refuses them). The list and the last-used
+  space are one JSON pref (`koi.spaces`), as CustomizableUI keeps its
+  placements; every window observes it. The pill after the lights opens a
+  native menu with ⌃1–⌃9 (Arc's chord; macOS takes it once Mission Control
+  has two desktops), New Space and Edit, which share one native-popover
+  panel. The menu's items carry no icons, unlike the design: Cocoa gives a
+  checkbox or radio item no image (`nsMenuItemX::SetupIcon`), and the check
+  mark won. A native menu item's icon otherwise comes from its rendered
+  `html:img` (`NativeMenu::GetIcon`), not the `image` attribute. `browser.tabs.closeWindowWithLastTab` is off, as in Zen: Firefox
+  counts only visible tabs as "the last tab" and would close the window with
+  the hidden spaces in it. Private windows have no spaces. The icons are
+  Lucide's (ISC), converted to Koi's `stroke="context-fill"` glyph format.
 - **Tab groups are off** until the strip has a design for a group label.
 - **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
   GLASS (shell, well, hover, raised: see-through films on the wallpaper),
@@ -700,7 +722,7 @@ named.
   about:blank and session restore is on request (History ▸ Restore Previous
   Session).
 
-**Not yet done:** spaces, the field-as-progress-bar tint, hold-a-tab to peek,
+**Not yet done:** the field-as-progress-bar tint, hold-a-tab to peek,
 re-pointing View › Show All Tabs at the board, a bookmarks surface with
 folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, tab
 groups. No fox shows by default; the urlbar's "Firefox View" quick action

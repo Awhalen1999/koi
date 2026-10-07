@@ -11,8 +11,8 @@
  * The toolbox's rows are also tinted, so a seam no row owns shows dark.
  *
  *   red      rows: the toolbox's four and the findbar
- *   yellow   controls, as drawn: button pills, tabs, the address pill,
- *            bookmarks, the private label
+ *   yellow   controls, as drawn: button pills, tabs, the address pill, the
+ *            space pill, bookmarks, the private label
  *   magenta  the page card, drawn just outside it (the page covers inside) */
 
 @media -moz-pref("koi.debug.outline") {
@@ -30,6 +30,7 @@
     & .toolbarbutton-1 > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack),
     & .tab-background,
     & #urlbar,
+    & #koi-space-button,
     & #PlacesToolbarItems > .bookmark-item,
     & .private-browsing-indicator-with-label {
       outline: 1px solid #ffd60a !important;

@@ -1,0 +1,11 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Spaces (src/koi/spaces/): the list and the last-used one as one JSON value,
+# the way CustomizableUI keeps browser.uiCustomization.state. Shape:
+# {"active": id, "spaces": [{"id", "name", "icon"}]}, icon a name from
+# koi-spaces.js's grid. Written by the pill's menu and panel; a value that
+# will not parse falls back to this one.
+- name: koi.spaces
+  value: '{"active":"home","spaces":[{"id":"home","name":"Home","icon":"house"}]}'
