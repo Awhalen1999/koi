@@ -240,11 +240,8 @@
         const cards = new Map(
           [...grid.children].map(card => [card.koiTab, card])
         );
+        // No cards is a state too: a space with nothing in it here.
         const next = shown().map(tab => cards.get(tab) ?? cardFor(tab));
-        if (!next.length) {
-          closeSurface();
-          return;
-        }
         if (
           next.length === grid.childElementCount &&
           next.every((card, i) => card === grid.children[i])
@@ -252,7 +249,8 @@
           return;
         }
         // Re-inserting nodes drops focus: restore it, or move it to a
-        // neighbour if the focused card went.
+        // neighbour if the focused card went, or to the shown space's pill
+        // when the last card did.
         const active = document.activeElement;
         const focusedCard = active?.closest(".koi-card");
         let neighbour = null;
@@ -265,6 +263,8 @@
           neighbour.focus();
         } else if (surface.contains(active)) {
           active.focus();
+        } else {
+          row.querySelector(".koi-board-space-shown")?.focus();
         }
       };
 
@@ -330,9 +330,10 @@
         }
       };
 
-      // A click on the scrim (not on a card) dismisses.
+      // A click anywhere but a card or a space pill dismisses: the scrim,
+      // the gaps, the row's empty end.
       surface.addEventListener("click", event => {
-        if (event.target === surface || event.target === grid) {
+        if (!event.target.closest(".koi-card, .koi-board-space")) {
           closeSurface();
         }
       });
