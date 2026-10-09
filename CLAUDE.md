@@ -84,7 +84,7 @@ way (below). If it conflicts on a Firefox update, delete both files.
 
 jar.py's wildcard resolves a glob against the source root (a leading `/`),
 then looks each hit up relative to `browser/base/` again and fails. List
-every file (koi/spaces/jar.inc.mn lists its sixteen icons).
+every file.
 
 ### jar.inc.mn: the `*` flag
 
@@ -187,10 +187,13 @@ rules in koi-chrome.css and koi-panels.css carry one.
   file into `engine/koi/` at import.
 - A pref-only change needs `npm run prefs` then `npm run build:ui` (the
   faster backend re-preprocesses `firefox.js`, which includes koi.js).
-- A change to `koi-assets.inc.xhtml` (a new stylesheet or script) needs the
-  profile's startup cache cleared, with Koi quit:
-  `rm -rf ~/Library/Caches/Koi/Profiles/*/startupCache`. `build:ui` writes
-  `.purgecaches` into `dist/bin`, which the app bundle does not read.
+- **`npm start` clears the profile's startup cache first.** The cache keeps
+  browser.xhtml's compiled scripts (`xulcache/script/…`) and is invalidated
+  only by a new build ID, which only a full build makes; `build:ui` writes
+  `.purgecaches` into `dist/bin`, which the app bundle does not read. A
+  stale cache runs old chrome JS against new CSS, so a throwaway profile can
+  pass while the real one fails. Launching any other way, clear it by hand
+  with Koi quit: `rm -rf ~/Library/Caches/Koi/Profiles/*/startupCache`.
 - `npm start` runs `mach run --noprofile`, so it uses the real profile at
   `~/Library/Application Support/Koi`, not a throwaway one.
 - **Dev builds need a sandbox pref for Koi files in web pages.** Chrome files
@@ -662,30 +665,9 @@ named.
   the page still loads in the privileged about process, where
   `RPMIsWindowPrivate()` lets it say "This isn't a private window" when
   opened elsewhere.
-- **Spaces** (src/koi/spaces/): Zen's model on Firefox's primitives, no
-  patch. A tab's space is a SessionStore custom value mirrored to a
-  `koi-space` attribute; the other spaces' tabs are `hideTab`-hidden, so the
-  strip, the board, ⌃Tab and ⌘1–9 see one space; pinned tabs show everywhere
-  (Zen's essentials: `hideTab` refuses them). The list and the last-used
-  space are one JSON pref (`koi.spaces`), as CustomizableUI keeps its
-  placements; every window observes it. The pill after the lights opens a
-  native menu with ⌃1–⌃9 (Arc's chord; macOS takes it once Mission Control
-  has two desktops), New Space and Edit, which share one native-popover
-  panel. The menu's items carry no icons, unlike the design: Cocoa gives a
-  checkbox or radio item no image (`nsMenuItemX::SetupIcon`), and the check
-  mark won. A native menu item's icon otherwise comes from its rendered
-  `html:img` (`NativeMenu::GetIcon`), not the `image` attribute.
-  `browser.tabs.closeWindowWithLastTab` is off, as in Zen: Firefox counts
-  only visible tabs as "the last tab" and would close the window with the
-  hidden spaces in it. Closing a space's last tab instead goes to the
-  window's most recently used tab in another space, or closes the window
-  when no tab holds anything (a hidden empty tab holds nothing): ⌘W is never
-  a dead end and never closes a tab unseen. The board shows a row of the
-  spaces above its cards (koi-board.js, through `window.gKoiSpaces`, the
-  window's view of the feature in Firefox's `gBrowser` idiom): a click peeks
-  at a space's cards, picking a card or Enter on a pill commits. Private
-  windows have no spaces. The icons are
-  Lucide's (ISC), converted to Koi's `stroke="context-fill"` glyph format.
+- **No spaces for the MVP**: one window is one set of tabs. A Zen-model
+  build (named tab sets, hidden with `hideTab`) was finished and taken out;
+  it is in git history up to `b6165a0`.
 - **Tab groups are off** until the strip has a design for a group label.
 - **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
   GLASS (shell, well, hover, raised: see-through films on the wallpaper),

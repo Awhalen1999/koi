@@ -52,13 +52,6 @@
 - name: browser.urlbar.trustPanel.featureGate
   value: false
 
-# Firefox counts only visible tabs as "the last tab", so closing a space's
-# last tab would take the window, hidden spaces and all, with it. Off, as in
-# Zen, so Firefox leaves an empty tab instead; koi-spaces.js then goes to the
-# window's remaining tabs, or closes the window when none holds anything.
-- name: browser.tabs.closeWindowWithLastTab
-  value: false
-
 # Nothing pops up: no downloads panel opening on every download.
 - name: browser.download.alwaysOpenPanel
   value: false

@@ -10,14 +10,6 @@
  * is the same cards in one row over a lighter scrim (the mode attribute only
  * changes layout, koi-board.css); its trigger, hold-a-tab, is not built.
  *
- * Above the cards, a row of the window's spaces (window.gKoiSpaces,
- * koi-spaces.js), each a pill with its tab count, the one shown raised. A
- * click peeks: the cards become that space's, the window stays where it
- * was. Picking a card commits (selecting a tab from another space switches
- * to it, koi-spaces.js); Enter or a double click on a pill switches to the
- * space itself; Escape backs out with nothing changed. ← and → move along
- * the row. A private window has no spaces and no row.
- *
  * Cards are built on open, kept in step with the strip while it shows, and
  * torn down on close; the tab listeners exist only while it shows.
  * Thumbnails come from Firefox's tab preview capture
@@ -57,68 +49,12 @@
       surface.setAttribute("role", "dialog");
       surface.setAttribute("aria-modal", "true");
       surface.setAttribute("aria-label", "Board");
-      const row = el("div", "koi-board-spaces");
       const grid = el("div", "koi-board-grid");
-      surface.append(row, grid);
+      surface.append(grid);
       tabbox.append(surface);
 
       // null when closed, else "peek" | "board".
       let openMode = null;
-
-      // Spaces ------------------------------------------------------------
-      // The space the cards show: the active one on open, another once
-      // peeked. Pinned tabs show in every space, as in the strip.
-
-      const spaces = () => window.gKoiSpaces;
-      let peekId = null;
-
-      const tabsOf = id =>
-        gBrowser.tabs.filter(
-          tab =>
-            tab.isOpen && (tab.pinned || tab.getAttribute("koi-space") === id)
-        );
-      const shown = () => (spaces() ? tabsOf(peekId) : gBrowser.visibleTabs);
-
-      const buildRow = () => {
-        row.replaceChildren(
-          ...(spaces()?.spaces ?? []).map(space => {
-            const pill = el("button", "koi-board-space");
-            pill.koiSpace = space.id;
-            const icon = el("img");
-            icon.src = spaces().iconURL(space.icon);
-            icon.alt = "";
-            const name = el("span", "koi-board-space-name");
-            name.textContent = space.name;
-            pill.append(icon, name, el("span", "koi-board-space-count"));
-            // Focused first: the peek may drop the card that had focus.
-            pill.addEventListener("click", () => {
-              pill.focus();
-              peek(space.id);
-            });
-            pill.addEventListener("dblclick", () => {
-              spaces().switchTo(space.id);
-              closeSurface();
-            });
-            return pill;
-          })
-        );
-      };
-
-      // The shown pill and the counts, which TabOpen and TabClose change.
-      const paintRow = () => {
-        for (const pill of row.children) {
-          pill.classList.toggle(
-            "koi-board-space-shown",
-            pill.koiSpace === peekId
-          );
-          pill.lastChild.textContent = tabsOf(pill.koiSpace).length;
-        }
-      };
-
-      const peek = id => {
-        peekId = id;
-        reconcile();
-      };
 
       // Thumbnails --------------------------------------------------------
       // Sized for the largest card the CSS draws (board cards stay sharp,
@@ -231,17 +167,20 @@
         [...grid.children].find(card => card.koiTab === tab);
 
       // The strip changed shape (a tab opened, closed, moved, hidden or
-      // shown), or another space is peeked: surviving cards keep their
-      // thumbnails, new ones are built, and the strip's order applies.
-      // Firefox refreshes visibleTabs before dispatching each of these
-      // events.
+      // shown): surviving cards keep their thumbnails, new ones are built,
+      // and the strip's order applies. Firefox refreshes visibleTabs before
+      // dispatching each of these events.
       const reconcile = () => {
-        paintRow();
         const cards = new Map(
           [...grid.children].map(card => [card.koiTab, card])
         );
-        // No cards is a state too: a space with nothing in it here.
-        const next = shown().map(tab => cards.get(tab) ?? cardFor(tab));
+        const next = gBrowser.visibleTabs.map(
+          tab => cards.get(tab) ?? cardFor(tab)
+        );
+        if (!next.length) {
+          closeSurface();
+          return;
+        }
         if (
           next.length === grid.childElementCount &&
           next.every((card, i) => card === grid.children[i])
@@ -249,8 +188,7 @@
           return;
         }
         // Re-inserting nodes drops focus: restore it, or move it to a
-        // neighbour if the focused card went, or to the shown space's pill
-        // when the last card did.
+        // neighbour if the focused card went.
         const active = document.activeElement;
         const focusedCard = active?.closest(".koi-card");
         let neighbour = null;
@@ -263,8 +201,6 @@
           neighbour.focus();
         } else if (surface.contains(active)) {
           active.focus();
-        } else {
-          row.querySelector(".koi-board-space-shown")?.focus();
         }
       };
 
@@ -296,10 +232,7 @@
           return;
         }
         if (!openMode) {
-          peekId = spaces()?.activeId ?? null;
-          buildRow();
-          paintRow();
-          grid.replaceChildren(...shown().map(cardFor));
+          grid.replaceChildren(...gBrowser.visibleTabs.map(cardFor));
           for (const [type, listener] of tabListeners) {
             gBrowser.tabContainer.addEventListener(type, listener);
           }
@@ -319,7 +252,6 @@
         }
         openMode = null;
         surface.removeAttribute("mode");
-        row.replaceChildren();
         grid.replaceChildren();
         captureQueue.length = 0;
         for (const [type, listener] of tabListeners) {
@@ -330,10 +262,9 @@
         }
       };
 
-      // A click anywhere but a card or a space pill dismisses: the scrim,
-      // the gaps, the row's empty end.
+      // A click on the scrim (not on a card) dismisses.
       surface.addEventListener("click", event => {
-        if (!event.target.closest(".koi-card, .koi-board-space")) {
+        if (event.target === surface || event.target === grid) {
           closeSurface();
         }
       });
@@ -353,11 +284,9 @@
       });
 
       // Cards are role=button divs, so Enter and Space activate them by hand.
-      // Arrows move between cards (up and down by rendered row) or along the
-      // row of spaces (where Enter switches and Space, the button's own
-      // click, peeks), Tab cycles within the surface, Escape closes. Handled
-      // here, not on the window, because focus is always inside while it is
-      // open.
+      // Arrows move between cards (up and down by rendered row), Tab cycles
+      // within the surface, Escape closes. Handled here, not on the window,
+      // because focus is always inside while it is open.
       surface.addEventListener("keydown", event => {
         if (event.key === "Escape") {
           event.preventDefault();
@@ -367,9 +296,7 @@
         if (event.key === "Tab") {
           // Wrap at either end; Firefox handles the steps between.
           const stops = [
-            ...surface.querySelectorAll(
-              ".koi-board-space, .koi-card, .koi-card button"
-            ),
+            ...surface.querySelectorAll(".koi-card, .koi-card button"),
           ].filter(node => node.offsetParent);
           const active = document.activeElement;
           if (event.shiftKey && active === stops[0]) {
@@ -378,23 +305,6 @@
           } else if (!event.shiftKey && active === stops.at(-1)) {
             event.preventDefault();
             stops[0].focus();
-          }
-          return;
-        }
-        const pill = document.activeElement.closest(".koi-board-space");
-        if (pill) {
-          const next = {
-            ArrowRight: pill.nextElementSibling,
-            ArrowLeft: pill.previousElementSibling,
-          }[event.key];
-          if (next) {
-            event.preventDefault();
-            next.focus();
-            peek(next.koiSpace);
-          } else if (event.key === "Enter") {
-            event.preventDefault();
-            spaces().switchTo(pill.koiSpace);
-            closeSurface();
           }
           return;
         }
