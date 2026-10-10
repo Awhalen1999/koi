@@ -9,3 +9,4 @@
         content/browser/koi-agents/koi-agents.js                (../../koi/agents/koi-agents.js)
         content/browser/koi-agents/KoiAgents.sys.mjs            (../../koi/agents/KoiAgents.sys.mjs)
         content/browser/koi-agents/koi-agent.svg                (../../koi/agents/koi-agent.svg)
+        content/browser/koi-agents/claude-code.png              (../../koi/agents/claude-code.png)

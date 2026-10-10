@@ -766,8 +766,10 @@ multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
 `.python-version` pin. Before a release: a Google Safe Browsing API key
 (without one, phishing and malware protection is silently off), the
-macOS updater's signing team id, and removing the debug outlines
-(koi-outline.css's header lists the pieces).
+macOS updater's signing team id, removing the debug outlines
+(koi-outline.css's header lists the pieces), and checking the Claude Code
+icon in the agents panel (agents/claude-code.png, Claude's app icon) against
+Anthropic's brand guidelines.
 
 ## Known startup output
 

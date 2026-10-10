@@ -79,12 +79,14 @@ function portFree(port) {
 // are not.
 let sessionActive = RemoteControlServers.hasActiveSession;
 let agentSession = false;
+let connectedAt = 0;
 let idleTimer;
 
 RemoteControlServers.addListener(() => {
   const active = RemoteControlServers.hasActiveSession;
   if (active && !sessionActive && KoiAgents.enabled) {
     agentSession = true;
+    connectedAt = Date.now();
     clearTimeout(idleTimer);
   } else if (!active && sessionActive && agentSession) {
     KoiAgents.stop("disconnected");
@@ -123,6 +125,11 @@ export const KoiAgents = {
 
   get connected() {
     return this.enabled && agentSession && sessionActive;
+  },
+
+  /** When the agent connected (ms since epoch); meaningful while connected. */
+  get connectedAt() {
+    return connectedAt;
   },
 
   async start() {
