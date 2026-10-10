@@ -1,0 +1,12 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Included through koi-assets.jar.inc.mn into browser/base/jar.mn, so source
+# paths are relative to browser/base/. Rules: src/koi/common/jar.inc.mn.
+
+        content/browser/koi-agents/koi-agents.css               (../../koi/agents/koi-agents.css)
+        content/browser/koi-agents/koi-agents.js                (../../koi/agents/koi-agents.js)
+        content/browser/koi-agents/KoiAgents.sys.mjs            (../../koi/agents/KoiAgents.sys.mjs)
+        content/browser/koi-agents/koi-agent.svg                (../../koi/agents/koi-agent.svg)
+        content/browser/koi-agents/claude-code.png              (../../koi/agents/claude-code.png)

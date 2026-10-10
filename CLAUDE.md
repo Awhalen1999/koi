@@ -287,7 +287,9 @@ into a scratch git repo and `git apply --check` each patch, then `git grep
 (git grep's ERE has no `\b`). The grep catches renames, not new defaults or
 moved DOM: 157 also turned on split view, the trust panel and tab hover
 previews, moved notification bars into the toolbox and re-derived the tab
-button tokens. After a bump, diff Zen's `prefs/` against Koi's again.
+button tokens. After a bump, diff Zen's `prefs/` against Koi's again, and
+connect an agent once: Agent Connect leans on Mozilla internals that
+KoiAgents.sys.mjs's header names.
 
 ---
 
@@ -543,7 +545,7 @@ the sandbox pref (Workflow).
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 34 rows, all
+After `npm run import`, `git -C engine status --short` shows 35 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -554,7 +556,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `toolkit/themes/shared/global-shared.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 17 patches |
+| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `toolkit/themes/shared/global-shared.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 18 patches |
 | ` T ` × 9 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -622,6 +624,32 @@ named.
   `safeForUntrustedWebProcess`, or it never runs in web or file processes;
   its modules load from Koi's chrome:// dir. Settings ▸ General was declined
   as its home: three Firefox patches.
+- **Agent Connect** (src/koi/agents/; KoiAgents.sys.mjs's header has the
+  mechanics). A coding agent drives Koi's tabs through Mozilla's
+  firefox-devtools-mcp. Its own button in row one, on every page, shows
+  with Developer Mode on (⚒ is for web pages only) and whenever Allow agents
+  is on. Allow agents is a setting (`koi.agents.enabled`), never switched off
+  for the user: while on, Firefox's remote-control servers wait for agents
+  from launch, and an agent that disconnects, idles out (the connector drops
+  its session after 30 minutes) or is disconnected leaves them waiting. Koi's
+  prompt replaces Firefox's modal one before each connection; Don't Allow
+  holds off prompts for a minute, and Firefox refuses a second agent before
+  asking, so agents take turns. An "Agent" label sits at the end of the
+  address field while one is connected. Firefox's banners and red
+  address-bar stripes are off. The panel adds Koi to Claude Code (`claude mcp add`, user scope)
+  or copies the command for any other agent; the connector needs
+  `--tool-preset developer` for its console and network tools, and
+  Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's 0.1.0
+  (it disables version-gated tools). Agents see every tab, private windows
+  included, as in Firefox. Testing trap: the `--marionette` harness blocks a
+  runtime Marionette, orphans its own session once the Remote Agent starts,
+  and meets Koi's prompt on its own later connections, even after access is
+  off (Firefox keeps routing them through WebDriver BiDi). Script the run in
+  one harness call with chrome timers (start, answer the prompt, record to a
+  file with IOUtils), play the agent with a WebDriver BiDi client or the
+  connector, and read the file.
+  A second instance cannot listen while the real Koi has Allow agents on:
+  9222 is taken, and it shows "Port 9222 in use".
 - **Peek has no trigger yet.** koi-board.js carries a `peek` mode (one row of
   cards over the light scrim) that nothing opens; its trigger is hold-a-tab.
   The board is ⇧⌘E.
@@ -672,9 +700,10 @@ named.
 - **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
   GLASS (shell, well, hover, raised: see-through films on the wallpaper),
   one SOLID for everything on or over the page, INK (three whites), hair,
-  accent, private, two scrims and three shadows (low, high, text). No colour
-  or shadow is written anywhere else, except the empty state's letter tiles
-  and about:rights' light-scheme ink. A new surface picks a family; a new
+  accent, private, agent (with its live green and waiting yellow), two scrims
+  and three shadows (low, high, text). No colour or shadow is written
+  anywhere else, except the empty state's letter tiles and about:rights'
+  light-scheme ink. A new surface picks a family; a new
   value goes into koi-theme.css first.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
@@ -713,7 +742,9 @@ named.
   other, and session restore is on request (History ▸ Restore Previous
   Session).
 
-**Not yet done:** the field-as-progress-bar tint, hold-a-tab to peek,
+**Not yet done:** Agent Connect's steps list, tab outlines and in-page
+labels (phase 2) and pick-and-copy (phase 3), the field-as-progress-bar
+tint, hold-a-tab to peek,
 re-pointing View › Show All Tabs at the board, a bookmarks surface with
 folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, tab
 groups. No fox shows by default; the urlbar's "Firefox View" quick action
@@ -744,8 +775,10 @@ multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
 `.python-version` pin. Before a release: a Google Safe Browsing API key
 (without one, phishing and malware protection is silently off), the
-macOS updater's signing team id, and removing the debug outlines
-(koi-outline.css's header lists the pieces).
+macOS updater's signing team id, removing the debug outlines
+(koi-outline.css's header lists the pieces), and checking the Claude Code
+icon in the agents panel (agents/claude-code.png, Claude's app icon) against
+Anthropic's brand guidelines.
 
 ## Known startup output
 

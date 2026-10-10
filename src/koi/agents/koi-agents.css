@@ -1,0 +1,376 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Agent Connect (koi-agents.js). The panels are native popovers
+ * (koi-panels.css clears Firefox's paint, so they only lay out their content);
+ * the label sits at the end of the address field among Firefox's page
+ * actions, in the agent's blue (koi-theme.css). */
+
+/* Firefox marks remote control with red stripes behind the address field and
+ * a robot at its start (urlbar.css, :root[remotecontrol]). The label replaces
+ * both: same selectors, later sheet. */
+:root[remotecontrol] {
+  & #remote-control-box {
+    display: none;
+  }
+
+  & .urlbar-background {
+    background-image: none;
+  }
+}
+
+/* The address field's type is mono; the label is a control, in the system
+ * font. */
+#koi-agents-label {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  margin-inline: var(--koi-space-4);
+  padding: 0 7px;
+  border: none;
+  border-radius: var(--koi-radius-favicon);
+  background-color: color-mix(in srgb, var(--koi-agent) 18%, transparent);
+  color: var(--koi-agent-ink);
+  font: menu;
+  font-size: var(--koi-text-11-5);
+  font-weight: 500;
+  transition: background-color var(--koi-fade);
+
+  &::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: url("chrome://browser/content/koi-agents/koi-agent.svg") center / contain no-repeat;
+    -moz-context-properties: fill;
+    fill: var(--koi-agent);
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--koi-agent) 32%, transparent);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+/* The panels ------------------------------------------------------------- */
+/* Native popovers: macOS draws the material, Koi only lays out on it. Both
+ * keep Firefox's panel metrics (tokens-shared.css, panelUI-shared.css): the
+ * app menu's width and body padding, its 32px rows with text 16px in, its
+ * switch and separators, 13px type, and moz-button's small pills (24px,
+ * radius 8, icon gap 4). */
+
+#koi-agents-panel,
+#koi-agents-prompt {
+  color: var(--koi-fg);
+  color-scheme: dark;
+  font-size: var(--koi-text-13);
+}
+
+.koi-agents-body {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: var(--menu-panel-width);
+  padding: var(--panel-subview-body-padding);
+}
+
+/* The agents panel: two labelled sections under a separator, in the app
+ * menu's grammar. A row is 32px whether it holds text or a 24px button. */
+.koi-agents-heading {
+  margin: var(--panel-menuitem-margin);
+  padding: var(--koi-space-4) var(--panel-menuitem-padding-inline);
+  color: var(--koi-fg-3);
+  font-size: var(--koi-text-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The app menu's Developer Mode row (koi-devmode.css). */
+.koi-agents-switch {
+  margin: var(--panel-menuitem-margin);
+  padding: var(--panel-menuitem-padding);
+}
+
+.koi-agents-row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-8);
+  min-height: 32px;
+  margin: var(--panel-menuitem-margin);
+  padding: var(--koi-space-4) var(--panel-menuitem-padding-inline);
+}
+
+.koi-agents-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.koi-agents-status > .koi-agents-name {
+  color: var(--koi-fg-2);
+}
+
+/* Secondary values sit at the row's size in a quieter ink, as the app
+ * menu's shortcuts do. */
+.koi-agents-since,
+.koi-agents-claude-note {
+  color: var(--koi-fg-3);
+}
+
+/* What Allow agents is, under the switch while it is off. */
+.koi-agents-caption {
+  margin: var(--panel-menuitem-margin);
+  padding: 0 var(--panel-menuitem-padding-inline) var(--koi-space-8);
+  color: var(--koi-fg-3);
+  font-size: var(--koi-text-12);
+  line-height: 1.45;
+}
+
+/* [state] is off, ready, connected, port or error (koi-agents.js render). */
+#koi-agents-panel {
+  &[state="off"] .koi-agents-status,
+  &:not([state="off"]) .koi-agents-caption,
+  &:not([state="connected"]) :is(.koi-agents-since, .koi-agents-disconnect),
+  &:not([state="port"], [state="error"]) .koi-agents-retry {
+    display: none;
+  }
+}
+
+/* The status dot: yellow while waiting or unable to start, green and
+ * breathing while an agent is connected. The breath is a halo's opacity, the
+ * shell's one continuous animation, so a glance tells a live connection from
+ * a stale panel; it stops under reduced motion, leaving the green. */
+.koi-agents-dot {
+  position: relative;
+  flex: none;
+  width: var(--koi-space-8);
+  height: var(--koi-space-8);
+  border-radius: 50%;
+  background-color: var(--koi-fg-3);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background-color: color-mix(in srgb, var(--koi-live) 45%, transparent);
+    opacity: 0;
+  }
+
+  #koi-agents-panel:is([state="ready"], [state="port"], [state="error"]) & {
+    background-color: var(--koi-waiting);
+  }
+
+  #koi-agents-panel[state="connected"] & {
+    background-color: var(--koi-live);
+
+    &::after {
+      animation: koi-agents-live 2.4s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes koi-agents-live {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #koi-agents-panel[state="connected"] .koi-agents-dot::after {
+    animation: none;
+  }
+}
+
+/* Full width under the status, as the app menu's sign-in card sits. */
+.koi-agents-body .koi-agents-disconnect {
+  margin: var(--koi-space-4) var(--panel-menuitem-margin-inline);
+}
+
+/* Icons at the app menu's 16px. An app icon carries macOS's transparent
+ * margin (about a tenth each side), so it is drawn at 20 to show 16. */
+.koi-agents-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: -2px;
+}
+
+.koi-agents-icon-other {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  background: url("chrome://devtools/skin/images/tool-webconsole.svg") center / contain no-repeat;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
+}
+
+/* [status] is found, added, missing or failed (koi-agents.js setClaude). */
+.koi-agents-claude {
+  &:is([status="added"], [status="missing"]) .koi-agents-add,
+  &[status="found"] .koi-agents-claude-note {
+    display: none;
+  }
+}
+
+.koi-agents-claude-note {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-4);
+}
+
+.koi-agents-claude[status="added"] .koi-agents-claude-note::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: url("chrome://global/skin/icons/check.svg") center / contain no-repeat;
+  -moz-context-properties: fill;
+  fill: currentColor;
+}
+
+/* Inline actions are bare, in the agent's ink, and reach 8px past the text
+ * column so their labels end where the row's other values do. */
+.koi-agents-body :is(.koi-agents-add, .koi-agents-copy, .koi-agents-retry) {
+  margin-inline-end: calc(-1 * var(--panel-menuitem-padding-inline));
+  padding-inline: var(--panel-menuitem-padding-inline);
+  background-color: transparent;
+  color: var(--koi-agent-ink);
+}
+
+/* The prompt ---------------------------------------------------------------- */
+
+/* A macOS permission alert, centred: the agent's glyph joined to Koi's icon,
+ * the question, the answers stacked full width. Text sits 16px in, as the
+ * app menu's labels do. */
+#koi-agents-prompt > .koi-agents-body {
+  align-items: center;
+  padding: var(--koi-space-24) var(--koi-space-16) var(--koi-space-16);
+  text-align: center;
+}
+
+.koi-agents-join {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-12);
+}
+
+/* Both at app-icon size: the agent's tile, and Koi's icon drawn larger by its
+ * transparent margin (a tenth each side) to show the same 48. */
+.koi-agents-tile {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--koi-radius-page);
+  background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 24px no-repeat;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg);
+}
+
+.koi-agents-koi {
+  width: 60px;
+  height: 60px;
+  margin: -6px;
+}
+
+/* Three 4px dots, 8px apart: one per 8px tile, shifted so the last one ends
+ * the box. */
+.koi-agents-dots {
+  width: 20px;
+  height: 4px;
+  background: radial-gradient(circle, var(--koi-fg-3) 2px, transparent 2px) -2px 0 / 8px 4px repeat-x;
+}
+
+.koi-agents-title {
+  margin-block-start: var(--koi-space-16);
+  font-weight: 600;
+}
+
+.koi-agents-note {
+  margin-block-start: var(--koi-space-4);
+  color: var(--koi-fg-2);
+  font-size: var(--koi-text-12);
+  line-height: 1.45;
+}
+
+/* The answers are the prompt's whole point, so they take the full control
+ * height (tabs, the address field). */
+.koi-agents-choices {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--koi-space-8);
+  margin-block-start: var(--koi-space-16);
+
+  & > button {
+    height: var(--koi-pill-height);
+  }
+}
+
+/* Buttons: moz-button's small pills, on the WELL. Allow is a primary button,
+ * Firefox's own colours, as the app menu's Sign in. */
+.koi-agents-body button {
+  appearance: none;
+  flex: none;
+  height: 24px;
+  padding: 0 var(--koi-space-12);
+  border: none;
+  border-radius: var(--koi-radius-pill);
+  background-color: var(--koi-glass-well);
+  color: var(--koi-fg);
+  font: inherit;
+  transition: background-color var(--koi-fade);
+
+  &:hover {
+    background-color: var(--koi-glass-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+  }
+
+  &:disabled {
+    opacity: var(--toolbarbutton-opacity-disabled);
+  }
+}
+
+.koi-agents-body .koi-agents-copy {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-4);
+
+  &::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background: url("chrome://global/skin/icons/edit-copy.svg") center / contain no-repeat;
+    -moz-context-properties: fill;
+    fill: currentColor;
+  }
+}
+
+.koi-agents-body .koi-agents-allow {
+  background-color: var(--button-background-color-primary);
+  color: var(--button-text-color-primary);
+  font-weight: 600;
+
+  &:hover {
+    background-color: var(--button-background-color-primary-hover);
+  }
+
+  &:hover:active {
+    background-color: var(--button-background-color-primary-active);
+  }
+}
