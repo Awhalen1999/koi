@@ -240,6 +240,13 @@
   display: none;
 }
 
+/* Firefox's default tab row ends in a flexible space after the +, for a
+ * titlebar drag area (CustomizableUI.sys.mjs, AREA_TABSTRIP). With the strip
+ * taking the row it only holds the + 28px short of the edge. */
+#TabsToolbar toolbarspring {
+  display: none;
+}
+
 #firefox-view-button {
   display: none;
 }

@@ -640,14 +640,37 @@ named.
   or copies the command for any other agent; the connector needs
   `--tool-preset developer` for its console and network tools, and
   Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's 0.1.0
-  (it disables version-gated tools). Agents see every tab, private windows
-  included, as in Firefox. Testing trap: the `--marionette` harness blocks a
-  runtime Marionette, orphans its own session once the Remote Agent starts,
-  and meets Koi's prompt on its own later connections, even after access is
-  off (Firefox keeps routing them through WebDriver BiDi). Script the run in
-  one harness call with chrome timers (start, answer the prompt, record to a
-  file with IOUtils), play the agent with a WebDriver BiDi client or the
-  connector, and read the file.
+  (it disables version-gated tools). **The agent works in a folder of its
+  own** (KoiAgentTabs.sys.mjs), as Claude in Chrome does: a tab group marked
+  `koi-agent`, one per window, made at the end of the strip and moved like
+  any folder, in the agent's blue with the tile glyph and a live dot while
+  connected. The agent lists only its tabs (the ones it opens, their
+  children, and tabs the user shares); new ones open in the background in
+  the folder, Take Back ungroups a tab (Firefox sets it down after the
+  folder), and selecting a tab or raising a window is a no-op for the agent,
+  so the user's view and keyboard focus never change. Its chip has a small
+  native menu instead of the editor; Allow agents off releases it into an
+  ordinary folder, as does a restart (the attribute is not persisted). A
+  pinned-last folder with new tabs placed before it was built and taken out:
+  simpler to let it sit like any folder. Firefox's
+  remote code is bent through its exported objects (TabManager,
+  windowManager, browser.Context), no patch; Marionette's command table
+  (`GeckoDriver.#commandHandlers`) is a private static, so a per-command
+  signal would need one. A background tab is hidden to its page
+  (`document.hidden`, requestAnimationFrame at 1 Hz), the price of the agent
+  never taking the screen. A workspace, not a lock: a tab's handle still
+  reaches it. Testing traps: the `--marionette` harness marks the launch as
+  automation (agent tabs are not installed; call `KoiAgentTabs.install()`
+  from the harness), blocks a runtime Marionette, orphans its own session
+  once the Remote Agent starts, and meets Koi's prompt on its own later
+  connections, even after access is off (Firefox keeps routing them through
+  WebDriver BiDi). Script the run in one harness call with chrome timers
+  (start, answer the prompt, record to a file with IOUtils), play the agent
+  with the connector on the harness port or a WebDriver BiDi client, and read
+  the file. Raise the window before a screencapture: macOS neither paints nor
+  runs frame callbacks for an occluded window, so captures are stale and a
+  wait on requestAnimationFrame never ends. Run test Python with `-I`: a
+  helper named enum.py once shadowed the stdlib.
   A second instance cannot listen while the real Koi has Allow agents on:
   9222 is taken, and it shows "Port 9222 in use".
 - **Peek has no trigger yet.** koi-board.js carries a `peek` mode (one row of
@@ -696,14 +719,36 @@ named.
 - **No spaces for the MVP**: one window is one set of tabs. A Zen-model
   build (named tab sets, hidden with `hideTab`) was finished and taken out;
   it is in git history up to `b6165a0`.
-- **Tab groups are off** until the strip has a design for a group label.
+- **Folders are Firefox's tab groups** (src/koi/folders/; koi-folders.css's
+  header has the DOM and the drawing, koi-folders.js's what Koi adds). A
+  tinted tray around a chip and its tabs, painted piece by piece because
+  `tab-group` is `display: contents`; Firefox's underline, chip fill and
+  hover halo are zeroed at their tokens. Decided (2026-10-10, the Koi Tab Row
+  canvas): drag-to-merge makes an unnamed folder with no panel; right-click
+  opens Firefox's editor with Koi's icon row (a double-click rename was built
+  and taken out: too easy to start by accident)
+  (the pick lives in `koi.folders.icons`, a JSON pref by group id, since
+  Firefox persists only id, name, colour and collapsed); the nine colours
+  are Koi's values of Firefox's names (koi-theme.css); open and close are
+  instant; the words say "folder" (set in JS; the full strings pass is
+  deferred); Save and Close and Share Group are hidden and nothing is saved
+  when a window closes, so Firefox's saved-groups surfaces stay empty; smart
+  groups are locked off (chrome-ui.yaml). The closed chip's favicon pile is
+  Koi's; the "+N" beside a closed folder's selected tab and the hover list
+  are Firefox's, the list made `nonnative` because a popover under the
+  pointer took the hover with it. A dragged tab paints the tint of the folder
+  it would join, so the tray does not part around it; Firefox's own drag
+  feedback is its underline, which Koi zeroes. The board lists every tab,
+  folders flattened. Firefox's tab menu lays itself out from a list of its items
+  and refuses one it does not know (MenuSectionLayout), so a Koi item is
+  added on popupshowing and removed on popuphidden.
 - **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
   GLASS (shell, well, hover, raised: see-through films on the wallpaper),
   one SOLID for everything on or over the page, INK (three whites), hair,
-  accent, private, agent (with its live green and waiting yellow), two scrims
-  and three shadows (low, high, text). No colour or shadow is written
-  anywhere else, except the empty state's letter tiles and about:rights'
-  light-scheme ink. A new surface picks a family; a new
+  accent, private, agent (with its live green and waiting yellow), the nine
+  folder colours, two scrims and three shadows (low, high, text). No colour
+  or shadow is written anywhere else, except the empty state's letter tiles
+  and about:rights' light-scheme ink. A new surface picks a family; a new
   value goes into koi-theme.css first.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
@@ -746,8 +791,9 @@ named.
 labels (phase 2) and pick-and-copy (phase 3), the field-as-progress-bar
 tint, hold-a-tab to peek,
 re-pointing View › Show All Tabs at the board, a bookmarks surface with
-folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, tab
-groups. No fox shows by default; the urlbar's "Firefox View" quick action
+folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, a
+board that shows folders (Board · Decks on the canvas; today it flattens
+them). No fox shows by default; the urlbar's "Firefox View" quick action
 (typed) still has one, as in Zen. Help ▸ Get Help, Share Ideas and Feedback
 and Switching to a New Device still lead to Mozilla's Firefox pages, as in
 Zen, until Koi has its own. Strings naming Firefox literally ("Firefox

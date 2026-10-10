@@ -57,6 +57,58 @@
   }
 }
 
+/* The agent's folder (KoiAgentTabs.sys.mjs): a folder (koi-folders.css) in
+ * the agent's blue, its chip the glyph on its tile, as on the toolbar and
+ * the prompt, with the live dot while an agent is connected ([koi-live],
+ * koi-agents.js). Selectors outrank koi-folders.css's, which loads later. */
+#tabbrowser-tabs[orient="horizontal"] tab-group[koi-agent] {
+  --koi-folder-tint: color-mix(in srgb, var(--koi-agent) 18%, transparent);
+
+  & .tab-group-label {
+    color: var(--koi-fg);
+
+    &::before {
+      width: var(--koi-space-16);
+      height: var(--koi-space-16);
+      vertical-align: -4px;
+      border-radius: var(--koi-radius-favicon);
+      background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 10px no-repeat;
+      -moz-context-properties: fill;
+      fill: var(--koi-fg);
+      mask: none;
+    }
+  }
+
+  &[koi-live] .tab-group-label::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-inline-start: 6px;
+    vertical-align: 1px;
+    border-radius: 50%;
+    background-color: var(--koi-live);
+    animation: koi-agents-chip-live 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes koi-agents-chip-live {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--koi-live) 25%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #tabbrowser-tabs[orient="horizontal"] tab-group[koi-agent][koi-live] .tab-group-label::after {
+    animation: none;
+  }
+}
+
 /* The panels ------------------------------------------------------------- */
 /* Native popovers: macOS draws the material, Koi only lays out on it. Both
  * keep Firefox's panel metrics (tokens-shared.css, panelUI-shared.css): the
@@ -107,6 +159,10 @@
   padding: var(--koi-space-4) var(--panel-menuitem-padding-inline);
 }
 
+.koi-agents-row[hidden] {
+  display: none;
+}
+
 .koi-agents-name {
   flex: 1;
   min-width: 0;
@@ -122,6 +178,7 @@
 /* Secondary values sit at the row's size in a quieter ink, as the app
  * menu's shortcuts do. */
 .koi-agents-since,
+.koi-agents-tab-count,
 .koi-agents-claude-note {
   color: var(--koi-fg-3);
 }
@@ -244,7 +301,7 @@
 
 /* Inline actions are bare, in the agent's ink, and reach 8px past the text
  * column so their labels end where the row's other values do. */
-.koi-agents-body :is(.koi-agents-add, .koi-agents-copy, .koi-agents-retry) {
+.koi-agents-body :is(.koi-agents-add, .koi-agents-copy, .koi-agents-retry, .koi-agents-show, .koi-agents-share) {
   margin-inline-end: calc(-1 * var(--panel-menuitem-padding-inline));
   padding-inline: var(--panel-menuitem-padding-inline);
   background-color: transparent;

@@ -13,4 +13,5 @@
 #include ../../../koi/newtab/jar.inc.mn
 #include ../../../koi/devmode/jar.inc.mn
 #include ../../../koi/agents/jar.inc.mn
+#include ../../../koi/folders/jar.inc.mn
 #include ../../../koi/about/jar.inc.mn

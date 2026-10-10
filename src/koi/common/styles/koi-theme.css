@@ -89,6 +89,20 @@
   --koi-live: #30d158;
   --koi-waiting: #ffd60a;
 
+  /* Folders (src/koi/folders/): Firefox's nine group colours in Koi's
+   * values, pastel enough to tint a tray and ink a glyph on dark glass. The
+   * tray is the colour at 18% (koi-folders.css); the agent's folder uses
+   * --koi-agent, outside this rotation. */
+  --koi-folder-blue: #7fb3ff;
+  --koi-folder-purple: #c7a6ff;
+  --koi-folder-cyan: #6fd3e6;
+  --koi-folder-orange: #ffad7a;
+  --koi-folder-yellow: #f5d76e;
+  --koi-folder-pink: #ff9ad5;
+  --koi-folder-green: #8ee3a6;
+  --koi-folder-gray: #a8a9b0;
+  --koi-folder-red: #ff8a8a;
+
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);
   --koi-page-ring: rgba(0, 0, 0, 0.06);

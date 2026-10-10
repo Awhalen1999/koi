@@ -28,11 +28,15 @@
  *   - Connected is any session on the servers. It ends when the agent quits,
  *     when the connector drops it after 30 idle minutes (it reconnects, and
  *     is asked again, on its next call), or on Disconnect.
+ *   - Tabs: the agent works in a folder of its own, in the background, and
+ *     sees only its tabs (KoiAgentTabs.sys.mjs). Allow agents off releases
+ *     the folder into an ordinary one.
  *
  * Windows listen on "koi-agents" (state changed) and answer the prompt
  * through window.gKoiAgents.ask(). */
 
 import { BrowserWindowTracker } from "resource:///modules/BrowserWindowTracker.sys.mjs";
+import { KoiAgentTabs } from "chrome://browser/content/koi-agents/KoiAgentTabs.sys.mjs";
 import { RemoteControlServers } from "moz-src:///browser/components/remotecontrol/RemoteControlServers.sys.mjs";
 import { RemoteAgent } from "chrome://remote/content/components/RemoteAgent.sys.mjs";
 import {
@@ -86,6 +90,9 @@ const notify = () => Services.obs.notifyObservers(null, "koi-agents");
 // already runs for it, and Koi's would put its sessions behind the prompt.
 // Read before Koi's own start, which would also set it.
 const LAUNCHED_FOR_AUTOMATION = RemoteControlServers.enabled;
+if (!LAUNCHED_FOR_AUTOMATION) {
+  KoiAgentTabs.install();
+}
 
 let connectedAt = 0;
 let deniedAt = -Infinity;
@@ -157,6 +164,7 @@ function sync() {
   queue = queue
     .then(() => {
       if (!KoiAgents.enabled) {
+        KoiAgentTabs.release();
         return stopServers();
       }
       return KoiAgents.listening ? null : startServers();

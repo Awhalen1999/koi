@@ -4,7 +4,7 @@
 
 /* Browser-window globals (koi/ is outside eslint.config.mjs's browser-window
  * paths). */
-/* global MozXULElement, delayedStartupPromise, gBrowserInit, FullScreen */
+/* global MozXULElement, delayedStartupPromise, gBrowser, gBrowserInit, FullScreen, PrivateBrowsingUtils, TabContextMenu */
 
 /* Agent Connect, each window's half (KoiAgents.sys.mjs is the app's):
  *   - Its own button in row one, after ⚒, on every page: shown with
@@ -18,8 +18,14 @@
  *   - Koi's prompt before each connection (gKoiAgents.ask, called by the
  *     module), a macOS permission alert under the agent's glyph joined to
  *     Koi's icon: Allow or Don't Allow, for every new connection.
- *   - "Agent" at the end of the address field while one is connected; it
- *     opens the panel.
+ *   - "Agent" at the end of the address field on the agent's tabs while one
+ *     is connected; it opens the panel.
+ *   - The agent's folder (KoiAgentTabs.sys.mjs), drawn by koi-agents.css: a
+ *     folder like any other, except that its chip has a menu of its own
+ *     instead of Firefox's editor (nothing to edit) and shows the live dot
+ *     while an agent is connected. The panel counts its tabs and shows the
+ *     folder; "Share with Agent" in the tab menu moves a tab in or back out,
+ *     and the folder leads the "Add Tab to Folder" list.
  * Built after delayed startup, once koi-devmode.js has placed its buttons. */
 
 (() => {
@@ -44,6 +50,9 @@
     const { KoiAgents } = ChromeUtils.importESModule(
       "chrome://browser/content/koi-agents/KoiAgents.sys.mjs"
     );
+    const { KoiAgentTabs } = ChromeUtils.importESModule(
+      "chrome://browser/content/koi-agents/KoiAgentTabs.sys.mjs"
+    );
     const { KoiDevMode } = ChromeUtils.importESModule(
       "chrome://browser/content/koi-devmode/KoiDevMode.sys.mjs"
     );
@@ -62,6 +71,15 @@
             <html:button class="koi-agents-retry">Try Again</html:button>
           </html:div>
           <html:button class="koi-agents-disconnect">Disconnect</html:button>
+          <html:div class="koi-agents-row koi-agents-tabs">
+            <html:span class="koi-agents-name">Agent folder</html:span>
+            <html:span class="koi-agents-tab-count"/>
+            <html:button class="koi-agents-show">Show</html:button>
+          </html:div>
+          <html:div class="koi-agents-row">
+            <html:span class="koi-agents-name">This tab</html:span>
+            <html:button class="koi-agents-share"/>
+          </html:div>
           <toolbarseparator/>
           <html:span class="koi-agents-heading">Agents</html:span>
           <html:div class="koi-agents-row koi-agents-claude">
@@ -85,15 +103,23 @@
             <html:img class="koi-agents-koi" src="chrome://branding/content/about-logo-private.png" srcset="chrome://branding/content/about-logo-private@2x.png 2x" alt=""/>
           </html:div>
           <html:span class="koi-agents-title">Allow an agent to use Koi?</html:span>
-          <html:span class="koi-agents-note">It can use your open tabs, read their console and network, and run scripts until it disconnects.</html:span>
+          <html:span class="koi-agents-note">It works in tabs of its own, and any you share, and can read their console and network until it disconnects.</html:span>
           <html:div class="koi-agents-choices">
             <html:button class="koi-agents-allow">Allow</html:button>
             <html:button class="koi-agents-deny">Don’t Allow</html:button>
           </html:div>
         </html:div>
       </panel>
+      <menupopup id="koi-agents-folder-menu">
+        <menuitem class="koi-agents-open-panel" label="Open Agents Panel"/>
+        <menuitem class="koi-agents-share-current" label="Share Current Tab"/>
+        <menuitem class="koi-agents-close-tabs" label="Close Tabs"/>
+        <menuseparator/>
+        <menuitem class="koi-agents-disconnect-item" label="Disconnect"/>
+      </menupopup>
     `);
     const panel = fragment.getElementById("koi-agents-panel");
+    const folderMenu = fragment.getElementById("koi-agents-folder-menu");
     const prompt = fragment.getElementById("koi-agents-prompt");
     const toggle = panel.querySelector(".koi-agents-switch");
     const stateLabel = panel.querySelector(".koi-agents-state");
@@ -101,6 +127,10 @@
     const claudeRow = panel.querySelector(".koi-agents-claude");
     const addButton = panel.querySelector(".koi-agents-add");
     const copyButton = panel.querySelector(".koi-agents-copy");
+    const tabsRow = panel.querySelector(".koi-agents-tabs");
+    const tabCount = panel.querySelector(".koi-agents-tab-count");
+    const showButton = panel.querySelector(".koi-agents-show");
+    const shareButton = panel.querySelector(".koi-agents-share");
     document.getElementById("mainPopupSet").append(fragment);
 
     const label = document.createElementNS(XHTML, "button");
@@ -154,6 +184,107 @@
     panel
       .querySelector(".koi-agents-disconnect")
       .addEventListener("click", () => KoiAgents.disconnect());
+    showButton.addEventListener("click", () => {
+      const group = KoiAgentTabs.group(window);
+      if (group) {
+        group.collapsed = false;
+        gBrowser.selectedTab = group.tabs[0];
+      }
+    });
+    shareButton.addEventListener("click", () => {
+      const tab = gBrowser.selectedTab;
+      KoiAgentTabs.share(tab, !KoiAgentTabs.is(tab));
+      render();
+    });
+
+    // The folder ----------------------------------------------------------
+
+    const strip = gBrowser.tabContainer;
+    const isAgentChip = node =>
+      gBrowser.isTabGroupLabel(node) && node.group.hasAttribute("koi-agent");
+
+    // The chip: Koi's menu instead of Firefox's editor. Capture, ahead of
+    // Firefox's listener on the label.
+    strip.addEventListener(
+      "contextmenu",
+      event => {
+        if (isAgentChip(event.target)) {
+          event.preventDefault();
+          event.stopPropagation();
+          folderMenu.openPopupAtScreen(event.screenX, event.screenY, true);
+        }
+      },
+      true
+    );
+    folderMenu.addEventListener("popupshowing", () => {
+      folderMenu.querySelector(".koi-agents-share-current").disabled =
+        KoiAgentTabs.is(gBrowser.selectedTab);
+      folderMenu.querySelector(".koi-agents-disconnect-item").disabled =
+        !KoiAgents.connected;
+    });
+    folderMenu.addEventListener("command", event => {
+      const action = event.target.className;
+      if (action == "koi-agents-open-panel") {
+        panel.openPopup(button, "bottomright topright");
+      } else if (action == "koi-agents-share-current") {
+        KoiAgentTabs.share(gBrowser.selectedTab);
+      } else if (action == "koi-agents-close-tabs") {
+        KoiAgentTabs.closeAll();
+      } else if (action == "koi-agents-disconnect-item") {
+        KoiAgents.disconnect();
+      }
+    });
+
+    // The tab menu: "Share with Agent" after "Add Tab to Folder", present
+    // while Allow agents is on and the window is not private. Firefox lays
+    // the menu out from a list of its items on first show and refuses one it
+    // does not know (MenuSectionLayout), so the item is added after that and
+    // taken out again when the menu closes. In the "Add Tab to Folder" list
+    // the folder comes first, in the agent's blue.
+    const tabMenu = document.getElementById("tabContextMenu");
+    const shareItem = document.createXULElement("menuitem");
+    shareItem.id = "koi-agents-share-item";
+    shareItem.addEventListener("command", () => {
+      const tabs = TabContextMenu.contextTabs;
+      const on = !tabs.every(KoiAgentTabs.is, KoiAgentTabs);
+      for (const tab of tabs) {
+        KoiAgentTabs.share(tab, on);
+      }
+    });
+    tabMenu.addEventListener("popupshowing", event => {
+      if (event.target != tabMenu) {
+        return;
+      }
+      TabContextMenu._ensureMenuArranged(tabMenu);
+      if (!KoiAgents.enabled || PrivateBrowsingUtils.isWindowPrivate(window)) {
+        return;
+      }
+      const tabs = TabContextMenu.contextTabs;
+      const back = tabs.every(KoiAgentTabs.is, KoiAgentTabs);
+      shareItem.setAttribute(
+        "label",
+        back ? "Take Back from Agent" : "Share with Agent"
+      );
+      document.getElementById("context_moveTabToGroup").after(shareItem);
+    });
+    tabMenu.addEventListener("popuphidden", event => {
+      if (event.target == tabMenu) {
+        shareItem.remove();
+      }
+    });
+    document
+      .getElementById("context_moveTabToGroupPopupMenu")
+      .addEventListener("popupshowing", event => {
+        const group = KoiAgentTabs.group(window);
+        const item =
+          group && event.target.querySelector(`[tab-group-id="${group.id}"]`);
+        if (item) {
+          document
+            .getElementById("open-tab-groups-separator-upper")
+            .after(item);
+          item.style.setProperty("--tab-group-color", "var(--koi-agent)");
+        }
+      });
 
     addButton.addEventListener("click", async () => {
       addButton.disabled = true;
@@ -215,8 +346,9 @@
         }
         // A panel opened while another of Koi's windows is active (a popup,
         // a dialog) rolls up at once, unseen, which reads as Don't Allow. So
-        // this window comes forward first, and the panel waits a frame past
-        // "activate", which fires before macOS has made it key.
+        // this window comes forward first, and the panel waits a beat past
+        // "activate", which fires before macOS has made it key. A timer, not
+        // a frame: an occluded window gets no frames.
         const active = Services.focus.activeWindow;
         if (active && active != window) {
           const activated = new Promise(resolve => {
@@ -225,7 +357,7 @@
           });
           window.focus();
           await activated;
-          await new Promise(requestAnimationFrame);
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
         prompt.openPopup(button, "bottomright topright");
         // Bounces the Dock icon while another app is in front.
@@ -243,8 +375,16 @@
         prompt.hidePopup();
       }
       button.hidden = !KoiDevMode.enabled && !enabled;
-      label.hidden = !connected;
+      const onAgentTab = KoiAgentTabs.is(gBrowser.selectedTab);
+      label.hidden = !connected || !onAgentTab;
       toggle.pressed = enabled;
+      const tabs = KoiAgentTabs.all.length;
+      tabsRow.hidden = !tabs;
+      tabCount.textContent = tabs;
+      const group = KoiAgentTabs.group(window);
+      showButton.disabled = !group;
+      group?.toggleAttribute("koi-live", connected);
+      shareButton.textContent = onAgentTab ? "Take Back" : "Share This Tab";
       let state = "off";
       if (connected) {
         state = "connected";
@@ -264,6 +404,9 @@
     const TOPICS = ["koi-agents", "koi-devmode"];
     for (const topic of TOPICS) {
       Services.obs.addObserver(observer, topic);
+    }
+    for (const type of ["TabSelect", "TabOpen", "TabClose", "TabGroupCreate"]) {
+      strip.addEventListener(type, render);
     }
     addEventListener(
       "unload",
