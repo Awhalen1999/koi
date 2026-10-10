@@ -8,34 +8,43 @@
  * which drives the two remote-control servers Firefox can start at runtime
  * (RemoteControlServers.sys.mjs, allowed by agents.yaml). The machinery is
  * Firefox's; this module decides when it runs and who may use it:
- *   - On: the user's switch. Marionette takes a free port and writes it to
+ *   - Allow agents is a setting (ENABLED_PREF). Once on, the servers wait for
+ *     agents until the user turns it off, and start again at launch, unless
+ *     Koi was launched for automation. A runtime start leaves the profile's
+ *     prefs alone (WebDriverBiDi.sys.mjs start), so waiting costs browsing
+ *     nothing. Starts and stops run one at a time, each reading the setting
+ *     when its turn comes.
+ *   - Ports: Marionette takes a free port and writes it to
  *     ~/.firefox-devtools-mcp/instances/<pid>.port, where the connector's
  *     --lookup-marionette-port finds it. The Remote Agent always takes 9222
  *     (RemoteAgent.sys.mjs has no pref for it). Either server force-quits the
  *     app when its port is taken (Marionette.sys.mjs init, RemoteAgent.sys.mjs
  *     #listen), so 9222 is checked first and Marionette is given port 0.
  *   - Asking: Firefox asks before any session it was not launched for
- *     (ConnectionPrompt.sys.mjs), in a modal window. Its show() is replaced
- *     by Koi's prompt in the window in front. Don't Allow also turns access
- *     off, so a connector that retries cannot ask again.
- *   - Off: when the agent disconnects, after IDLE_MS with no agent, and at
- *     quit, where Firefox stops both servers and removes the port file.
+ *     (ConnectionPrompt.sys.mjs), in a modal window; its show() is replaced
+ *     by Koi's prompt in the frontmost window with a toolbar. Firefox allows one session and
+ *     refuses a second before asking (WebDriverBiDi.sys.mjs createSession), so
+ *     agents take turns. After Don't Allow, Koi refuses without asking for
+ *     DENY_MS: an agent may retry at once.
+ *   - Connected is any session on the servers. It ends when the agent quits,
+ *     when the connector drops it after 30 idle minutes (it reconnects, and
+ *     is asked again, on its next call), or on Disconnect.
  *
- * Windows listen on "koi-agents" (state changed) and "koi-agents-off" (data:
- * why access turned itself off), and answer the prompt through
- * window.gKoiAgents.ask(). */
+ * Windows listen on "koi-agents" (state changed) and answer the prompt
+ * through window.gKoiAgents.ask(). */
 
-import { clearTimeout, setTimeout } from "resource://gre/modules/Timer.sys.mjs";
+import { BrowserWindowTracker } from "resource:///modules/BrowserWindowTracker.sys.mjs";
 import { RemoteControlServers } from "moz-src:///browser/components/remotecontrol/RemoteControlServers.sys.mjs";
+import { RemoteAgent } from "chrome://remote/content/components/RemoteAgent.sys.mjs";
 import {
   ConnectionPrompt,
   ConnectionPromptResult,
 } from "chrome://remote/content/shared/webdriver/ConnectionPrompt.sys.mjs";
 
-const REMEMBER_PREF = "koi.agents.allowed-on";
+const ENABLED_PREF = "koi.agents.enabled";
 const MARIONETTE_PORT_PREF = "marionette.port";
 const REMOTE_AGENT_PORT = 9222;
-const IDLE_MS = 15 * 60 * 1000;
+const DENY_MS = 60 * 1000;
 
 // What an agent runs to reach Koi. The developer preset adds the console and
 // network tools to the connector's default set.
@@ -59,8 +68,6 @@ const CLAUDE_PATHS = [
 ];
 const CLAUDE_CONFIG = PathUtils.join(HOME, ".claude.json");
 
-const today = () => new Date().toDateString();
-
 function portFree(port) {
   const socket = Cc["@mozilla.org/network/server-socket;1"].createInstance(
     Ci.nsIServerSocket
@@ -74,106 +81,136 @@ function portFree(port) {
   }
 }
 
-// A session that begins while access is on is the agent's; its end turns
-// access off. Sessions that began earlier (a browser launched for automation)
-// are not.
-let sessionActive = RemoteControlServers.hasActiveSession;
-let agentSession = false;
+const notify = () => Services.obs.notifyObservers(null, "koi-agents");
+
+// Launched for automation (--marionette, --remote-debugging-port), a server
+// already runs for it, and Koi's would put its sessions behind the prompt.
+// Read before Koi's own start, which would also set it.
+const LAUNCHED_FOR_AUTOMATION = RemoteControlServers.enabled;
+
 let connectedAt = 0;
-let idleTimer;
+let deniedAt = -Infinity;
+let problem = null;
+let queue = Promise.resolve();
 
 RemoteControlServers.addListener(() => {
-  const active = RemoteControlServers.hasActiveSession;
-  if (active && !sessionActive && KoiAgents.enabled) {
-    agentSession = true;
-    connectedAt = Date.now();
-    clearTimeout(idleTimer);
-  } else if (!active && sessionActive && agentSession) {
-    KoiAgents.stop("disconnected");
+  const { connected } = KoiAgents;
+  if (connected != !!connectedAt) {
+    connectedAt = connected ? Date.now() : 0;
   }
-  sessionActive = active;
-  Services.obs.notifyObservers(null, "koi-agents");
+  notify();
 });
 
 const firefoxShow = ConnectionPrompt.show;
 ConnectionPrompt.show = async function () {
-  if (Services.prefs.getStringPref(REMEMBER_PREF, "") == today()) {
-    return ConnectionPromptResult.ALLOW;
+  if (Date.now() - deniedAt < DENY_MS) {
+    return ConnectionPromptResult.DENY;
   }
-  const win = Services.wm.getMostRecentBrowserWindow();
+  // Popups have no toolbar, so no agents UI (koi-agents.js).
+  const win = BrowserWindowTracker.getTopWindow();
   if (!win?.gKoiAgents) {
     return firefoxShow.call(this);
   }
-  const { allow, remember } = await win.gKoiAgents.ask();
-  if (!allow) {
-    // Once the refusal has reached the connector.
-    setTimeout(() => KoiAgents.stop(), 1000);
-    return ConnectionPromptResult.DENY;
+  if (await win.gKoiAgents.ask()) {
+    return ConnectionPromptResult.ALLOW;
   }
-  if (remember) {
-    Services.prefs.setStringPref(REMEMBER_PREF, today());
-  }
-  return ConnectionPromptResult.ALLOW;
+  deniedAt = Date.now();
+  return ConnectionPromptResult.DENY;
 };
+
+async function startServers() {
+  if (!portFree(REMOTE_AGENT_PORT)) {
+    problem = "port";
+    return;
+  }
+  // Marionette saves the port it bound into its pref (server.sys.mjs
+  // TCPListener.start), so the profile's own value goes back afterwards.
+  const savedPort = Services.prefs.prefHasUserValue(MARIONETTE_PORT_PREF)
+    ? Services.prefs.getIntPref(MARIONETTE_PORT_PREF)
+    : null;
+  Services.prefs.setIntPref(MARIONETTE_PORT_PREF, 0);
+  try {
+    await RemoteControlServers.start();
+    problem = null;
+  } catch (e) {
+    console.error(e);
+    problem = "error";
+    // A failed start can leave one server up.
+    await RemoteControlServers.stop();
+  } finally {
+    if (savedPort === null) {
+      Services.prefs.clearUserPref(MARIONETTE_PORT_PREF);
+    } else {
+      Services.prefs.setIntPref(MARIONETTE_PORT_PREF, savedPort);
+    }
+  }
+}
+
+async function stopServers() {
+  problem = null;
+  await RemoteControlServers.stop();
+}
+
+function sync() {
+  queue = queue
+    .then(() => {
+      if (!KoiAgents.enabled) {
+        return stopServers();
+      }
+      return KoiAgents.listening ? null : startServers();
+    })
+    .catch(console.error)
+    .finally(notify);
+  return queue;
+}
 
 export const KoiAgents = {
   setup: SERVER.join(" "),
 
+  /** Allow agents: the user's setting. */
   get enabled() {
+    return Services.prefs.getBoolPref(ENABLED_PREF, false);
+  },
+
+  /** True while the servers are up, waiting for an agent or serving one. */
+  get listening() {
     return RemoteControlServers.runningDynamically;
   },
 
   get connected() {
-    return this.enabled && agentSession && sessionActive;
+    return this.listening && RemoteControlServers.hasActiveSession;
   },
 
-  /** When the agent connected (ms since epoch); meaningful while connected. */
+  /** When the agent connected (ms since epoch), or 0. */
   get connectedAt() {
     return connectedAt;
   },
 
-  async start() {
-    if (this.enabled) {
-      return;
-    }
-    if (!portFree(REMOTE_AGENT_PORT)) {
-      Services.obs.notifyObservers(null, "koi-agents-off", "port");
-      return;
-    }
-    // Marionette saves the port it bound into its pref (server.sys.mjs
-    // TCPListener.start), so the profile's own value goes back afterwards.
-    const savedPort = Services.prefs.prefHasUserValue(MARIONETTE_PORT_PREF)
-      ? Services.prefs.getIntPref(MARIONETTE_PORT_PREF)
-      : null;
-    Services.prefs.setIntPref(MARIONETTE_PORT_PREF, 0);
-    agentSession = false;
-    try {
-      await RemoteControlServers.start();
-    } finally {
-      if (savedPort === null) {
-        Services.prefs.clearUserPref(MARIONETTE_PORT_PREF);
-      } else {
-        Services.prefs.setIntPref(MARIONETTE_PORT_PREF, savedPort);
-      }
-    }
-    idleTimer = setTimeout(() => this.stop("idle"), IDLE_MS);
+  /**
+   * Why the servers are down although enabled: "port" (9222 is taken) or
+   * "error".
+   */
+  get problem() {
+    return problem;
   },
 
-  /**
-   * @param {string} [reason]
-   *     Why access turned itself off: "disconnected" or "idle". None when the
-   *     user turned it off.
-   */
-  async stop(reason) {
-    clearTimeout(idleTimer);
-    if (!this.enabled) {
-      return;
-    }
-    agentSession = false;
-    await RemoteControlServers.stop();
-    if (reason) {
-      Services.obs.notifyObservers(null, "koi-agents-off", reason);
-    }
+  /** @param {boolean} on */
+  setEnabled(on) {
+    Services.prefs.setBoolPref(ENABLED_PREF, on);
+    return sync();
+  },
+
+  /** Starts or stops the servers to match the setting, as after a problem. */
+  sync,
+
+  /** At launch: starts the servers if the setting is on. */
+  resume() {
+    return LAUNCHED_FOR_AUTOMATION ? Promise.resolve() : sync();
+  },
+
+  /** Ends the agent's session. The servers keep waiting for the next. */
+  disconnect() {
+    RemoteAgent.webDriverBiDi?.deleteSession();
   },
 
   /** @returns {Promise<string|null>} Claude Code's executable, if installed. */

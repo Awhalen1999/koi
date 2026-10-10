@@ -74,7 +74,8 @@
 
   /* Private windows' violet: the window's tint, the tab row's label and
    * about:privatebrowsing, so a private window is never mistaken for a normal
-   * one. With the agent's blue, the chrome's only other colours. */
+   * one. With the agent's blue and its status colours, the chrome's only other
+   * colours. */
   --koi-private: rgb(122, 92, 255);
 
   /* An agent at work (src/koi/agents/): macOS's blue, the colour agent
@@ -82,6 +83,11 @@
    * field. */
   --koi-agent: #0a84ff;
   --koi-agent-ink: #6cb6ff;
+
+  /* The agents panel's status dot: macOS's system green for a live
+   * connection, its yellow while waiting for one. */
+  --koi-live: #30d158;
+  --koi-waiting: #ffd60a;
 
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);

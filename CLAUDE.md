@@ -627,21 +627,29 @@ named.
 - **Agent Connect** (src/koi/agents/; KoiAgents.sys.mjs's header has the
   mechanics). A coding agent drives Koi's tabs through Mozilla's
   firefox-devtools-mcp. Its own button in row one, on every page, shows
-  with Developer Mode on (⚒ is for web pages only); its panel's switch starts
-  Firefox's remote-control servers at runtime. Koi's prompt replaces
-  Firefox's modal one; an "Agent" label sits at the end of the address field
-  while one is connected; access turns itself off when it disconnects, after
-  15 idle minutes and at quit. Firefox's banners and red address-bar stripes
-  are off. The panel adds Koi to Claude Code (`claude mcp add`, user scope)
+  with Developer Mode on (⚒ is for web pages only) and whenever Allow agents
+  is on. Allow agents is a setting (`koi.agents.enabled`), never switched off
+  for the user: while on, Firefox's remote-control servers wait for agents
+  from launch, and an agent that disconnects, idles out (the connector drops
+  its session after 30 minutes) or is disconnected leaves them waiting. Koi's
+  prompt replaces Firefox's modal one before each connection; Don't Allow
+  holds off prompts for a minute, and Firefox refuses a second agent before
+  asking, so agents take turns. An "Agent" label sits at the end of the
+  address field while one is connected. Firefox's banners and red
+  address-bar stripes are off. The panel adds Koi to Claude Code (`claude mcp add`, user scope)
   or copies the command for any other agent; the connector needs
   `--tool-preset developer` for its console and network tools, and
   Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's 0.1.0
   (it disables version-gated tools). Agents see every tab, private windows
   included, as in Firefox. Testing trap: the `--marionette` harness blocks a
   runtime Marionette, orphans its own session once the Remote Agent starts,
-  and meets Koi's prompt on its own later connections. Start access from a
-  chrome timer after the harness call returns, set `koi.agents.allowed-on`
-  to today, and play the agent with a WebDriver BiDi client or the connector.
+  and meets Koi's prompt on its own later connections, even after access is
+  off (Firefox keeps routing them through WebDriver BiDi). Script the run in
+  one harness call with chrome timers (start, answer the prompt, record to a
+  file with IOUtils), play the agent with a WebDriver BiDi client or the
+  connector, and read the file.
+  A second instance cannot listen while the real Koi has Allow agents on:
+  9222 is taken, and it shows "Port 9222 in use".
 - **Peek has no trigger yet.** koi-board.js carries a `peek` mode (one row of
   cards over the light scrim) that nothing opens; its trigger is hold-a-tab.
   The board is ⇧⌘E.
@@ -692,9 +700,10 @@ named.
 - **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
   GLASS (shell, well, hover, raised: see-through films on the wallpaper),
   one SOLID for everything on or over the page, INK (three whites), hair,
-  accent, private, agent, two scrims and three shadows (low, high, text). No colour
-  or shadow is written anywhere else, except the empty state's letter tiles
-  and about:rights' light-scheme ink. A new surface picks a family; a new
+  accent, private, agent (with its live green and waiting yellow), two scrims
+  and three shadows (low, high, text). No colour or shadow is written
+  anywhere else, except the empty state's letter tiles and about:rights'
+  light-scheme ink. A new surface picks a family; a new
   value goes into koi-theme.css first.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
