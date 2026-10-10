@@ -1,0 +1,15 @@
+diff --git a/remote/shared/webdriver/Capabilities.sys.mjs b/remote/shared/webdriver/Capabilities.sys.mjs
+index 038caecede43dffd973f172ce813ec47c81abfa6..682383788af07313220e4f23bfb6b313e63dd46e 100644
+--- a/remote/shared/webdriver/Capabilities.sys.mjs
++++ b/remote/shared/webdriver/Capabilities.sys.mjs
+@@ -479,7 +479,9 @@ export class Capabilities extends Map {
+     const defaults = [
+       ["acceptInsecureCerts", false],
+       ["browserName", getWebDriverBrowserName()],
+-      ["browserVersion", lazy.AppInfo.version],
++      // Koi: the Gecko version, not the app's own, so clients that gate
++      // features on the Firefox version (firefox-devtools-mcp) see 157.
++      ["browserVersion", Services.appinfo.platformVersion],
+       ["platformName", getWebDriverPlatformName()],
+       ["proxy", new ProxyConfiguration()],
+       ["setWindowRect", !lazy.AppInfo.isAndroid],

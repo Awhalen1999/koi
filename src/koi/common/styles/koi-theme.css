@@ -74,8 +74,14 @@
 
   /* Private windows' violet: the window's tint, the tab row's label and
    * about:privatebrowsing, so a private window is never mistaken for a normal
-   * one. The chrome's only other colour. */
+   * one. With the agent's blue, the chrome's only other colours. */
   --koi-private: rgb(122, 92, 255);
+
+  /* An agent at work (src/koi/agents/): macOS's blue, the colour agent
+   * browsers use for it. The ink is its tint, readable on the dark address
+   * field. */
+  --koi-agent: #0a84ff;
+  --koi-agent-ink: #6cb6ff;
 
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);

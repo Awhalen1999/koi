@@ -1,0 +1,237 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Agent Connect (koi-agents.js). The panels are native popovers
+ * (koi-panels.css clears Firefox's paint, so they only lay out their content);
+ * the label sits at the end of the address field among Firefox's page
+ * actions, in the agent's blue (koi-theme.css). */
+
+/* Firefox marks remote control with red stripes behind the address field and
+ * a robot at its start (urlbar.css, :root[remotecontrol]). The label replaces
+ * both: same selectors, later sheet. */
+:root[remotecontrol] {
+  & #remote-control-box {
+    display: none;
+  }
+
+  & .urlbar-background {
+    background-image: none;
+  }
+}
+
+/* The address field's type is mono; the label is a control, in the system
+ * font. */
+#koi-agents-label {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  margin-inline: var(--koi-space-4);
+  padding: 0 7px;
+  border: none;
+  border-radius: var(--koi-radius-favicon);
+  background-color: color-mix(in srgb, var(--koi-agent) 18%, transparent);
+  color: var(--koi-agent-ink);
+  font: menu;
+  font-size: var(--koi-text-11-5);
+  font-weight: 500;
+  transition: background-color var(--koi-fade);
+
+  &::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: url("chrome://browser/content/koi-agents/koi-agent.svg") center / contain no-repeat;
+    -moz-context-properties: fill;
+    fill: var(--koi-agent);
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--koi-agent) 32%, transparent);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+/* The panels -------------------------------------------------------------- */
+
+#koi-agents-panel,
+#koi-agents-prompt {
+  color: var(--koi-fg);
+  color-scheme: dark;
+  font-size: var(--koi-text-13);
+}
+
+/* [state] is off, ready or connected (koi-agents.js render). */
+#koi-agents-panel {
+  &:not([state="connected"]) .koi-agents-status,
+  &:not([state="ready"]) .koi-agents-ready {
+    display: none;
+  }
+}
+
+.koi-agents-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--koi-space-12);
+  width: 320px;
+  padding: var(--koi-space-16);
+}
+
+.koi-agents-head {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-12);
+}
+
+.koi-agents-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.koi-agents-title {
+  font-weight: 600;
+}
+
+.koi-agents-name {
+  font-size: var(--koi-text-12);
+  font-weight: 500;
+}
+
+.koi-agents-note {
+  color: var(--koi-fg-2);
+  font-size: var(--koi-text-12);
+  line-height: 1.45;
+}
+
+.koi-agents-status,
+.koi-agents-ready {
+  padding: var(--koi-space-8) 10px;
+  border-radius: var(--koi-radius-pill);
+  background-color: var(--koi-glass-shell);
+  font-size: var(--koi-text-12);
+}
+
+.koi-agents-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.koi-agents-ready {
+  color: var(--koi-fg-2);
+}
+
+/* The agents, under a hairline. */
+.koi-agents-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--koi-space-12);
+  padding-top: var(--koi-space-12);
+  border-top: 0.5px solid var(--koi-hair);
+}
+
+.koi-agents-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.koi-agents-tile {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: var(--koi-glass-well);
+  font-size: var(--koi-text-11);
+  font-weight: 700;
+}
+
+.koi-agents-tile-other {
+  background: url("chrome://global/skin/icons/plus.svg") center / 12px no-repeat;
+  box-shadow: inset 0 0 0 1px var(--koi-hair);
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
+}
+
+/* [status] is found, added, missing or failed (koi-agents.js setClaude). */
+.koi-agents-claude:is([status="added"], [status="missing"]) .koi-agents-add {
+  display: none;
+}
+
+/* The prompt: the agent's glyph on its blue, the question, the actions. */
+.koi-agents-glyph {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--koi-agent) 18%, transparent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 16px no-repeat;
+  -moz-context-properties: fill;
+  fill: var(--koi-agent);
+}
+
+.koi-agents-remember {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-8);
+  font-size: var(--koi-text-12);
+
+  & > input {
+    margin: 0;
+  }
+}
+
+.koi-agents-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--koi-space-8);
+}
+
+/* Buttons: pills on the WELL; Allow on the accent. */
+.koi-agents-body button {
+  appearance: none;
+  flex: none;
+  height: var(--koi-pill-height);
+  padding: 0 var(--koi-space-12);
+  border: none;
+  border-radius: var(--koi-radius-pill);
+  background-color: var(--koi-glass-well);
+  color: var(--koi-fg);
+  font: inherit;
+  font-size: var(--koi-text-12);
+  transition: background-color var(--koi-fade);
+
+  &:hover {
+    background-color: var(--koi-glass-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+  }
+
+  &:disabled {
+    opacity: var(--toolbarbutton-opacity-disabled);
+  }
+}
+
+.koi-agents-body .koi-agents-allow {
+  background-color: var(--color-accent-primary);
+
+  &:hover {
+    background-color: var(--color-accent-primary-hover);
+  }
+
+  &:hover:active {
+    background-color: var(--color-accent-primary-active);
+  }
+}

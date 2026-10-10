@@ -1,0 +1,18 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Agent Connect (src/koi/agents/). Lets Firefox start its remote-control
+# servers at runtime instead of only from launch flags; Firefox shows no way
+# to do it outside Nightly, so nothing starts until ⚒ ▸ Let Agents Connect.
+- name: remote.experimental.dynamicstart.enabled
+  value: true
+
+# Firefox's bars while the servers run and while an application is connected
+# (RemoteControlBanner.sys.mjs). Koi shows the agent in the address field and
+# says when access turns itself off.
+- name: remote.experimental.dynamicstart.banner.enabled
+  value: false
+
+- name: remote.experimental.dynamicstart.connectionbanner.enabled
+  value: false
