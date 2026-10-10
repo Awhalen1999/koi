@@ -17,7 +17,7 @@
  *     setup for any other agent.
  *   - Koi's prompt before each connection (gKoiAgents.ask, called by the
  *     module), a macOS permission alert under the agent's glyph joined to
- *     Koi's icon: Allow or Don't Allow, asked again for every new session.
+ *     Koi's icon: Allow or Don't Allow, for every new connection.
  *   - "Agent" at the end of the address field while one is connected; it
  *     opens the panel.
  * Built after delayed startup, once koi-devmode.js has placed its buttons. */
@@ -228,7 +228,7 @@
           await new Promise(requestAnimationFrame);
         }
         prompt.openPopup(button, "bottomright topright");
-        // Bounces the Dock icon when the agent's terminal is in front.
+        // Bounces the Dock icon while another app is in front.
         window.getAttention();
         return answered;
       },
@@ -238,6 +238,7 @@
 
     const render = () => {
       const { enabled, listening, connected, problem } = KoiAgents;
+      // Turned off under an open prompt: the agent is refused.
       if (!listening) {
         prompt.hidePopup();
       }

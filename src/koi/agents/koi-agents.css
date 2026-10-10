@@ -254,8 +254,8 @@
 /* The prompt ---------------------------------------------------------------- */
 
 /* A macOS permission alert, centred: the agent's glyph joined to Koi's icon,
- * the question, the answers stacked full width.
- * Text 16px in, as the app menu's labels are. */
+ * the question, the answers stacked full width. Text sits 16px in, as the
+ * app menu's labels do. */
 #koi-agents-prompt > .koi-agents-body {
   align-items: center;
   padding: var(--koi-space-24) var(--koi-space-16) var(--koi-space-16);

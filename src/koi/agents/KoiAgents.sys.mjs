@@ -9,11 +9,10 @@
  * (RemoteControlServers.sys.mjs, allowed by agents.yaml). The machinery is
  * Firefox's; this module decides when it runs and who may use it:
  *   - Allow agents is a setting (ENABLED_PREF). Once on, the servers wait for
- *     agents until the user turns it off, and start again at launch, unless
+ *     agents until the user turns it off, and start again at launch unless
  *     Koi was launched for automation. A runtime start leaves the profile's
  *     prefs alone (WebDriverBiDi.sys.mjs start), so waiting costs browsing
- *     nothing. Starts and stops run one at a time, each reading the setting
- *     when its turn comes.
+ *     nothing.
  *   - Ports: Marionette takes a free port and writes it to
  *     ~/.firefox-devtools-mcp/instances/<pid>.port, where the connector's
  *     --lookup-marionette-port finds it. The Remote Agent always takes 9222
@@ -22,10 +21,10 @@
  *     #listen), so 9222 is checked first and Marionette is given port 0.
  *   - Asking: Firefox asks before any session it was not launched for
  *     (ConnectionPrompt.sys.mjs), in a modal window; its show() is replaced
- *     by Koi's prompt in the frontmost window with a toolbar. Firefox allows one session and
- *     refuses a second before asking (WebDriverBiDi.sys.mjs createSession), so
- *     agents take turns. After Don't Allow, Koi refuses without asking for
- *     DENY_MS: an agent may retry at once.
+ *     by Koi's prompt, asked for every new connection. Firefox allows one
+ *     session and refuses a second before asking (WebDriverBiDi.sys.mjs
+ *     createSession), so agents take turns. After Don't Allow, Koi refuses
+ *     without asking for DENY_MS: an agent may retry at once.
  *   - Connected is any session on the servers. It ends when the agent quits,
  *     when the connector drops it after 30 idle minutes (it reconnects, and
  *     is asked again, on its next call), or on Disconnect.
@@ -106,7 +105,8 @@ ConnectionPrompt.show = async function () {
   if (Date.now() - deniedAt < DENY_MS) {
     return ConnectionPromptResult.DENY;
   }
-  // Popups have no toolbar, so no agents UI (koi-agents.js).
+  // The frontmost window with a toolbar: popups have no agents UI. With no
+  // window open (macOS keeps running), Firefox's own modal asks.
   const win = BrowserWindowTracker.getTopWindow();
   if (!win?.gKoiAgents) {
     return firefoxShow.call(this);
@@ -151,6 +151,8 @@ async function stopServers() {
   await RemoteControlServers.stop();
 }
 
+// One start or stop at a time, each reading the setting when its turn comes,
+// so a quick off-and-on ends where the switch does.
 function sync() {
   queue = queue
     .then(() => {
@@ -177,6 +179,7 @@ export const KoiAgents = {
     return RemoteControlServers.runningDynamically;
   },
 
+  /** True while an agent's session is open. */
   get connected() {
     return this.listening && RemoteControlServers.hasActiveSession;
   },
@@ -194,7 +197,7 @@ export const KoiAgents = {
     return problem;
   },
 
-  /** @param {boolean} on */
+  /** @param {boolean} on Turns Allow agents on or off. */
   setEnabled(on) {
     Services.prefs.setBoolPref(ENABLED_PREF, on);
     return sync();
@@ -203,7 +206,10 @@ export const KoiAgents = {
   /** Starts or stops the servers to match the setting, as after a problem. */
   sync,
 
-  /** At launch: starts the servers if the setting is on. */
+  /**
+   * At launch: starts the servers if the setting is on, unless Koi was
+   * launched for automation.
+   */
   resume() {
     return LAUNCHED_FOR_AUTOMATION ? Promise.resolve() : sync();
   },
