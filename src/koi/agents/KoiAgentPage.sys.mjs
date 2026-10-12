@@ -33,7 +33,10 @@ const NAMED =
   "a, button, input, select, textarea, summary, label, [role], [contenteditable]";
 const OPTIONS = ["top", "left", "block", "inline", "container"];
 
-/** The parent side only carries koi-agents.js's messages. */
+/**
+ * The parent side only carries the messages of koi-agents.js and
+ * KoiAgentSteps.sys.mjs.
+ */
 export class KoiAgentPageParent extends JSWindowActorParent {}
 
 /**

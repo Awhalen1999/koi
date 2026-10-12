@@ -207,9 +207,10 @@
 }
 
 /* The status dot: yellow while waiting or unable to start, green and
- * breathing while an agent is connected. The breath is a halo's opacity, the
- * shell's one continuous animation, so a glance tells a live connection from
- * a stale panel; it stops under reduced motion, leaving the green. */
+ * breathing while an agent is connected. The breath is a halo's opacity, so
+ * a glance tells a live connection from a stale panel; it stops under
+ * reduced motion, leaving the green. With the folder chip's dot, the shell's
+ * only continuous animations. */
 .koi-agents-dot {
   position: relative;
   flex: none;
@@ -560,18 +561,13 @@
   line-height: 1.45;
 }
 
-/* The answers are the prompt's whole point, so they take the full control
- * height (tabs, the address field). */
+/* The answers, stacked full width. */
 .koi-agents-choices {
   align-self: stretch;
   display: flex;
   flex-direction: column;
   gap: var(--koi-space-8);
   margin-block-start: var(--koi-space-16);
-
-  & > button {
-    height: var(--koi-pill-height);
-  }
 }
 
 /* Buttons: moz-button's small pills, on the WELL. Allow is a primary button,

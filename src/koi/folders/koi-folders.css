@@ -26,7 +26,7 @@
  * the tray is chip + that tab + "+N"; with no tab selected inside, the chip
  * alone, with its pile of favicons. koi-folders.js supplies the pile
  * (.koi-folder-pile, [koi-pile], --koi-pile-width) and the icon
- * ([koi-icon]); everything else is CSS over Firefox's state. */
+ * (--koi-folder-glyph); everything else is CSS over Firefox's state. */
 
 :root {
   /* Firefox's nine group colours, as Koi's (koi-theme.css). tab-group sets
@@ -204,7 +204,7 @@ tab-group,
   transition: color var(--koi-fade);
 
   /* The folder's icon, in its colour, before the name: the plain folder
-   * until one is picked ([koi-icon], koi-folders.js). */
+   * until one is picked (--koi-folder-glyph, koi-folders.js). */
   &::before {
     content: "";
     display: inline-block;
@@ -226,28 +226,6 @@ tab-group,
 /* Unnamed: Firefox labels it a zero-width space, so the icon stands alone. */
 #tabbrowser-tabs[orient="horizontal"] tab-group[label="\200b"] .tab-group-label::before {
   margin-inline-end: 0;
-}
-
-tab-group[koi-icon="briefcase"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/briefcase.svg");
-}
-tab-group[koi-icon="book"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/book.svg");
-}
-tab-group[koi-icon="pen"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/pen.svg");
-}
-tab-group[koi-icon="flask"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/flask.svg");
-}
-tab-group[koi-icon="code"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/code.svg");
-}
-tab-group[koi-icon="home"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/home.svg");
-}
-tab-group[koi-icon="star"] {
-  --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/star.svg");
 }
 
 /* The pile (koi-folders.js): up to three favicons, each 5px over the last,

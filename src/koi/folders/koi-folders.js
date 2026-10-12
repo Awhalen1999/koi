@@ -13,7 +13,7 @@
  *     session restore and a move to another window.
  *   - The hover list over a closed folder is Firefox's, drawn by Firefox
  *     rather than as a native popover: a popover under the pointer takes
- *     the hover with it, and the list flickered open and shut.
+ *     the hover with it, so the list would flicker open and shut.
  *   - Words: Firefox says "group"; the items Koi touches say "folder". The
  *     editor's are relabelled once, their Fluent ids dropped. The tab menu's
  *     get their ids back from Firefox on every open (tab-context-menu.js
@@ -58,12 +58,17 @@
   const writeIcons = icons =>
     Services.prefs.setStringPref(ICON_PREF, JSON.stringify(icons));
 
+  const glyph = icon =>
+    `url("chrome://browser/content/koi-folders/icons/${icon}.svg")`;
+
+  // The picked glyph rides on the group as --koi-folder-glyph, which
+  // koi-folders.css draws; with none set it draws the plain folder.
   const applyIcon = group => {
     const icon = readIcons()[group.id];
     if (icon) {
-      group.setAttribute("koi-icon", icon);
+      group.style.setProperty("--koi-folder-glyph", glyph(icon));
     } else {
-      group.removeAttribute("koi-icon");
+      group.style.removeProperty("--koi-folder-glyph");
     }
   };
 
@@ -168,10 +173,7 @@
       button.value = icon;
       button.title = icon[0].toUpperCase() + icon.slice(1);
       button.setAttribute("role", "radio");
-      button.style.setProperty(
-        "--koi-folder-glyph",
-        `url("chrome://browser/content/koi-folders/icons/${icon}.svg")`
-      );
+      button.style.setProperty("--koi-folder-glyph", glyph(icon));
       button.addEventListener("click", () => {
         setIcon(editor.activeGroup, icon);
         check(icon);
@@ -193,7 +195,7 @@
         return;
       }
       colour(group);
-      check(group.getAttribute("koi-icon") ?? "folder");
+      check(readIcons()[group.id] ?? "folder");
       // Firefox re-decides both on every open.
       document.getElementById("tabGroupEditor_saveAndCloseGroup").hidden = true;
       document.getElementById("tabGroupEditor_shareTabGroup").hidden = true;

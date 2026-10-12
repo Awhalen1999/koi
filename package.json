@@ -17,8 +17,6 @@
     "lint": "node scripts/lint.js",
     "package": "surfer package",
     "reset-ff": "surfer reset",
-    "lc": "surfer license-check",
-    "lc:fix": "surfer license-check --fix",
     "surfer": "surfer"
   },
   "repository": {

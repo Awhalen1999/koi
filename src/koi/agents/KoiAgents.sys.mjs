@@ -139,11 +139,7 @@ ConnectionPrompt.show = async function () {
 // time (9222 is exclusive), so once Koi's own servers are up every other
 // file is stale.
 async function prunePortFiles() {
-  const folder = PathUtils.join(
-    Services.dirsvc.get("Home", Ci.nsIFile).path,
-    ".firefox-devtools-mcp",
-    "instances"
-  );
+  const folder = PathUtils.join(HOME, ".firefox-devtools-mcp", "instances");
   const own = `${Services.appinfo.processID}.port`;
   for (const path of await IOUtils.getChildren(folder, {
     ignoreAbsent: true,

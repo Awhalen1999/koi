@@ -26,12 +26,13 @@
  *   - Selecting a tab (TabManager.selectTab) and raising a window
  *     (browser.Context.focusWindow) do nothing: the agent works in the
  *     background. geckodriver asks for focus on every switch (marionette.rs
- *     sends no focus flag), which is what flipped the strip through every
- *     tab on each listing.
+ *     sends no focus flag), which would flip the strip through every tab on
+ *     each listing.
  *   - New tabs (browser.Context.openTab, TabManager.addTab) open in the
  *     background, in the folder.
  * A workspace, not a lock: a tab's handle still reaches it. Install also
- * registers KoiAgentPage, the agent tabs' instant scrolling.
+ * registers KoiAgentPage, the agent tabs' page helper (instant scrolling,
+ * and the element an action touches).
  *
  * Installed by KoiAgents.sys.mjs, never when Koi was launched for
  * automation. koi-agents.js draws the folder's chip, menu and live dot. */
@@ -142,8 +143,9 @@ export const KoiAgentTabs = {
       },
       messageManagerGroups: ["browsers"],
       // Web pages run in untrusted processes, which only admit actors that
-      // say so (JSActorService.cpp). This one only receives: the parent
-      // tells it to make scrolls instant, and it sends nothing back.
+      // say so (JSActorService.cpp). This one only answers Koi: it makes
+      // scrolls instant when told, names the element under a point when
+      // asked, and sends nothing on its own.
       safeForUntrustedWebProcess: true,
     });
 

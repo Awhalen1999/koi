@@ -38,6 +38,12 @@
 
 (() => {
   const XHTML = "http://www.w3.org/1999/xhtml";
+  const el = (tag, className, text = "") => {
+    const node = document.createElementNS(XHTML, tag);
+    node.className = className;
+    node.textContent = text;
+    return node;
+  };
 
   // The panel's [state]: off, ready, connected, or KoiAgents.problem.
   const STATES = {
@@ -172,9 +178,8 @@
     const shareButton = panel.querySelector(".koi-agents-share");
     document.getElementById("mainPopupSet").append(fragment);
 
-    const label = document.createElementNS(XHTML, "button");
+    const label = el("button", "", "Agent");
     label.id = "koi-agents-label";
-    label.textContent = "Agent";
     label.hidden = true;
     document.getElementById("page-action-buttons").append(label);
 
@@ -195,6 +200,13 @@
     document.getElementById("unified-extensions-button").before(button);
 
     // The panel ------------------------------------------------------------
+
+    // How long the agent has been connected, read when shown; it does not
+    // tick while a panel is open.
+    const connectedFor = () => {
+      const minutes = Math.floor((Date.now() - KoiAgents.connectedAt) / 60000);
+      return minutes ? `${minutes} min` : "just now";
+    };
 
     const setClaude = status => {
       claudeRow.setAttribute("status", status);
@@ -373,12 +385,6 @@
         BrowsingContext.getCurrentTopByBrowserId(browserId)?.embedderElement;
       return browser?.documentGlobal.gBrowser?.getTabForBrowser(browser);
     };
-    const el = (tag, className, text = "") => {
-      const node = document.createElementNS(XHTML, tag);
-      node.className = className;
-      node.textContent = text;
-      return node;
-    };
     const stepRow = step => {
       const row = el("button", "koi-steps-row");
       const icon = el("img", "koi-steps-icon");
@@ -413,11 +419,8 @@
       const all = KoiAgentSteps.list;
       const { connected } = KoiAgents;
       if (connected) {
-        const minutes = Math.floor(
-          (Date.now() - KoiAgents.connectedAt) / 60000
-        );
         const tabs = KoiAgentTabs.all.length;
-        stepsNote.textContent = `Connected ${minutes ? `${minutes} min` : "just now"} · ${tabs} ${tabs == 1 ? "tab" : "tabs"} in its folder`;
+        stepsNote.textContent = `Connected ${connectedFor()} · ${tabs} ${tabs == 1 ? "tab" : "tabs"} in its folder`;
       } else {
         stepsNote.textContent = `Disconnected · ${all.length} ${all.length == 1 ? "step" : "steps"}`;
       }
@@ -452,11 +455,6 @@
       observe: () => steps.state == "open" && renderSteps(),
     };
     Services.obs.addObserver(stepsObserver, "koi-agent-steps");
-    addEventListener(
-      "unload",
-      () => Services.obs.removeObserver(stepsObserver, "koi-agent-steps"),
-      { once: true }
-    );
 
     // The moment it acts -----------------------------------------------------
     // A ring around the page card for RING after its last step, and, for an
@@ -464,8 +462,8 @@
     // the page (koi-agents.css): nothing is added to the page itself. Only
     // on the tab on screen. Steps that touch no element (a screenshot, a
     // read) keep the ring up and leave the tag where it is: an agent's click
-    // is usually followed at once by a look, which used to wipe the tag
-    // before it could be seen.
+    // is usually followed at once by a look, which would otherwise wipe the
+    // tag before it is seen.
 
     const RING = 1500;
     const TAG = 2000;
@@ -482,11 +480,50 @@
       lit = null;
     };
 
+    /**
+     * Called by KoiAgentSteps.sys.mjs as each step lands.
+     *
+     * @param {MozTabbrowserTab} tab
+     * @param {{kind: string, rect: ?object}} [touchOf] An input action's
+     *   kind and the box it lands on, in the page's CSS pixels.
+     */
+    const touched = (tab, touchOf) => {
+      if (!tab.selected) {
+        return;
+      }
+      const browser = tab.linkedBrowser;
+      const card = browser.closest(".browserSidebarContainer");
+      if (card != lit) {
+        unlight();
+        lit = card;
+      }
+      lit?.setAttribute("koi-agent-acting", "");
+      clearTimeout(ringTimer);
+      ringTimer = setTimeout(unlight, RING);
+      const rect = touchOf?.rect;
+      if (rect) {
+        const zoom = browser.fullZoom;
+        Object.assign(touchBox.style, {
+          left: `${rect.left * zoom}px`,
+          top: `${rect.top * zoom}px`,
+          width: `${rect.width * zoom}px`,
+          height: `${rect.height * zoom}px`,
+        });
+        // Below the element when there is no room above it.
+        touchBox.toggleAttribute("below", rect.top * zoom < 36);
+        touchTag.textContent = `Agent · ${touchOf.kind}`;
+        browser.closest(".browserStack")?.append(touch);
+        touch.setAttribute("shown", "");
+        clearTimeout(tagTimer);
+        tagTimer = setTimeout(() => touch.removeAttribute("shown"), TAG);
+      }
+    };
+
     // The prompt -----------------------------------------------------------
-    // noautohide keeps it up through clicks elsewhere and app switches (a
-    // switch to Koi used to close it, which read as Don't Allow), so it ends
-    // with an answer: Allow, or Don't Allow and Escape. Otherwise only the
-    // window closing or access turning off (render) ends it, which refuses
+    // noautohide keeps it up through clicks elsewhere and app switches
+    // (without it, a switch to Koi closes it, which reads as Don't Allow), so
+    // it ends with an answer: Allow, or Don't Allow and Escape. Otherwise only
+    // the window closing or access turning off (render) ends it, which refuses
     // that one connection without holding off the next.
 
     const ALERT = "koi-agents-prompt";
@@ -511,44 +548,7 @@
     });
 
     window.gKoiAgents = {
-      /**
-       * Called by KoiAgentSteps.sys.mjs as each step lands.
-       *
-       * @param {MozTabbrowserTab} tab
-       * @param {{kind: string, rect: ?object}} [touchOf] An input action's
-       *   kind and the box it lands on, in the page's CSS pixels.
-       */
-      touched(tab, touchOf) {
-        if (!tab.selected) {
-          return;
-        }
-        const browser = tab.linkedBrowser;
-        const card = browser.closest(".browserSidebarContainer");
-        if (card != lit) {
-          unlight();
-          lit = card;
-        }
-        lit?.setAttribute("koi-agent-acting", "");
-        clearTimeout(ringTimer);
-        ringTimer = setTimeout(unlight, RING);
-        const rect = touchOf?.rect;
-        if (rect) {
-          const zoom = browser.fullZoom;
-          Object.assign(touchBox.style, {
-            left: `${rect.left * zoom}px`,
-            top: `${rect.top * zoom}px`,
-            width: `${rect.width * zoom}px`,
-            height: `${rect.height * zoom}px`,
-          });
-          // Below the element when there is no room above it.
-          touchBox.toggleAttribute("below", rect.top * zoom < 36);
-          touchTag.textContent = `Agent · ${touchOf.kind}`;
-          browser.closest(".browserStack")?.append(touch);
-          touch.setAttribute("shown", "");
-          clearTimeout(tagTimer);
-          tagTimer = setTimeout(() => touch.removeAttribute("shown"), TAG);
-        }
-      },
+      touched,
 
       /**
        * @returns {Promise<boolean|null>} true for Allow, false for Don't
@@ -714,11 +714,7 @@
       let state = "off";
       if (connected) {
         state = "connected";
-        // Read when the panel opens; it does not tick while open.
-        const minutes = Math.floor(
-          (Date.now() - KoiAgents.connectedAt) / 60000
-        );
-        since.textContent = minutes ? `${minutes} min` : "just now";
+        since.textContent = connectedFor();
       } else if (enabled) {
         state = problem ?? "ready";
       }
@@ -748,6 +744,7 @@
         for (const topic of TOPICS) {
           Services.obs.removeObserver(observer, topic);
         }
+        Services.obs.removeObserver(stepsObserver, "koi-agent-steps");
       },
       { once: true }
     );

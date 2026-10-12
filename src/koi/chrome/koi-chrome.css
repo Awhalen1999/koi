@@ -457,23 +457,12 @@
   /* A lock and a star only: no identity label, tracking-protection icon,
    * engine button or go button (Enter commits). The engine button is hidden
    * until its menu takes mouse clicks as a native popover (CLAUDE.md, known
-   * issues); its dressing below stays for when it returns. */
+   * issues). */
   & #identity-icon-label,
   & #tracking-protection-icon-container,
   & .searchmode-switcher,
   & .urlbar-go-button {
     display: none;
-  }
-
-  /* The engine button takes the lock's place while the field is empty or
-   * being typed in, so it is dressed like the lock: clear at rest, the WELL
-   * on hover, one rung up pressed or open. A muted moz-button paints its pill
-   * from these (moz-button.css). */
-  & .searchmode-switcher {
-    --button-background-color-muted: var(--urlbar-box-background-color);
-    --button-background-color-muted-hover: var(--urlbar-box-background-color-hover);
-    --button-background-color-muted-active: var(--urlbar-box-background-color-active);
-    --button-border-radius: var(--urlbar-inner-border-radius);
   }
 
   /* Rows arrive whole: no slide-in of each row's action label

@@ -181,7 +181,7 @@
 }
 
 /* The thumbnail, or plain glass for a tab with nothing to show (no letter
- * tiles: a grid of colour blocks was too loud). */
+ * tiles: a grid of colour blocks is too loud). */
 .koi-card-thumb {
   aspect-ratio: 16 / 10;
   background: var(--koi-glass-well);

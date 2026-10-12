@@ -27,8 +27,7 @@
   value: 0
 
 # Folders are Firefox's tab groups (src/koi/folders/). Firefox ships them on;
-# Koi's default is spelled out because it was off until the strip had a
-# design for them.
+# Koi depends on them, so its default is spelled out.
 - name: browser.tabs.groups.enabled
   value: true
 
