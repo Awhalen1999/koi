@@ -151,12 +151,16 @@
 
   /* Motion: the shell does not move (no entrances, springs or lifts; motion
    * returns as a pass of its own). Only state eases — a colour or opacity
-   * answering the pointer — so a hover reads as a response, not a flicker. */
+   * answering the pointer — so a hover reads as a response, not a flicker.
+   * SETTLE is for a shape giving way and closing up, quick then soft: a
+   * folder's tray parting into tiles for a drag and rejoining on the drop. */
   --koi-fade: 150ms linear;
+  --koi-settle: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --koi-fade: 0ms linear;
+    --koi-settle: 0ms linear;
   }
 }

@@ -103,7 +103,7 @@
             <html:img class="koi-agents-koi" src="chrome://branding/content/about-logo-private.png" srcset="chrome://branding/content/about-logo-private@2x.png 2x" alt=""/>
           </html:div>
           <html:span class="koi-agents-title">Allow an agent to use Koi?</html:span>
-          <html:span class="koi-agents-note">It works in tabs of its own, and any you share, and can read their console and network until it disconnects.</html:span>
+          <html:span class="koi-agents-note">It works in a folder of its own, and any tab you share, and can read their console and network until it disconnects.</html:span>
           <html:div class="koi-agents-choices">
             <html:button class="koi-agents-allow">Allow</html:button>
             <html:button class="koi-agents-deny">Don’t Allow</html:button>

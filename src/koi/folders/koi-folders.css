@@ -10,25 +10,23 @@
  *       .tab-group-label-hover-highlight  the chip (and the pile, koi-folders.js)
  *         .tab-group-label                icon + name; click opens or closes
  *     .tabbrowser-tab …                   ordinary tabs
- *     .tab-group-overflow-count-container the "+N" shown closed beside the
+ *     .tab-group-overflow-count-container "+N", shown closed beside the
  *                                         selected tab
  *
  * tab-group is display: contents (tabs.css), so the strip's flexbox sizes
- * grouped and loose tabs alike, and the tray has no box of its own: each
- * piece paints its share of the tint, square-edged so they abut, and the two
- * end pieces round the corners. A tab's piece is its .tab-stack, 2px narrower
- * than the tab on each side (the tab's clip margin), so two hairline shadows
- * fill out to the tab's edge where the next piece begins. Firefox's own
- * decorations (the underline, the chip's fill and outline, the hover halo)
- * are zeroed at their tokens or matched by selector: tabs.css is not in a
- * layer, so these rules carry its specificity.
+ * grouped and loose tabs alike and the tray has no box of its own: each
+ * piece paints its share of the tint, square-edged so they abut, and the
+ * end pieces round the corners. A tab's piece is its .tab-stack, 2px short
+ * of the tab's edge on each side (the clip margin), so two hairline shadows
+ * reach the edge where the next piece begins. Firefox's own decorations
+ * (the underline, the chip's fill and outline, the hover halo) are zeroed
+ * at their tokens or outranked by selector: tabs.css is not in a layer.
  *
- * Closed, Firefox keeps the selected tab visible and zeroes the others
- * (max-width 0, clip margin 0), so the tray is chip + that tab + "+N"; with
- * no tab selected inside, the chip alone, with its pile of favicons. The pile
- * and the folder's icon come from koi-folders.js (.koi-folder-pile,
- * --koi-pile-width, [koi-icon]); everything else is CSS over Firefox's
- * state. */
+ * Closed, Firefox keeps the selected tab visible and zeroes the others, so
+ * the tray is chip + that tab + "+N"; with no tab selected inside, the chip
+ * alone, with its pile of favicons. koi-folders.js supplies the pile
+ * (.koi-folder-pile, [koi-pile], --koi-pile-width) and the icon
+ * ([koi-icon]); everything else is CSS over Firefox's state. */
 
 :root {
   /* Firefox's nine group colours, as Koi's (koi-theme.css). tab-group sets
@@ -48,50 +46,57 @@
   --tab-group-line-thickness: 0px;
 
   /* The tray: 2px around the pills, so its corners stay concentric with
-   * theirs (8 + 2). */
+   * theirs (8 + 2), filled with the folder's colour at this level. */
   --koi-folder-pad: 2px;
   --koi-folder-radius: calc(var(--koi-radius-pill) + var(--koi-folder-pad));
+  --koi-folder-tint-level: 18%;
   --koi-folder-icon: 14px;
 }
 
 /* Declared on the group, not :root: a custom property is computed where it
- * is declared, and --tab-group-color exists only from tab-group down. */
-tab-group {
-  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) 18%, transparent);
+ * is declared, and --tab-group-color exists only from tab-group down. The
+ * tab being dragged, and a tab it is held over to make a folder, take the
+ * colour of the folder the drop would join, which drag-and-drop.js sets on
+ * the strip. Firefox toggles [movingtab-addToGroup] on every dragover once
+ * no folder is targeted, so [movingtab-ungroup] is what says "none". */
+tab-group,
+#tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
+  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-folder-tint-level), transparent);
+}
+
+/* That tab is the one outlined while a drag is on, in the folder's colour. */
+#tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
+  --tab-group-color: var(--dragover-tab-group-color);
+  --tab-border-color: var(--tab-group-color);
+  --tab-border-color-hover: var(--tab-group-color);
+  --tab-border-color-selected: var(--tab-group-color);
 }
 
 /* The tabs' pieces: the stack carries the tint and, in a shadow on each side,
- * reaches the tab's edge; the pill keeps its 28px inside the 32px tray. A
- * dragged tab paints one too while the drop would put it in a folder, in
- * that folder's colour (drag-and-drop.js sets the state and the colour on
- * the strip), so the tray reads whole around it instead of parting. */
+ * reaches the tab's edge; the pill keeps its 28px inside the 32px tray. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tabbrowser-tab > .tab-stack,
-#tabbrowser-tabs[orient="horizontal"][movingtab-addToGroup] .tabbrowser-tab[dragtarget] > .tab-stack {
+#tabbrowser-tabs[orient="horizontal"]:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup])
+  .tabbrowser-tab:is([dragtarget], [dragover-groupTarget])
+  > .tab-stack {
   margin-block: var(--koi-folder-pad);
   background-color: var(--koi-folder-tint);
   box-shadow:
     var(--tab-overflow-clip-margin) 0 var(--koi-folder-tint),
     calc(-1 * var(--tab-overflow-clip-margin)) 0 var(--koi-folder-tint);
+  transition:
+    background-color var(--koi-fade),
+    box-shadow var(--koi-settle),
+    border-radius var(--koi-settle);
 
   & > .tab-background {
     margin-block: var(--koi-folder-pad);
   }
 }
 
-#tabbrowser-tabs[orient="horizontal"][movingtab-addToGroup] .tabbrowser-tab[dragtarget] {
-  --koi-folder-tint: color-mix(in srgb, var(--dragover-tab-group-color) 18%, transparent);
-}
-
-/* Dragged out of its folder, it leaves the tint behind. */
-#tabbrowser-tabs[orient="horizontal"][movingtab-ungroup] .tabbrowser-tab[dragtarget] > .tab-stack {
-  background-color: transparent;
-  box-shadow: none;
-}
-
 /* The last piece rounds the tray's end and holds the next pill 4px off (its
  * 2px clip margin plus these 2): the last tab open; closed, the selected
- * tab when it is alone, else the "+N"; with nothing selected inside, the
- * chip. The chip's slot does the same at the start. */
+ * tab when it is alone, else "+N"; with nothing selected inside, the chip.
+ * The chip's slot does the same at the start. */
 #tabbrowser-tabs[orient="horizontal"] tab-group:not([collapsed]) > .tabbrowser-tab:last-of-type > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"] tab-group[collapsed]:not([hasmultipletabs]) > .tabbrowser-tab[visuallyselected] > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-overflow-count-container,
@@ -109,7 +114,7 @@ tab-group {
 
 /* The chip's slot opens the tray. Firefox spaces it 3px either side for its
  * underline; here the tray's own padding, and the gap to the first pill is
- * that pill's 2px clip margin plus 2px. */
+ * that pill's 2px clip margin plus 2. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-label-container {
   /* The chip never shrinks: a full strip narrows the tabs, not the names. */
   flex: none;
@@ -121,13 +126,39 @@ tab-group {
   border-start-start-radius: var(--koi-folder-radius);
   border-end-start-radius: var(--koi-folder-radius);
   justify-content: center;
+  transition: border-radius var(--koi-settle);
 }
 
-/* The chip. Firefox's hover halo (a spread shadow past the label) goes; the
- * film is the tab's hover token, held while the hover list is open. The
- * label and the pile share one cell, the pile over the label's trailing
- * padding, so every click, drag and hover lands on the label, where Firefox
- * listens. */
+/* While anything drags, the tray comes apart into tiles: every piece rounds
+ * its corners and drops the hairlines joining it to its neighbours. Firefox
+ * lifts the dragged tab out of the row and slides the others with
+ * transforms (drag-and-drop.js); a tile moves whole with its tab, where a
+ * joined tray would part or overlap at its seams. On the drop the corners
+ * square and the hairlines grow back over --koi-settle, so the tiles close
+ * up into one tray. */
+#tabbrowser-tabs[orient="horizontal"][movingtab] :is(tab-group > .tabbrowser-tab, .tabbrowser-tab[dragtarget]) > .tab-stack,
+#tabbrowser-tabs[orient="horizontal"][movingtab] tab-group > :is(.tab-group-label-container, .tab-group-overflow-count-container) {
+  border-radius: var(--koi-folder-radius);
+  box-shadow: none;
+}
+
+/* Dragged out of its folder, a plain tab again. */
+#tabbrowser-tabs[orient="horizontal"][movingtab-ungroup] .tabbrowser-tab[dragtarget] > .tab-stack {
+  background-color: transparent;
+}
+
+/* Firefox fills a merge target's pill solid in the folder's colour, which
+ * drowns the label on Koi's pastels; the tile and outline say it, and the
+ * pill only brightens. */
+#tabbrowser-tabs[orient="horizontal"][movingtab-group] .tabbrowser-tab[dragover-groupTarget] > .tab-stack > .tab-background {
+  background-color: var(--koi-glass-hover);
+}
+
+/* The chip: a pill in the tab's metrics. Firefox's hover halo (a spread
+ * shadow past the label) goes; the film is the tab's hover token, held
+ * while the hover list is open. The label and the pile share one cell, the
+ * pile over the label's trailing padding, so every click, drag and hover
+ * lands on the label, where Firefox listens. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-label-container > .tab-group-label-hover-highlight {
   display: grid;
   align-items: center;
@@ -158,10 +189,10 @@ tab-group {
   height: var(--koi-pill-height);
   min-height: 0;
   min-width: 0;
-  /* 10px in, the icon, 6px, up to 120px of name, 10px out. */
-  max-width: calc(160px + var(--koi-pile-width, 0px));
+  /* The tab's inset and icon gap, then up to 120px of name. */
+  max-width: calc(2 * var(--tab-inline-padding) + var(--koi-folder-icon) + var(--tab-icon-end-margin) + 120px);
   margin: 0;
-  padding-inline: var(--tab-inline-padding) calc(var(--tab-inline-padding) + var(--koi-pile-width, 0px));
+  padding-inline: var(--tab-inline-padding);
   line-height: var(--koi-pill-height);
   text-align: start;
   font-size: var(--koi-text-12);
@@ -179,11 +210,17 @@ tab-group {
     display: inline-block;
     width: var(--koi-folder-icon);
     height: var(--koi-folder-icon);
-    margin-inline-end: 6px;
+    margin-inline-end: var(--tab-icon-end-margin);
     vertical-align: -3px;
     background-color: var(--tab-group-color);
     mask: var(--koi-folder-glyph, url("chrome://browser/content/koi-folders/icons/folder.svg")) center / contain no-repeat;
   }
+}
+
+/* Room for the pile after the name. */
+#tabbrowser-tabs[orient="horizontal"] tab-group[koi-pile] .tab-group-label {
+  max-width: calc(2 * var(--tab-inline-padding) + var(--koi-folder-icon) + var(--tab-icon-end-margin) + 120px + var(--koi-space-8) + var(--koi-pile-width));
+  padding-inline-end: calc(var(--tab-inline-padding) + var(--koi-space-8) + var(--koi-pile-width));
 }
 
 /* Unnamed: Firefox labels it a zero-width space, so the icon stands alone. */
@@ -213,12 +250,12 @@ tab-group[koi-icon="star"] {
   --koi-folder-glyph: url("chrome://browser/content/koi-folders/icons/star.svg");
 }
 
-/* The pile (koi-folders.js): up to three 14px favicons, each 5px over the
- * last, and "+N" for the rest, at the label's end, out of the pointer's way. */
+/* The pile (koi-folders.js): up to three favicons, each 5px over the last,
+ * and "+N" for the rest, at the label's end, out of the pointer's way. */
 .koi-folder-pile {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--koi-space-8);
   justify-self: end;
   margin-inline-end: var(--tab-inline-padding);
   pointer-events: none;
@@ -235,8 +272,8 @@ tab-group[koi-icon="star"] {
     width: var(--koi-folder-icon);
     height: var(--koi-folder-icon);
     border-radius: var(--koi-radius-favicon);
-    /* The tabs' empty-state mark and the default favicon are drawn in the
-     * chrome's ink; a site's favicon has its own colours. */
+    /* The empty-state mark and the default favicon are drawn in the chrome's
+     * ink; a site's favicon has its own colours. */
     -moz-context-properties: fill;
     fill: var(--koi-fg-2);
 
@@ -253,16 +290,19 @@ tab-group[koi-icon="star"] {
   color: var(--koi-fg-3);
 }
 
-/* The "+N" piece: Firefox shows it closed beside the selected tab. */
+/* The "+N" piece, 8px from the selected pill (its 2px clip margin plus 6)
+ * and 8px to the tray's end. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-overflow-count-container {
   flex: none;
   flex-direction: row;
   align-items: center;
   height: calc(var(--koi-pill-height) + 2 * var(--koi-folder-pad));
   margin-block: var(--koi-folder-pad);
-  /* 8px from the selected pill (its 2px clip margin plus 6), 8px to the end. */
-  padding: 0 var(--koi-space-8) 0 6px;
+  padding: 0 var(--koi-space-8) 0 calc(var(--koi-space-8) - var(--tab-overflow-clip-margin));
   background-color: var(--koi-folder-tint);
+  transition:
+    background-color var(--koi-fade),
+    border-radius var(--koi-settle);
 
   & > .tab-group-overflow-count {
     margin: 0;
@@ -271,9 +311,9 @@ tab-group[koi-icon="star"] {
   }
 }
 
-/* The editor (tabgroup-menu.js), a native popover: the icon row Koi adds to
- * the name section, eight glyphs on 28px pills; the picked one is ringed in
- * the folder's colour, which the panel learns from its group. */
+/* The editor (tabgroup-menu.js), a native popover: Koi's icon row under the
+ * name, eight glyphs on 28px pills; the picked one is ringed in the folder's
+ * colour, which the panel takes from its group (koi-folders.js). */
 .koi-folder-icons {
   display: flex;
   gap: var(--koi-space-4);
@@ -288,8 +328,6 @@ tab-group[koi-icon="star"] {
     border-radius: var(--koi-radius-pill);
     background-color: transparent;
     color: var(--koi-fg-2);
-    -moz-context-properties: stroke;
-    stroke: currentColor;
 
     &::before {
       content: "";

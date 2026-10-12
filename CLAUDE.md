@@ -169,6 +169,12 @@ rules in koi-chrome.css and koi-panels.css carry one.
   the row.
 - Change one variable per measurement, and do not read small differences off
   scaled screenshots.
+- **Drags need real mouse input.** WebDriver pointer actions never start a
+  tab drag (an OS drag session), so synthetic tests of drag states only set
+  Firefox's attributes by hand. `scripts/mouse.swift` posts HID events
+  through CGEvent (`activate` the instance, check `front`, then `down`,
+  `drag`, `up`); a merge wants the dragged tab over 20–80% of the target
+  for the 240ms grouping delay, a closed chip the same over its label.
 - When following Zen, take the whole thing: their C++, CSS *and* pref
   defaults. Each omission has cost a debugging cycle.
 - To read chrome state without touching the running Koi, start a second
@@ -683,7 +689,9 @@ named.
   charCode, and ⇧⌘ with punctuation varies by layout — use letters) and
   `ShortcutKeyDefinitions.cpp`. ⌘E is macOS-wide "Use Selection for Find".
 - **The shell does not move**: no entrances, springs or hover lifts; only
-  colour and opacity ease (`--koi-fade`, 150ms), and arrow panels do not
+  colour and opacity ease (`--koi-fade`, 150ms), and one shape: a folder's
+  tray parting into tiles for a drag and closing up on the drop
+  (`--koi-settle`, 200ms ease-out), and arrow panels do not
   slide. Motion returns as a pass of its own.
 - **Every popup is native, Zen's way.** Menupopups are native menus; arrow
   panels become NSPopovers (`widget.macos.native-popovers`, which Zen
@@ -736,9 +744,15 @@ named.
   groups are locked off (chrome-ui.yaml). The closed chip's favicon pile is
   Koi's; the "+N" beside a closed folder's selected tab and the hover list
   are Firefox's, the list made `nonnative` because a popover under the
-  pointer took the hover with it. A dragged tab paints the tint of the folder
-  it would join, so the tray does not part around it; Firefox's own drag
-  feedback is its underline, which Koi zeroes. The board lists every tab,
+  pointer took the hover with it. The tray is painted in per-tab pieces
+  because `tab-group` has no box (`display: contents`); while anything drags
+  the pieces round into tiles that slide whole with their tabs, and only the
+  dragged tab is outlined, in the colour of the folder the drop would join.
+  A real box for the folder was weighed and rejected: Firefox lifts the
+  dragged tab out of the row and slides the rest with transforms, so a box
+  would end a tab short or let tabs slide out of it without JS following
+  the drag. Firefox's own drag feedback is its underline, which Koi zeroes,
+  and a solid fill on a merge target, softened. The board lists every tab,
   folders flattened. Firefox's tab menu lays itself out from a list of its items
   and refuses one it does not know (MenuSectionLayout), so a Koi item is
   added on popupshowing and removed on popuphidden.

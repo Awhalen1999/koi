@@ -10,16 +10,16 @@
  *   - The icon: a glyph per folder, picked in the editor. Firefox persists
  *     a group's id, name, colour and collapsed state only (TabGroupState),
  *     so the pick lives in a JSON pref keyed by group id; ids survive
- *     session restore.
+ *     session restore and a move to another window.
  *   - The hover list over a closed folder is Firefox's, drawn by Firefox
- *     rather than as a native popover: a popover under the pointer takes the
- *     hover with it, and the list flickered open and shut.
- *   - Words: Firefox says "group"; the few items Koi touches say "folder".
- *     The editor's are relabelled once, their Fluent ids dropped. The tab
- *     menu's get their ids back from Firefox on every open (tab-context-menu.js
- *     updateContextMenu), so they are relabelled there, after it, before
- *     Fluent's deferred translation looks for the id. Copy Links keeps
- *     Firefox's wording: it is re-set with a count on every open.
+ *     rather than as a native popover: a popover under the pointer takes
+ *     the hover with it, and the list flickered open and shut.
+ *   - Words: Firefox says "group"; the items Koi touches say "folder". The
+ *     editor's are relabelled once, their Fluent ids dropped. The tab menu's
+ *     get their ids back from Firefox on every open (tab-context-menu.js
+ *     updateContextMenu), so they are relabelled on every open and again as
+ *     Fluent's deferred translation lands. Copy Links keeps Firefox's
+ *     wording: Firefox re-sets it with a count each time.
  *   - Firefox's Save and Close and Share Group stay hidden: a folder lives
  *     in the strip or not at all, and "share" is the agent's word. Groups
  *     are not saved when a window closes either (saveOnWindowClose), so
@@ -46,6 +46,8 @@
   // mark instead (koi-chrome.css).
   const NEWTAB_FAVICON = "chrome://branding/content/icon32.png";
 
+  // The icon store ---------------------------------------------------------
+
   const readIcons = () => {
     try {
       return JSON.parse(Services.prefs.getStringPref(ICON_PREF, "{}"));
@@ -53,17 +55,30 @@
       return {};
     }
   };
-  const setIcon = (group, icon) => {
-    const icons = readIcons();
-    if (icon && icon != "folder") {
-      icons[group.id] = icon;
+  const writeIcons = icons =>
+    Services.prefs.setStringPref(ICON_PREF, JSON.stringify(icons));
+
+  const applyIcon = group => {
+    const icon = readIcons()[group.id];
+    if (icon) {
       group.setAttribute("koi-icon", icon);
     } else {
-      delete icons[group.id];
       group.removeAttribute("koi-icon");
     }
-    Services.prefs.setStringPref(ICON_PREF, JSON.stringify(icons));
   };
+
+  const setIcon = (group, icon) => {
+    const icons = readIcons();
+    if (icon == "folder") {
+      delete icons[group.id];
+    } else {
+      icons[group.id] = icon;
+    }
+    writeIcons(icons);
+    applyIcon(group);
+  };
+
+  // The pile ---------------------------------------------------------------
 
   const favicon = tab => {
     const src = tab.getAttribute("image");
@@ -72,8 +87,6 @@
     }
     return src == NEWTAB_FAVICON ? MARK : src;
   };
-
-  // The pile ---------------------------------------------------------------
 
   const pileOf = group => {
     let pile = group.querySelector(".koi-folder-pile");
@@ -85,14 +98,12 @@
     return pile;
   };
 
-  // Read off the tabs, not [hasactivetab]: on TabSelect this runs before
-  // Firefox's own listener updates the attribute. The label's trailing
-  // padding is set from the pile's measured width here, synchronously, not
-  // from a ResizeObserver: the strip's arrowscrollbox decides it is
-  // overflowing in a ResizeObserver of its own and applies the answer a
-  // frame later, ignoring a second size change in between, so a chip that
-  // shrank (the collapse) and grew (the pile) within one frame left the strip
-  // overflowing with no "+" and no scrolling.
+  // Selection is read off the tabs, not [hasactivetab]: on TabSelect this
+  // runs before Firefox's own listener updates the attribute. The pile's
+  // width is measured here rather than by a ResizeObserver: the strip's
+  // arrowscrollbox decides it is overflowing in a ResizeObserver of its own
+  // and applies the answer a frame later, dropping a second size change in
+  // between, which left the strip overflowing with no "+" and no scrolling.
   const paint = group => {
     const pile = pileOf(group);
     pile.textContent = "";
@@ -115,10 +126,8 @@
       }
     }
     const width = pile.getBoundingClientRect().width;
-    group.style.setProperty(
-      "--koi-pile-width",
-      width ? `${width + 6}px` : "0px"
-    );
+    group.toggleAttribute("koi-pile", width > 0);
+    group.style.setProperty("--koi-pile-width", `${width}px`);
   };
 
   // The editor and the tab menu -------------------------------------------
@@ -133,7 +142,6 @@
   const buildEditor = () => {
     const editor = document.getElementById("tab-group-editor");
     const panel = editor.querySelector("panel");
-    const name = editor.querySelector(".tab-group-editor-name");
     for (const [id, text] of [
       ["tab-group-editor-title-create", "New Folder"],
       ["tab-group-editor-title-edit", "Edit Folder"],
@@ -150,6 +158,11 @@
     const icons = document.createElementNS(XHTML, "div");
     icons.className = "koi-folder-icons";
     icons.setAttribute("role", "radiogroup");
+    const check = icon => {
+      for (const button of icons.children) {
+        button.setAttribute("aria-checked", button.value == icon);
+      }
+    };
     for (const icon of ICONS) {
       const button = document.createElementNS(XHTML, "button");
       button.value = icon;
@@ -165,42 +178,35 @@
       });
       icons.append(button);
     }
-    name.append(icons);
-    const check = icon => {
-      for (const button of icons.children) {
-        button.setAttribute("aria-checked", button.value == icon);
-      }
-    };
+    editor.querySelector(".tab-group-editor-name").append(icons);
 
-    panel.addEventListener("popupshowing", event => {
-      if (event.target != panel) {
-        return;
-      }
-      const group = editor.activeGroup;
+    // The panel takes the group's colour for the icon ring, and follows a
+    // change made in its swatches.
+    const colour = group =>
       panel.style.setProperty(
         "--tab-group-color",
         `var(--tab-group-${group.color})`
       );
+    panel.addEventListener("popupshowing", event => {
+      const group = editor.activeGroup;
+      if (event.target != panel || !group) {
+        return;
+      }
+      colour(group);
       check(group.getAttribute("koi-icon") ?? "folder");
       // Firefox re-decides both on every open.
       document.getElementById("tabGroupEditor_saveAndCloseGroup").hidden = true;
       document.getElementById("tabGroupEditor_shareTabGroup").hidden = true;
     });
-    panel.addEventListener("TabGroupUpdate", event => {
-      if (event.target == editor.activeGroup) {
-        panel.style.setProperty(
-          "--tab-group-color",
-          `var(--tab-group-${event.target.color})`
-        );
+    gBrowser.tabContainer.addEventListener("TabGroupUpdate", event => {
+      if (event.target == editor.activeGroup && panel.state == "open") {
+        colour(event.target);
       }
     });
   };
 
   const buildTabMenu = () => {
     const menu = document.getElementById("tabContextMenu");
-    // Firefox's own popupshowing handler may run after this one and give the
-    // items their Fluent ids back, so Fluent's deferred translation is
-    // answered as it lands.
     const words = {};
     const apply = () => {
       for (const [id, label] of Object.entries(words)) {
@@ -231,21 +237,19 @@
 
   const build = () => {
     const strip = gBrowser.tabContainer;
-    const icons = readIcons();
 
-    strip.addEventListener("TabGroupCreate", event => {
-      const group = event.target;
+    const adopt = group => {
       group.saveOnWindowClose = false;
-      if (icons[group.id]) {
-        group.setAttribute("koi-icon", icons[group.id]);
-      }
+      applyIcon(group);
       paint(group);
-    });
+    };
+    strip.addEventListener("TabGroupCreate", event => adopt(event.target));
+    // A folder on its way to another window keeps its icon.
     strip.addEventListener("TabGroupRemoved", event => {
-      const stored = readIcons();
-      if (event.target.id in stored) {
-        delete stored[event.target.id];
-        Services.prefs.setStringPref(ICON_PREF, JSON.stringify(stored));
+      const icons = readIcons();
+      if (!event.target.removedByAdoption && event.target.id in icons) {
+        delete icons[event.target.id];
+        writeIcons(icons);
       }
     });
     for (const type of ["TabGroupCollapse", "TabGroupExpand"]) {
@@ -277,13 +281,7 @@
         paint(event.target.group);
       }
     });
-    for (const group of gBrowser.getAllTabGroups()) {
-      group.saveOnWindowClose = false;
-      if (icons[group.id]) {
-        group.setAttribute("koi-icon", icons[group.id]);
-      }
-      paint(group);
-    }
+    gBrowser.getAllTabGroups().forEach(adopt);
 
     document
       .getElementById("tabgroup-preview-panel")
