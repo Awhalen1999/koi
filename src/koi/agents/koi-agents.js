@@ -17,7 +17,9 @@
  *     setup for any other agent.
  *   - Koi's prompt before each connection (gKoiAgents.ask, called by the
  *     module), a macOS permission alert under the agent's glyph joined to
- *     Koi's icon: Allow or Don't Allow, for every new connection.
+ *     Koi's icon: Allow or Don't Allow, for every new connection. It stays
+ *     up until answered; with Koi in the background, a macOS notification
+ *     says it is waiting.
  *   - "Agent" at the end of the address field on the agent's tabs while one
  *     is connected; it opens the panel.
  *   - The agent's folder (KoiAgentTabs.sys.mjs), drawn by koi-agents.css: a
@@ -25,7 +27,9 @@
  *     instead of Firefox's editor (nothing to edit) and shows the live dot
  *     while an agent is connected. The panel counts its tabs and shows the
  *     folder; "Share with Agent" in the tab menu moves a tab in or back out,
- *     and the folder leads the "Add Tab to Folder" list.
+ *     and the folder leads the "Add Tab to Folder" list. While an agent is
+ *     connected its tabs stay awake, and tabs its pages open stay in the
+ *     background.
  * Built after delayed startup, once koi-devmode.js has placed its buttons. */
 
 (() => {
@@ -95,7 +99,7 @@
           </html:div>
         </html:div>
       </panel>
-      <panel id="koi-agents-prompt" type="arrow" orient="vertical" class="panel-no-padding" aria-label="Allow an agent to use Koi?">
+      <panel id="koi-agents-prompt" type="arrow" orient="vertical" class="panel-no-padding" noautohide="true" aria-label="Allow an agent to use Koi?">
         <html:div class="koi-agents-body">
           <html:div class="koi-agents-join">
             <html:span class="koi-agents-tile"/>
@@ -305,12 +309,19 @@
     );
 
     // The prompt -----------------------------------------------------------
-    // Closing it any other way than Allow refuses: Escape, a click outside,
-    // the window closing, or access turning off (render).
+    // noautohide keeps it up through clicks elsewhere and app switches (a
+    // switch to Koi used to close it, which read as Don't Allow), so it ends
+    // with an answer: Allow, or Don't Allow and Escape. Otherwise only the
+    // window closing or access turning off (render) ends it, which refuses
+    // that one connection without holding off the next.
 
-    let allowed;
+    const ALERT = "koi-agents-prompt";
+    const alerts = Cc["@mozilla.org/alerts-service;1"].getService(
+      Ci.nsIAlertsService
+    );
+    let answer;
     const answerPrompt = allow => {
-      allowed = allow;
+      answer = allow;
       prompt.hidePopup();
     };
     prompt
@@ -319,21 +330,30 @@
     prompt
       .querySelector(".koi-agents-deny")
       .addEventListener("click", () => answerPrompt(false));
+    prompt.addEventListener("keydown", event => {
+      if (event.key == "Escape") {
+        answerPrompt(false);
+      }
+    });
 
     window.gKoiAgents = {
-      /** @returns {Promise<boolean>} Whether the user allowed it. */
+      /**
+       * @returns {Promise<boolean|null>} true for Allow, false for Don't
+       *   Allow, null when the prompt ended unanswered.
+       */
       async ask() {
-        allowed = false;
+        answer = null;
         panel.hidePopup();
         const answered = new Promise(resolve => {
           const done = new AbortController();
-          const answer = () => {
+          const finish = () => {
             done.abort();
-            resolve(allowed);
+            alerts.closeAlert(ALERT);
+            resolve(answer);
           };
           const { signal } = done;
-          prompt.addEventListener("popuphidden", answer, { signal });
-          addEventListener("unload", answer, { signal });
+          prompt.addEventListener("popuphidden", finish, { signal });
+          addEventListener("unload", finish, { signal });
         });
         // The prompt hangs off the button, which shows while Allow agents is
         // on but not in fullscreen: page fullscreen ends, as for Firefox's
@@ -360,10 +380,102 @@
           await new Promise(resolve => setTimeout(resolve, 50));
         }
         prompt.openPopup(button, "bottomright topright");
-        // Bounces the Dock icon while another app is in front.
-        window.getAttention();
+        // With another app in front (no active window), the agent's caller
+        // would wait on a prompt nobody sees: the Dock icon bounces, and a
+        // notification brings Koi forward to it. The only one Koi sends,
+        // for something the user started.
+        if (!Services.focus.activeWindow) {
+          window.getAttention();
+          const alert = Cc["@mozilla.org/alert-notification;1"].createInstance(
+            Ci.nsIAlertNotification
+          );
+          alert.init(
+            ALERT,
+            "",
+            "Allow an agent to use Koi?",
+            "Click to answer.",
+            true
+          );
+          alerts.showAlert(alert, (subject, topic) => {
+            if (topic == "alertclickcallback") {
+              window.focus();
+            }
+          });
+        }
         return answered;
       },
+    };
+
+    // Awake tabs. A background tab is hidden to its page: Firefox pauses its
+    // animation frames and throttles its timers, which froze scrolling and
+    // transitions in the agent's tabs and kept state out of its screenshots.
+    // While an agent is connected its tabs are made active the way the tab
+    // on screen is (docShellIsActive; BrowsingContext.isActive alone left
+    // frames paused, since a tab that renders no layers gets no refresh
+    // ticks). That costs a rendered layer per agent tab, only while an agent
+    // is connected. The tab switcher turns a tab off when the user leaves
+    // it, so this runs again after each switch (TabSwitchDone).
+    const awake = new WeakSet();
+    // Smooth scrolls never move in a background tab, so an awake tab's are
+    // made instant (KoiAgentPage.sys.mjs), again after each navigation.
+    const scrolling = (tab, instant) => {
+      try {
+        tab.linkedBrowser.browsingContext?.currentWindowGlobal
+          ?.getActor("KoiAgentPage")
+          .sendAsyncMessage(instant ? "Instant" : "Smooth");
+      } catch {
+        // A document the actor does not run in (about:blank, a chrome page).
+      }
+    };
+    const wake = connected => {
+      for (const tab of gBrowser.tabs) {
+        const browser = tab.linkedBrowser;
+        if (!browser?.browsingContext) {
+          continue;
+        }
+        // Read the tab's own state: the switcher may have turned it off.
+        if (connected && !tab.selected && KoiAgentTabs.is(tab)) {
+          if (!awake.has(tab)) {
+            awake.add(tab);
+            scrolling(tab, true);
+          }
+          if (!browser.docShellIsActive) {
+            browser.docShellIsActive = true;
+          }
+        } else if (awake.delete(tab)) {
+          scrolling(tab, false);
+          if (!tab.selected) {
+            browser.docShellIsActive = false;
+          }
+        }
+      }
+    };
+    gBrowser.addTabsProgressListener({
+      onLocationChange(browser, webProgress, request, location, flags) {
+        const tab = gBrowser.getTabForBrowser(browser);
+        if (
+          webProgress.isTopLevel &&
+          !(flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) &&
+          awake.has(tab)
+        ) {
+          scrolling(tab, true);
+        }
+      },
+    });
+
+    // A tab an agent's page opens (a target="_blank" link, window.open)
+    // stays in the background, as the agent's own do: Firefox brings such
+    // tabs forward (browser.tabs.loadDivertedInBackground,
+    // BrowserDOMWindow.sys.mjs). It lands in the agent's folder already,
+    // since Firefox puts a related tab in its opener's group.
+    const { addTab } = gBrowser;
+    gBrowser.addTab = function (uri, options = {}) {
+      const opener =
+        options.openerBrowser && this.getTabForBrowser(options.openerBrowser);
+      if (KoiAgentTabs.is(opener)) {
+        options = { ...options, inBackground: true };
+      }
+      return addTab.call(this, uri, options);
     };
 
     // Rendering. The window follows the module's state; it holds none.
@@ -384,6 +496,7 @@
       const group = KoiAgentTabs.group(window);
       showButton.disabled = !group;
       group?.toggleAttribute("koi-live", connected);
+      wake(connected);
       shareButton.textContent = onAgentTab ? "Take Back" : "Share This Tab";
       let state = "off";
       if (connected) {
@@ -405,9 +518,17 @@
     for (const topic of TOPICS) {
       Services.obs.addObserver(observer, topic);
     }
-    for (const type of ["TabSelect", "TabOpen", "TabClose", "TabGroupCreate"]) {
+    for (const type of [
+      "TabSelect",
+      "TabOpen",
+      "TabClose",
+      "TabGroupCreate",
+      "TabGrouped",
+      "TabUngrouped",
+    ]) {
       strip.addEventListener(type, render);
     }
+    gBrowser.addEventListener("TabSwitchDone", render);
     addEventListener(
       "unload",
       () => {

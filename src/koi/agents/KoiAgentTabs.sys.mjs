@@ -30,7 +30,8 @@
  *     tab on each listing.
  *   - New tabs (browser.Context.openTab, TabManager.addTab) open in the
  *     background, in the folder.
- * A workspace, not a lock: a tab's handle still reaches it.
+ * A workspace, not a lock: a tab's handle still reaches it. Install also
+ * registers KoiAgentPage, the agent tabs' instant scrolling.
  *
  * Installed by KoiAgents.sys.mjs, never when Koi was launched for
  * automation. koi-agents.js draws the folder's chip, menu and live dot. */
@@ -132,6 +133,20 @@ export const KoiAgentTabs = {
   },
 
   install() {
+    ChromeUtils.registerWindowActor("KoiAgentPage", {
+      parent: {
+        esModuleURI: "chrome://browser/content/koi-agents/KoiAgentPage.sys.mjs",
+      },
+      child: {
+        esModuleURI: "chrome://browser/content/koi-agents/KoiAgentPage.sys.mjs",
+      },
+      messageManagerGroups: ["browsers"],
+      // Web pages run in untrusted processes, which only admit actors that
+      // say so (JSActorService.cpp). This one only receives: the parent
+      // tells it to make scrolls instant, and it sends nothing back.
+      safeForUntrustedWebProcess: true,
+    });
+
     Object.defineProperty(TabManager, "allTabs", { get: () => this.all });
 
     const { addTab } = TabManager;

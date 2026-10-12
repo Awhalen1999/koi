@@ -24,7 +24,8 @@
  *     by Koi's prompt, asked for every new connection. Firefox allows one
  *     session and refuses a second before asking (WebDriverBiDi.sys.mjs
  *     createSession), so agents take turns. After Don't Allow, Koi refuses
- *     without asking for DENY_MS: an agent may retry at once.
+ *     without asking for DENY_MS: an agent may retry at once. A prompt that
+ *     ends unanswered (its window closed) refuses only that connection.
  *   - Connected is any session on the servers. It ends when the agent quits,
  *     when the connector drops it after 30 idle minutes (it reconnects, and
  *     is asked again, on its next call), or on Disconnect.
@@ -118,12 +119,36 @@ ConnectionPrompt.show = async function () {
   if (!win?.gKoiAgents) {
     return firefoxShow.call(this);
   }
-  if (await win.gKoiAgents.ask()) {
+  const allowed = await win.gKoiAgents.ask();
+  if (allowed) {
     return ConnectionPromptResult.ALLOW;
   }
-  deniedAt = Date.now();
+  if (allowed === false) {
+    deniedAt = Date.now();
+  }
   return ConnectionPromptResult.DENY;
 };
+
+// Firefox removes its port file when the servers stop or Koi quits
+// (Marionette.sys.mjs uninit), but not after a crash or a kill, and the
+// connector's lookup may then find a dead port. Only one Koi listens at a
+// time (9222 is exclusive), so once Koi's own servers are up every other
+// file is stale.
+async function prunePortFiles() {
+  const folder = PathUtils.join(
+    Services.dirsvc.get("Home", Ci.nsIFile).path,
+    ".firefox-devtools-mcp",
+    "instances"
+  );
+  const own = `${Services.appinfo.processID}.port`;
+  for (const path of await IOUtils.getChildren(folder, {
+    ignoreAbsent: true,
+  })) {
+    if (path.endsWith(".port") && PathUtils.filename(path) != own) {
+      await IOUtils.remove(path, { ignoreAbsent: true });
+    }
+  }
+}
 
 async function startServers() {
   if (!portFree(REMOTE_AGENT_PORT)) {
@@ -139,6 +164,7 @@ async function startServers() {
   try {
     await RemoteControlServers.start();
     problem = null;
+    prunePortFiles().catch(console.error);
   } catch (e) {
     console.error(e);
     problem = "error";

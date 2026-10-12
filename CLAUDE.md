@@ -638,9 +638,14 @@ named.
   for the user: while on, Firefox's remote-control servers wait for agents
   from launch, and an agent that disconnects, idles out (the connector drops
   its session after 30 minutes) or is disconnected leaves them waiting. Koi's
-  prompt replaces Firefox's modal one before each connection; Don't Allow
-  holds off prompts for a minute, and Firefox refuses a second agent before
-  asking, so agents take turns. An "Agent" label sits at the end of the
+  prompt replaces Firefox's modal one before each connection. It is
+  `noautohide`, so clicks elsewhere and app switches cannot close it (a
+  switch to Koi used to, which read as a refusal); only Don't Allow (or
+  Escape) holds off prompts for a minute, and a prompt ended any other way
+  refuses just that connection. With Koi in the background, the Dock icon
+  bounces and a macOS notification, the only one Koi sends, brings Koi
+  forward to the prompt. Firefox refuses a second agent before asking, so
+  agents take turns. An "Agent" label sits at the end of the
   address field while one is connected. Firefox's banners and red
   address-bar stripes are off. The panel adds Koi to Claude Code (`claude mcp add`, user scope)
   or copies the command for any other agent; the connector needs
@@ -662,10 +667,26 @@ named.
   remote code is bent through its exported objects (TabManager,
   windowManager, browser.Context), no patch; Marionette's command table
   (`GeckoDriver.#commandHandlers`) is a private static, so a per-command
-  signal would need one. A background tab is hidden to its page
-  (`document.hidden`, requestAnimationFrame at 1 Hz), the price of the agent
-  never taking the screen. A workspace, not a lock: a tab's handle still
-  reaches it. Testing traps: the `--marionette` harness marks the launch as
+  signal would need one. A background tab is hidden to its page: Firefox
+  pauses its animation frames entirely and throttles its timers, which froze
+  scrolling and transitions and kept state out of screenshots. So while an
+  agent is connected its tabs are made active as the visible tab is
+  (`docShellIsActive`, set again after each tab switch, since the switcher
+  turns off a tab the user leaves; `BrowsingContext.isActive` alone left
+  frames paused). Smooth scrolls still never move in a background tab:
+  Firefox hands them to the compositor (ScrollContainerFrame.cpp), which
+  only animates the tab on screen, and rendering a tab is not showing it.
+  So an awake tab's smooth scrolls are made instant by a page helper
+  (KoiAgentPage.sys.mjs, a window actor created only in agent tabs, again
+  after each navigation): a user sheet overrides CSS `scroll-behavior`, and
+  the scroll methods take "smooth" as "instant". Undone when the tab stops
+  being the agent's or the user looks at it. Tabs an agent's pages open (`target="_blank"`,
+  `window.open`) stay in the background too: koi-agents.js wraps the
+  window's `gBrowser.addTab` to set `inBackground` when the opener is an
+  agent tab, where Firefox would bring them forward. On start, Koi deletes
+  every connector port file but its own (`~/.firefox-devtools-mcp/instances`;
+  Firefox leaves them after a crash or kill, and only one Koi can listen).
+  A workspace, not a lock: a tab's handle still reaches it. Testing traps: the `--marionette` harness marks the launch as
   automation (agent tabs are not installed; call `KoiAgentTabs.install()`
   from the harness), blocks a runtime Marionette, orphans its own session
   once the Remote Agent starts, and meets Koi's prompt on its own later
