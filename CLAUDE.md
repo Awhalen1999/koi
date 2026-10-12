@@ -733,7 +733,12 @@ named.
   address dropdown's results and "…" menu, the findbar, the status label, the
   board's cards and the bookmark menus (Firefox-drawn for drag and drop;
   Zen's native appearance for them is macOS 26's clear glass, greyer than
-  the popovers).
+  the popovers). **Decided 2026-10-12, not built:** the design pass (Koi
+  Designs canvas, Panels page) replaces the popovers with Koi-drawn panels
+  on the solid, no arrow, a subtle open of about 150ms, and white main
+  actions, the accent kept for focus and selection. With the pref off and
+  the solid behind them, Firefox already draws arrow panels cleanly:
+  rounded, hairline-edged, a few pixels below their button.
 - **In-content pages keep Firefox's accent** (Settings, Add-ons). The lever,
   `browser.theme.native-theme`, would also paint a native titlebar material
   on `#navigator-toolbox::after` (browser-shared.css) that koi-shell.css
