@@ -1,0 +1,17 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Included through koi-assets.jar.inc.mn into browser/base/jar.mn, so source
+# paths are relative to browser/base/. Rules: src/koi/common/jar.inc.mn.
+
+        content/browser/koi-folders/koi-folders.css             (../../koi/folders/koi-folders.css)
+        content/browser/koi-folders/koi-folders.js              (../../koi/folders/koi-folders.js)
+        content/browser/koi-folders/icons/folder.svg            (../../koi/folders/icons/folder.svg)
+        content/browser/koi-folders/icons/briefcase.svg         (../../koi/folders/icons/briefcase.svg)
+        content/browser/koi-folders/icons/book.svg              (../../koi/folders/icons/book.svg)
+        content/browser/koi-folders/icons/pen.svg               (../../koi/folders/icons/pen.svg)
+        content/browser/koi-folders/icons/flask.svg             (../../koi/folders/icons/flask.svg)
+        content/browser/koi-folders/icons/code.svg              (../../koi/folders/icons/code.svg)
+        content/browser/koi-folders/icons/home.svg              (../../koi/folders/icons/home.svg)
+        content/browser/koi-folders/icons/star.svg              (../../koi/folders/icons/star.svg)

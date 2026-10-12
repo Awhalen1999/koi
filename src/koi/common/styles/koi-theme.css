@@ -89,6 +89,20 @@
   --koi-live: #30d158;
   --koi-waiting: #ffd60a;
 
+  /* Folders (src/koi/folders/): Firefox's nine group colours in Koi's
+   * values, pastel enough to tint a tray and ink a glyph on dark glass. The
+   * tray is the colour at 18% (koi-folders.css); the agent's folder uses
+   * --koi-agent, outside this rotation. */
+  --koi-folder-blue: #7fb3ff;
+  --koi-folder-purple: #c7a6ff;
+  --koi-folder-cyan: #6fd3e6;
+  --koi-folder-orange: #ffad7a;
+  --koi-folder-yellow: #f5d76e;
+  --koi-folder-pink: #ff9ad5;
+  --koi-folder-green: #8ee3a6;
+  --koi-folder-gray: #a8a9b0;
+  --koi-folder-red: #ff8a8a;
+
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);
   --koi-page-ring: rgba(0, 0, 0, 0.06);
@@ -137,12 +151,20 @@
 
   /* Motion: the shell does not move (no entrances, springs or lifts; motion
    * returns as a pass of its own). Only state eases — a colour or opacity
-   * answering the pointer — so a hover reads as a response, not a flicker. */
+   * answering the pointer — so a hover reads as a response, not a flicker.
+   * SETTLE is for a shape giving way and closing up, quick then soft: a
+   * folder's tray parting into tiles for a drag and rejoining on the drop. */
   --koi-fade: 150ms linear;
+  --koi-settle: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* A status leaving: slower than it arrived, so a glance still catches it
+   * (the agent's ring and tag, koi-agents.css). */
+  --koi-fade-out: 500ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --koi-fade: 0ms linear;
+    --koi-settle: 0ms linear;
+    --koi-fade-out: 0ms linear;
   }
 }

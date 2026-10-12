@@ -166,17 +166,19 @@
       const cardOf = tab =>
         [...grid.children].find(card => card.koiTab === tab);
 
+      // Every tab, folders flattened: Firefox's visibleTabs leaves out the
+      // tabs of a closed folder.
+      const boardTabs = () =>
+        gBrowser.tabs.filter(tab => !tab.hidden && !tab.closing);
+
       // The strip changed shape (a tab opened, closed, moved, hidden or
       // shown): surviving cards keep their thumbnails, new ones are built,
-      // and the strip's order applies. Firefox refreshes visibleTabs before
-      // dispatching each of these events.
+      // and the strip's order applies.
       const reconcile = () => {
         const cards = new Map(
           [...grid.children].map(card => [card.koiTab, card])
         );
-        const next = gBrowser.visibleTabs.map(
-          tab => cards.get(tab) ?? cardFor(tab)
-        );
+        const next = boardTabs().map(tab => cards.get(tab) ?? cardFor(tab));
         if (!next.length) {
           closeSurface();
           return;
@@ -232,7 +234,7 @@
           return;
         }
         if (!openMode) {
-          grid.replaceChildren(...gBrowser.visibleTabs.map(cardFor));
+          grid.replaceChildren(...boardTabs().map(cardFor));
           for (const [type, listener] of tabListeners) {
             gBrowser.tabContainer.addEventListener(type, listener);
           }

@@ -57,6 +57,61 @@
   }
 }
 
+/* The agent's folder (KoiAgentTabs.sys.mjs): a folder (koi-folders.css) in
+ * the agent's blue, its chip the glyph on its tile, as on the toolbar and
+ * the prompt, with the live dot while an agent is connected ([koi-live],
+ * koi-agents.js). Firefox sets --tab-group-color inline, so the tint is
+ * redeclared here; the selectors outrank koi-folders.css's, which loads
+ * later. */
+#tabbrowser-tabs[orient="horizontal"] tab-group[koi-agent] {
+  --koi-folder-tint: color-mix(in srgb, var(--koi-agent) var(--koi-folder-tint-level), transparent);
+
+  & .tab-group-label {
+    color: var(--koi-fg);
+
+    &::before {
+      width: var(--koi-space-16);
+      height: var(--koi-space-16);
+      vertical-align: -4px;
+      border-radius: var(--koi-radius-favicon);
+      background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 10px no-repeat;
+      -moz-context-properties: fill;
+      fill: var(--koi-fg);
+      mask: none;
+    }
+  }
+
+  /* 6px, not the panel dot's 8: it sits in a line of 12px text. */
+  &[koi-live] .tab-group-label::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-inline-start: var(--koi-space-8);
+    vertical-align: 1px;
+    border-radius: 50%;
+    background-color: var(--koi-live);
+    animation: koi-agents-chip-live 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes koi-agents-chip-live {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--koi-live) 25%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #tabbrowser-tabs[orient="horizontal"] tab-group[koi-agent][koi-live] .tab-group-label::after {
+    animation: none;
+  }
+}
+
 /* The panels ------------------------------------------------------------- */
 /* Native popovers: macOS draws the material, Koi only lays out on it. Both
  * keep Firefox's panel metrics (tokens-shared.css, panelUI-shared.css): the
@@ -65,7 +120,8 @@
  * radius 8, icon gap 4). */
 
 #koi-agents-panel,
-#koi-agents-prompt {
+#koi-agents-prompt,
+#koi-agents-steps {
   color: var(--koi-fg);
   color-scheme: dark;
   font-size: var(--koi-text-13);
@@ -107,6 +163,10 @@
   padding: var(--koi-space-4) var(--panel-menuitem-padding-inline);
 }
 
+.koi-agents-row[hidden] {
+  display: none;
+}
+
 .koi-agents-name {
   flex: 1;
   min-width: 0;
@@ -122,6 +182,7 @@
 /* Secondary values sit at the row's size in a quieter ink, as the app
  * menu's shortcuts do. */
 .koi-agents-since,
+.koi-agents-tab-count,
 .koi-agents-claude-note {
   color: var(--koi-fg-3);
 }
@@ -244,11 +305,205 @@
 
 /* Inline actions are bare, in the agent's ink, and reach 8px past the text
  * column so their labels end where the row's other values do. */
-.koi-agents-body :is(.koi-agents-add, .koi-agents-copy, .koi-agents-retry) {
+.koi-agents-body :is(.koi-agents-add, .koi-agents-copy, .koi-agents-retry, .koi-agents-show, .koi-agents-share, .koi-steps-more) {
   margin-inline-end: calc(-1 * var(--panel-menuitem-padding-inline));
   padding-inline: var(--panel-menuitem-padding-inline);
   background-color: transparent;
   color: var(--koi-agent-ink);
+}
+
+/* The steps ---------------------------------------------------------------- */
+/* The agents panel's metrics: rows 32px with text 16px in, the agent's tile
+ * and the panel's quiet inks, wider for a step's words. A step is a button
+ * (it opens its tab), drawn as a menu row: plain until hovered. */
+
+#koi-agents-steps > .koi-agents-body {
+  width: calc(var(--menu-panel-width) + 2 * var(--koi-space-32));
+}
+
+.koi-steps-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: var(--panel-menuitem-margin);
+  padding: var(--koi-space-4) var(--panel-menuitem-padding-inline) var(--koi-space-8);
+}
+
+.koi-steps-tile {
+  flex: none;
+  width: var(--koi-space-24);
+  height: var(--koi-space-24);
+  border-radius: 6px;
+  background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 12px no-repeat;
+  -moz-context-properties: fill;
+  fill: var(--koi-fg);
+}
+
+.koi-steps-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.koi-steps-name {
+  font-weight: 600;
+}
+
+.koi-steps-note,
+.koi-steps-kept,
+.koi-steps-empty,
+.koi-steps-when {
+  color: var(--koi-fg-3);
+  font-size: var(--koi-text-12);
+}
+
+.koi-steps-list {
+  display: flex;
+  flex-direction: column;
+
+  &[all] {
+    max-height: 352px;
+    overflow-y: auto;
+  }
+}
+
+/* Outranks the panel's pill buttons (.koi-agents-body button). */
+.koi-agents-body .koi-steps-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: auto;
+  min-height: 32px;
+  margin: var(--panel-menuitem-margin);
+  padding: 0 var(--panel-menuitem-padding-inline);
+  border-radius: var(--panel-menuitem-border-radius, 4px);
+  background-color: transparent;
+  text-align: start;
+
+  &:hover {
+    background-color: var(--koi-glass-well);
+  }
+}
+
+.koi-steps-icon {
+  flex: none;
+  width: var(--koi-space-16);
+  height: var(--koi-space-16);
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
+}
+
+.koi-steps-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.koi-steps-favicon {
+  flex: none;
+  width: var(--koi-space-12);
+  height: var(--koi-space-12);
+  border-radius: 3px;
+}
+
+.koi-steps-when {
+  flex: none;
+  min-width: 28px;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.koi-steps-kept,
+.koi-steps-empty {
+  margin: var(--panel-menuitem-margin);
+  padding: var(--koi-space-4) var(--panel-menuitem-padding-inline);
+}
+
+.koi-steps-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--koi-space-8);
+  margin: var(--panel-menuitem-margin);
+  padding: var(--koi-space-4) var(--panel-menuitem-padding-inline);
+
+  & > .koi-steps-more {
+    margin-inline-end: auto;
+  }
+}
+
+/* The moment it acts (koi-agents.js touched) --------------------------------- */
+/* A ring around the page card, guarded as the card is (koi-shell.css), and a
+ * tag where an input action lands, drawn by the chrome over the page in the
+ * browser's stack: nothing goes into the page. Both come in over --koi-fade
+ * and leave over the slower --koi-fade-out. */
+:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([popup-window]):not([chromeless-window]):not([web-extension-popup-window])
+  #tabbrowser-tabpanels
+  .browserSidebarContainer {
+  transition: box-shadow var(--koi-fade-out);
+
+  &[koi-agent-acting] {
+    transition: box-shadow var(--koi-fade);
+    box-shadow:
+      var(--koi-shadow-high),
+      0 0 0 2px var(--koi-agent);
+  }
+}
+
+.koi-agent-touch {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--koi-fade-out);
+
+  &[shown] {
+    opacity: 1;
+    transition: opacity var(--koi-fade);
+  }
+}
+
+.koi-agent-touch-box {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: var(--koi-radius-favicon);
+  outline: 2px solid var(--koi-agent);
+  outline-offset: 2px;
+}
+
+.koi-agent-touch-tag {
+  position: absolute;
+  bottom: calc(100% + var(--koi-space-8));
+  left: -4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 var(--koi-space-8);
+  border-radius: 6px;
+  background-color: var(--koi-agent);
+  color: var(--koi-fg);
+  font: menu;
+  font-size: var(--koi-text-11);
+  font-weight: 600;
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    width: 11px;
+    height: 11px;
+    background: url("chrome://browser/content/koi-agents/koi-agent.svg") center / contain no-repeat;
+    -moz-context-properties: fill;
+    fill: var(--koi-fg);
+  }
+
+  .koi-agent-touch-box[below] > & {
+    top: calc(100% + var(--koi-space-8));
+    bottom: auto;
+  }
 }
 
 /* The prompt ---------------------------------------------------------------- */

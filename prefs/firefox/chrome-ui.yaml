@@ -26,12 +26,22 @@
 - name: accessibility.typeaheadfind.flashBar
   value: 0
 
-# Off until the tab strip has a design for group labels. Covers the tab
-# context menu items, drag-to-group, the address bar's group actions and the
-# Settings checkbox. Smart groups (browser.tabs.groups.smart.optin) are
-# already off by default.
+# Folders are Firefox's tab groups (src/koi/folders/). Firefox ships them on;
+# Koi's default is spelled out because it was off until the strip had a
+# design for them.
 - name: browser.tabs.groups.enabled
+  value: true
+
+# Firefox's "smart" tab groups: on-device AI that suggests tabs for a group
+# and downloads models for it. Off and locked, as every AI feature is; the
+# editor's suggest section and the Settings controls go with it.
+- name: browser.tabs.groups.smart.enabled
   value: false
+  locked: true
+
+- name: browser.tabs.groups.smart.userEnabled
+  value: false
+  locked: true
 
 # The two-row layout assumes horizontal tabs. Locked, as in Zen; Settings
 # leaves out its control (preferences-js.patch) and koi-chrome.css hides the

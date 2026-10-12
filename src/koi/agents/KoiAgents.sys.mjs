@@ -24,15 +24,23 @@
  *     by Koi's prompt, asked for every new connection. Firefox allows one
  *     session and refuses a second before asking (WebDriverBiDi.sys.mjs
  *     createSession), so agents take turns. After Don't Allow, Koi refuses
- *     without asking for DENY_MS: an agent may retry at once.
+ *     without asking for DENY_MS: an agent may retry at once. A prompt that
+ *     ends unanswered (its window closed) refuses only that connection.
  *   - Connected is any session on the servers. It ends when the agent quits,
  *     when the connector drops it after 30 idle minutes (it reconnects, and
  *     is asked again, on its next call), or on Disconnect.
+ *   - Steps: what the agent does, in words, and the moment it acts
+ *     (KoiAgentSteps.sys.mjs).
+ *   - Tabs: the agent works in a folder of its own, in the background, and
+ *     sees only its tabs (KoiAgentTabs.sys.mjs). Allow agents off releases
+ *     the folder into an ordinary one.
  *
  * Windows listen on "koi-agents" (state changed) and answer the prompt
  * through window.gKoiAgents.ask(). */
 
 import { BrowserWindowTracker } from "resource:///modules/BrowserWindowTracker.sys.mjs";
+import { KoiAgentSteps } from "chrome://browser/content/koi-agents/KoiAgentSteps.sys.mjs";
+import { KoiAgentTabs } from "chrome://browser/content/koi-agents/KoiAgentTabs.sys.mjs";
 import { RemoteControlServers } from "moz-src:///browser/components/remotecontrol/RemoteControlServers.sys.mjs";
 import { RemoteAgent } from "chrome://remote/content/components/RemoteAgent.sys.mjs";
 import {
@@ -86,6 +94,10 @@ const notify = () => Services.obs.notifyObservers(null, "koi-agents");
 // already runs for it, and Koi's would put its sessions behind the prompt.
 // Read before Koi's own start, which would also set it.
 const LAUNCHED_FOR_AUTOMATION = RemoteControlServers.enabled;
+if (!LAUNCHED_FOR_AUTOMATION) {
+  KoiAgentTabs.install();
+  KoiAgentSteps.install();
+}
 
 let connectedAt = 0;
 let deniedAt = -Infinity;
@@ -111,12 +123,36 @@ ConnectionPrompt.show = async function () {
   if (!win?.gKoiAgents) {
     return firefoxShow.call(this);
   }
-  if (await win.gKoiAgents.ask()) {
+  const allowed = await win.gKoiAgents.ask();
+  if (allowed) {
     return ConnectionPromptResult.ALLOW;
   }
-  deniedAt = Date.now();
+  if (allowed === false) {
+    deniedAt = Date.now();
+  }
   return ConnectionPromptResult.DENY;
 };
+
+// Firefox removes its port file when the servers stop or Koi quits
+// (Marionette.sys.mjs uninit), but not after a crash or a kill, and the
+// connector's lookup may then find a dead port. Only one Koi listens at a
+// time (9222 is exclusive), so once Koi's own servers are up every other
+// file is stale.
+async function prunePortFiles() {
+  const folder = PathUtils.join(
+    Services.dirsvc.get("Home", Ci.nsIFile).path,
+    ".firefox-devtools-mcp",
+    "instances"
+  );
+  const own = `${Services.appinfo.processID}.port`;
+  for (const path of await IOUtils.getChildren(folder, {
+    ignoreAbsent: true,
+  })) {
+    if (path.endsWith(".port") && PathUtils.filename(path) != own) {
+      await IOUtils.remove(path, { ignoreAbsent: true });
+    }
+  }
+}
 
 async function startServers() {
   if (!portFree(REMOTE_AGENT_PORT)) {
@@ -132,6 +168,7 @@ async function startServers() {
   try {
     await RemoteControlServers.start();
     problem = null;
+    prunePortFiles().catch(console.error);
   } catch (e) {
     console.error(e);
     problem = "error";
@@ -157,6 +194,7 @@ function sync() {
   queue = queue
     .then(() => {
       if (!KoiAgents.enabled) {
+        KoiAgentTabs.release();
         return stopServers();
       }
       return KoiAgents.listening ? null : startServers();
