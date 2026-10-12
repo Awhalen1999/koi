@@ -4,7 +4,7 @@
 
 /* Browser-window globals (koi/ is outside eslint.config.mjs's browser-window
  * paths). */
-/* global MozXULElement, delayedStartupPromise, gBrowser, gBrowserInit, FullScreen, PrivateBrowsingUtils, TabContextMenu */
+/* global MozXULElement, delayedStartupPromise, gBrowser, gBrowserInit, FullScreen, PrivateBrowsingUtils, TabContextMenu, BrowsingContext */
 
 /* Agent Connect, each window's half (KoiAgents.sys.mjs is the app's):
  *   - Its own button in row one, after ⚒, on every page: shown with
@@ -21,7 +21,11 @@
  *     up until answered; with Koi in the background, a macOS notification
  *     says it is waiting.
  *   - "Agent" at the end of the address field on the agent's tabs while one
- *     is connected; it opens the panel.
+ *     is connected; it opens the steps.
+ *   - The steps (kept by KoiAgentSteps.sys.mjs): its last six, or all, each
+ *     opening the tab it happened in, from the label or the folder chip's
+ *     menu. While it acts on the tab on screen, the page card takes a ring
+ *     and an input action a tag where it lands, for a beat.
  *   - The agent's folder (KoiAgentTabs.sys.mjs), drawn by koi-agents.css: a
  *     folder like any other, except that its chip has a menu of its own
  *     instead of Firefox's editor (nothing to edit) and shows the live dot
@@ -56,6 +60,9 @@
     );
     const { KoiAgentTabs } = ChromeUtils.importESModule(
       "chrome://browser/content/koi-agents/KoiAgentTabs.sys.mjs"
+    );
+    const { KoiAgentSteps } = ChromeUtils.importESModule(
+      "chrome://browser/content/koi-agents/KoiAgentSteps.sys.mjs"
     );
     const { KoiDevMode } = ChromeUtils.importESModule(
       "chrome://browser/content/koi-devmode/KoiDevMode.sys.mjs"
@@ -114,7 +121,28 @@
           </html:div>
         </html:div>
       </panel>
+      <panel id="koi-agents-steps" type="arrow" orient="vertical" class="panel-no-padding" aria-label="Agent steps">
+        <html:div class="koi-agents-body">
+          <html:div class="koi-steps-head">
+            <html:span class="koi-steps-tile"/>
+            <html:span class="koi-steps-who">
+              <html:span class="koi-steps-name">Agent</html:span>
+              <html:span class="koi-steps-note"/>
+            </html:span>
+          </html:div>
+          <html:div class="koi-steps-list"/>
+          <html:span class="koi-steps-empty">No steps yet.</html:span>
+          <html:span class="koi-steps-kept">Koi keeps the last 500 steps until it quits.</html:span>
+          <toolbarseparator/>
+          <html:div class="koi-steps-foot">
+            <html:button class="koi-steps-more"/>
+            <html:button class="koi-steps-close-tabs">Close Tabs</html:button>
+            <html:button class="koi-steps-disconnect">Disconnect</html:button>
+          </html:div>
+        </html:div>
+      </panel>
       <menupopup id="koi-agents-folder-menu">
+        <menuitem class="koi-agents-show-steps" label="Show Steps"/>
         <menuitem class="koi-agents-open-panel" label="Open Agents Panel"/>
         <menuitem class="koi-agents-share-current" label="Share Current Tab"/>
         <menuitem class="koi-agents-close-tabs" label="Close Tabs"/>
@@ -124,6 +152,13 @@
     `);
     const panel = fragment.getElementById("koi-agents-panel");
     const folderMenu = fragment.getElementById("koi-agents-folder-menu");
+    const steps = fragment.getElementById("koi-agents-steps");
+    const stepsNote = steps.querySelector(".koi-steps-note");
+    const stepsList = steps.querySelector(".koi-steps-list");
+    const stepsKept = steps.querySelector(".koi-steps-kept");
+    const stepsEmpty = steps.querySelector(".koi-steps-empty");
+    const stepsMore = steps.querySelector(".koi-steps-more");
+    const stepsDisconnect = steps.querySelector(".koi-steps-disconnect");
     const prompt = fragment.getElementById("koi-agents-prompt");
     const toggle = panel.querySelector(".koi-agents-switch");
     const stateLabel = panel.querySelector(".koi-agents-state");
@@ -221,6 +256,8 @@
       true
     );
     folderMenu.addEventListener("popupshowing", () => {
+      folderMenu.querySelector(".koi-agents-show-steps").disabled =
+        !KoiAgentSteps.list.length;
       folderMenu.querySelector(".koi-agents-share-current").disabled =
         KoiAgentTabs.is(gBrowser.selectedTab);
       folderMenu.querySelector(".koi-agents-disconnect-item").disabled =
@@ -228,7 +265,11 @@
     });
     folderMenu.addEventListener("command", event => {
       const action = event.target.className;
-      if (action == "koi-agents-open-panel") {
+      if (action == "koi-agents-show-steps") {
+        const chip =
+          KoiAgentTabs.group(window)?.querySelector(".tab-group-label");
+        openSteps(chip ?? button);
+      } else if (action == "koi-agents-open-panel") {
         panel.openPopup(button, "bottomright topright");
       } else if (action == "koi-agents-share-current") {
         KoiAgentTabs.share(gBrowser.selectedTab);
@@ -304,9 +345,142 @@
       setTimeout(() => (copyButton.textContent = "Copy setup"), 1500);
     });
 
-    label.addEventListener("click", () =>
-      panel.openPopup(label, "bottomright topright")
+    label.addEventListener("click", () => openSteps(label));
+
+    // The steps --------------------------------------------------------------
+    // Newest first: the last RECENT, or all of them. Read when the popover
+    // opens and again as steps arrive while it is open; times do not tick.
+
+    const RECENT = 6;
+    let showAll = false;
+    const ago = at => {
+      const seconds = Math.round((Date.now() - at) / 1000);
+      if (seconds < 5) {
+        return "now";
+      }
+      if (seconds < 60) {
+        return `${seconds}s`;
+      }
+      const minutes = Math.round(seconds / 60);
+      return minutes < 60 ? `${minutes}m` : `${Math.round(minutes / 60)}h`;
+    };
+    // The tab a step happened in, wherever it is now; gone if it closed.
+    const tabOf = browserId => {
+      if (!browserId) {
+        return null;
+      }
+      const browser =
+        BrowsingContext.getCurrentTopByBrowserId(browserId)?.embedderElement;
+      return browser?.documentGlobal.gBrowser?.getTabForBrowser(browser);
+    };
+    const el = (tag, className, text = "") => {
+      const node = document.createElementNS(XHTML, tag);
+      node.className = className;
+      node.textContent = text;
+      return node;
+    };
+    const stepRow = step => {
+      const row = el("button", "koi-steps-row");
+      const icon = el("img", "koi-steps-icon");
+      icon.src = step.icon;
+      icon.alt = "";
+      const words = step.count > 1 ? `${step.text} ×${step.count}` : step.text;
+      const tab = tabOf(step.browserId);
+      const favicon = el("img", "koi-steps-favicon");
+      favicon.alt = "";
+      favicon.hidden = !tab;
+      if (tab) {
+        favicon.src =
+          tab.getAttribute("image") ||
+          "chrome://global/skin/icons/defaultFavicon.svg";
+      }
+      row.append(
+        icon,
+        el("span", "koi-steps-text", words),
+        favicon,
+        el("span", "koi-steps-when", ago(step.at))
+      );
+      row.addEventListener("click", () => {
+        if (tab?.isConnected) {
+          tab.documentGlobal.gBrowser.selectedTab = tab;
+          tab.documentGlobal.focus();
+        }
+        steps.hidePopup();
+      });
+      return row;
+    };
+    const renderSteps = () => {
+      const all = KoiAgentSteps.list;
+      const { connected } = KoiAgents;
+      if (connected) {
+        const minutes = Math.floor(
+          (Date.now() - KoiAgents.connectedAt) / 60000
+        );
+        const tabs = KoiAgentTabs.all.length;
+        stepsNote.textContent = `Connected ${minutes ? `${minutes} min` : "just now"} · ${tabs} ${tabs == 1 ? "tab" : "tabs"} in its folder`;
+      } else {
+        stepsNote.textContent = `Disconnected · ${all.length} ${all.length == 1 ? "step" : "steps"}`;
+      }
+      const shown = (showAll ? all : all.slice(-RECENT)).toReversed();
+      stepsList.replaceChildren(...shown.map(stepRow));
+      stepsList.toggleAttribute("all", showAll);
+      stepsEmpty.hidden = !!all.length;
+      stepsKept.hidden = !showAll;
+      stepsMore.hidden = !showAll && all.length <= RECENT;
+      stepsMore.textContent = showAll ? "Recent" : `All ${all.length} steps`;
+      stepsDisconnect.hidden = !connected;
+    };
+    const openSteps = anchor => {
+      showAll = false;
+      panel.hidePopup();
+      steps.openPopup(anchor, "bottomright topright");
+    };
+    steps.addEventListener("popupshowing", event => {
+      if (event.target == steps) {
+        renderSteps();
+      }
+    });
+    stepsMore.addEventListener("click", () => {
+      showAll = !showAll;
+      renderSteps();
+    });
+    steps
+      .querySelector(".koi-steps-close-tabs")
+      .addEventListener("click", () => KoiAgentTabs.closeAll());
+    stepsDisconnect.addEventListener("click", () => KoiAgents.disconnect());
+    const stepsObserver = {
+      observe: () => steps.state == "open" && renderSteps(),
+    };
+    Services.obs.addObserver(stepsObserver, "koi-agent-steps");
+    addEventListener(
+      "unload",
+      () => Services.obs.removeObserver(stepsObserver, "koi-agent-steps"),
+      { once: true }
     );
+
+    // The moment it acts -----------------------------------------------------
+    // A ring around the page card for RING after its last step, and, for an
+    // input action, a tag on the element for TAG, drawn by the chrome over
+    // the page (koi-agents.css): nothing is added to the page itself. Only
+    // on the tab on screen. Steps that touch no element (a screenshot, a
+    // read) keep the ring up and leave the tag where it is: an agent's click
+    // is usually followed at once by a look, which used to wipe the tag
+    // before it could be seen.
+
+    const RING = 1500;
+    const TAG = 2000;
+    const touch = el("div", "koi-agent-touch");
+    const touchBox = el("div", "koi-agent-touch-box");
+    const touchTag = el("span", "koi-agent-touch-tag");
+    touchBox.append(touchTag);
+    touch.append(touchBox);
+    let lit = null;
+    let ringTimer = 0;
+    let tagTimer = 0;
+    const unlight = () => {
+      lit?.removeAttribute("koi-agent-acting");
+      lit = null;
+    };
 
     // The prompt -----------------------------------------------------------
     // noautohide keeps it up through clicks elsewhere and app switches (a
@@ -337,6 +511,45 @@
     });
 
     window.gKoiAgents = {
+      /**
+       * Called by KoiAgentSteps.sys.mjs as each step lands.
+       *
+       * @param {MozTabbrowserTab} tab
+       * @param {{kind: string, rect: ?object}} [touchOf] An input action's
+       *   kind and the box it lands on, in the page's CSS pixels.
+       */
+      touched(tab, touchOf) {
+        if (!tab.selected) {
+          return;
+        }
+        const browser = tab.linkedBrowser;
+        const card = browser.closest(".browserSidebarContainer");
+        if (card != lit) {
+          unlight();
+          lit = card;
+        }
+        lit?.setAttribute("koi-agent-acting", "");
+        clearTimeout(ringTimer);
+        ringTimer = setTimeout(unlight, RING);
+        const rect = touchOf?.rect;
+        if (rect) {
+          const zoom = browser.fullZoom;
+          Object.assign(touchBox.style, {
+            left: `${rect.left * zoom}px`,
+            top: `${rect.top * zoom}px`,
+            width: `${rect.width * zoom}px`,
+            height: `${rect.height * zoom}px`,
+          });
+          // Below the element when there is no room above it.
+          touchBox.toggleAttribute("below", rect.top * zoom < 36);
+          touchTag.textContent = `Agent · ${touchOf.kind}`;
+          browser.closest(".browserStack")?.append(touch);
+          touch.setAttribute("shown", "");
+          clearTimeout(tagTimer);
+          tagTimer = setTimeout(() => touch.removeAttribute("shown"), TAG);
+        }
+      },
+
       /**
        * @returns {Promise<boolean|null>} true for Allow, false for Don't
        *   Allow, null when the prompt ended unanswered.

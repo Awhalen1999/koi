@@ -665,9 +665,18 @@ named.
   pinned-last folder with new tabs placed before it was built and taken out:
   simpler to let it sit like any folder. Firefox's
   remote code is bent through its exported objects (TabManager,
-  windowManager, browser.Context), no patch; Marionette's command table
-  (`GeckoDriver.#commandHandlers`) is a private static, so a per-command
-  signal would need one. A background tab is hidden to its page: Firefox
+  windowManager, browser.Context), no patch. **What it does is shown**
+  (KoiAgentSteps.sys.mjs): every command passes through
+  `GeckoDriver.prototype.getCommandHandler` (Marionette) or
+  `WebDriverSession.prototype.execute` (BiDi), both wrapped, so no patch;
+  housekeeping is skipped and a successful action becomes a step in words
+  ("Clicked “Place order”", named by the page helper before it lands). The
+  "Agent" label and the folder chip's "Show Steps" open the last six or
+  all (500 kept in memory until quit, a fresh list per connection, a step
+  opens its tab); while it acts on the tab on screen, the page card takes
+  a ring and an input action a tag where it lands, drawn by the chrome over
+  the page, for a beat. Testing trap: a harness session's NewSession clears
+  the steps too, so copy them out before reading. A background tab is hidden to its page: Firefox
   pauses its animation frames entirely and throttles its timers, which froze
   scrolling and transitions and kept state out of screenshots. So while an
   agent is connected its tabs are made active as the visible tab is
@@ -710,7 +719,8 @@ named.
   charCode, and ⇧⌘ with punctuation varies by layout — use letters) and
   `ShortcutKeyDefinitions.cpp`. ⌘E is macOS-wide "Use Selection for Find".
 - **The shell does not move**: no entrances, springs or hover lifts; only
-  colour and opacity ease (`--koi-fade`, 150ms), and one shape: a folder's
+  colour and opacity ease (`--koi-fade`, 150ms; a status leaving, the
+  agent's ring and tag, takes `--koi-fade-out`, 500ms), and one shape: a folder's
   tray parting into tiles for a drag and closing up on the drop
   (`--koi-settle`, 200ms ease-out), and arrow panels do not
   slide. Motion returns as a pass of its own.
@@ -822,8 +832,7 @@ named.
   other, and session restore is on request (History ▸ Restore Previous
   Session).
 
-**Not yet done:** Agent Connect's steps list, tab outlines and in-page
-labels (phase 2) and pick-and-copy (phase 3), the field-as-progress-bar
+**Not yet done:** Agent Connect's pick-and-copy (phase 3), the field-as-progress-bar
 tint, hold-a-tab to peek,
 re-pointing View › Show All Tabs at the board, a bookmarks surface with
 folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, a

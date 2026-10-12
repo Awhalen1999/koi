@@ -29,6 +29,8 @@
  *   - Connected is any session on the servers. It ends when the agent quits,
  *     when the connector drops it after 30 idle minutes (it reconnects, and
  *     is asked again, on its next call), or on Disconnect.
+ *   - Steps: what the agent does, in words, and the moment it acts
+ *     (KoiAgentSteps.sys.mjs).
  *   - Tabs: the agent works in a folder of its own, in the background, and
  *     sees only its tabs (KoiAgentTabs.sys.mjs). Allow agents off releases
  *     the folder into an ordinary one.
@@ -37,6 +39,7 @@
  * through window.gKoiAgents.ask(). */
 
 import { BrowserWindowTracker } from "resource:///modules/BrowserWindowTracker.sys.mjs";
+import { KoiAgentSteps } from "chrome://browser/content/koi-agents/KoiAgentSteps.sys.mjs";
 import { KoiAgentTabs } from "chrome://browser/content/koi-agents/KoiAgentTabs.sys.mjs";
 import { RemoteControlServers } from "moz-src:///browser/components/remotecontrol/RemoteControlServers.sys.mjs";
 import { RemoteAgent } from "chrome://remote/content/components/RemoteAgent.sys.mjs";
@@ -93,6 +96,7 @@ const notify = () => Services.obs.notifyObservers(null, "koi-agents");
 const LAUNCHED_FOR_AUTOMATION = RemoteControlServers.enabled;
 if (!LAUNCHED_FOR_AUTOMATION) {
   KoiAgentTabs.install();
+  KoiAgentSteps.install();
 }
 
 let connectedAt = 0;

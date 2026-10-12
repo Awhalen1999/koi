@@ -2,7 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Instant scrolling in an agent's background tabs. Firefox hands a page's
+/* The agent's tabs, page side: instant scrolling, and the element an action
+ * touches.
+ *
+ * Instant scrolling in an agent's background tabs. Firefox hands a page's
  * smooth scrolls to the compositor (ScrollContainerFrame.cpp, ScrollToImpl),
  * which only animates the tab on screen, so in a background tab a smooth
  * scroll never moves: a nav link updates the address and the page stays at
@@ -12,30 +15,72 @@
  * "instant" (scripted navigation); anything else passes through. Undone when
  * the tab stops being the agent's, or the user is looking at it.
  *
- * koi-agents.js asks a tab's top document for it (getActor, then a
- * message), so the actor exists only in the agent's tabs: nothing runs in
- * the user's. Registered by KoiAgentTabs.sys.mjs. */
+ * "Touch" names the element an input action is about to land on (at a
+ * viewport point, or the focused field for typing) and gives its box, for
+ * the step's words and the tag drawn over it (KoiAgentSteps.sys.mjs).
+ *
+ * Koi asks a tab's document for it (getActor, then a message), so the actor
+ * exists only in the agent's tabs: nothing runs in the user's. Registered by
+ * KoiAgentTabs.sys.mjs. */
 
 const SHEET =
   "data:text/css," +
   encodeURIComponent("* { scroll-behavior: auto !important; }");
 
 const METHODS = ["scroll", "scrollTo", "scrollBy"];
+// An element a person would name: the control around the point.
+const NAMED =
+  "a, button, input, select, textarea, summary, label, [role], [contenteditable]";
 const OPTIONS = ["top", "left", "block", "inline", "container"];
 
 /** The parent side only carries koi-agents.js's messages. */
 export class KoiAgentPageParent extends JSWindowActorParent {}
 
-/** Makes the page's smooth scrolls instant on "Instant", undoes it on "Smooth". */
+/**
+ * Makes the page's smooth scrolls instant on "Instant", undoes it on
+ * "Smooth", and answers "Touch" with an element's name and box.
+ */
 export class KoiAgentPageChild extends JSWindowActorChild {
   #undo = [];
 
-  receiveMessage({ name }) {
-    if (name == "Instant") {
-      this.#instant();
-    } else {
-      this.#restore();
+  receiveMessage({ name, data }) {
+    switch (name) {
+      case "Instant":
+        this.#instant();
+        return null;
+      case "Smooth":
+        this.#restore();
+        return null;
+      case "Touch":
+        return this.#touch(data);
     }
+    return null;
+  }
+
+  #touch({ x, y }) {
+    const doc = this.document;
+    let element =
+      x === undefined ? doc?.activeElement : doc?.elementFromPoint(x, y);
+    if (!element || element == doc.body || element == doc.documentElement) {
+      return null;
+    }
+    element = element.closest(NAMED) ?? element;
+    const label = (
+      element.getAttribute("aria-label") ||
+      element.labels?.[0]?.textContent ||
+      element.getAttribute("placeholder") ||
+      element.getAttribute("alt") ||
+      element.getAttribute("title") ||
+      element.innerText ||
+      ""
+    )
+      .replace(/\s+/g, " ")
+      .trim();
+    const { left, top, width, height } = element.getBoundingClientRect();
+    return {
+      label: label.length > 40 ? label.slice(0, 39) + "…" : label,
+      rect: { left, top, width, height },
+    };
   }
 
   didDestroy() {

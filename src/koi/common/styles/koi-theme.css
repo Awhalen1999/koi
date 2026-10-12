@@ -156,11 +156,15 @@
    * folder's tray parting into tiles for a drag and rejoining on the drop. */
   --koi-fade: 150ms linear;
   --koi-settle: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* A status leaving: slower than it arrived, so a glance still catches it
+   * (the agent's ring and tag, koi-agents.css). */
+  --koi-fade-out: 500ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --koi-fade: 0ms linear;
     --koi-settle: 0ms linear;
+    --koi-fade-out: 0ms linear;
   }
 }
