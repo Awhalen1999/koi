@@ -135,6 +135,29 @@
   --koi-solid: #1c1c1e;
   --koi-solid-light: #fff;
 
+  /* Panels -----------------------------------------------------------------
+   * The panel kit (the Koi Designs canvas, Foundations page): every floating
+   * panel is the solid, edged by the hairline, its rows 8px in from the rim
+   * so the panel's 16px corners and the rows' 8px stay concentric. A row is
+   * 36 tall, 48 with a second line (a menu item is 30, koi-panels.css): the
+   * kit's heights, the one place the 4px scale gives way. Hover and
+   * selection LIFT a row (a lighter fill and a small shadow) instead of
+   * tinting it; controls sit on CONTROL, a step up when hovered. RULE is the
+   * hairline between groups of menu items. */
+  --koi-radius-panel: 16px;
+  --koi-panel-padding: var(--koi-space-8);
+  --koi-row-inset: 10px;
+  --koi-row: 36px;
+  --koi-row-double: 48px;
+  --koi-fill-lift: rgba(255, 255, 255, 0.09);
+  --koi-shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+  --koi-fill-control: rgba(255, 255, 255, 0.1);
+  --koi-fill-control-hover: rgba(255, 255, 255, 0.14);
+  --koi-rule: rgba(255, 255, 255, 0.06);
+
+  /* Destructive actions and failures: Delete Folder, a failed download. */
+  --koi-danger: #ff6b63;
+
   /* Scrims: the board is a full takeover, peek a lighter overlay. Dim only
    * (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);

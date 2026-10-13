@@ -145,7 +145,7 @@
       tabSwitch("Disable Cache", "cache", true),
       javascriptItem,
       tabSwitch("Disable Styles", "styles", true),
-      tabSwitch("Offline", "offline"),
+      tabSwitch("Work Offline", "offline"),
       appearanceMenu,
       element("menuseparator"),
       element(

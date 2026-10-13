@@ -11,9 +11,6 @@
  *     a group's id, name, colour and collapsed state only (TabGroupState),
  *     so the pick lives in a JSON pref keyed by group id; ids survive
  *     session restore and a move to another window.
- *   - The hover list over a closed folder is Firefox's, drawn by Firefox
- *     rather than as a native popover: a popover under the pointer takes
- *     the hover with it, so the list would flicker open and shut.
  *   - Words: Firefox says "group"; the items Koi touches say "folder". The
  *     editor's are relabelled once, their Fluent ids dropped. The tab menu's
  *     get their ids back from Firefox on every open (tab-context-menu.js
@@ -157,7 +154,7 @@
     }
     word("tabGroupEditor_addNewTabInGroup", "New Tab in Folder");
     word("tabGroupEditor_moveGroupToNewWindow", "Move Folder to New Window");
-    word("tabGroupEditor_ungroupTabs", "Ungroup");
+    word("tabGroupEditor_ungroupTabs", "Ungroup Tabs");
     word("tabGroupEditor_deleteGroup", "Delete Folder");
 
     const icons = document.createElementNS(XHTML, "div");
@@ -285,9 +282,6 @@
     });
     gBrowser.getAllTabGroups().forEach(adopt);
 
-    document
-      .getElementById("tabgroup-preview-panel")
-      .setAttribute("nonnative", "");
     buildEditor();
     buildTabMenu();
   };

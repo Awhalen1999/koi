@@ -289,9 +289,9 @@ tab-group,
   }
 }
 
-/* The editor (tabgroup-menu.js), a native popover: Koi's icon row under the
- * name, eight glyphs on 28px pills; the picked one is ringed in the folder's
- * colour, which the panel takes from its group (koi-folders.js). */
+/* The editor (tabgroup-menu.js): Koi's icon row under the name, eight
+ * glyphs on 28px pills; the picked one is ringed in the folder's colour,
+ * which the panel takes from its group (koi-folders.js). */
 .koi-folder-icons {
   display: flex;
   gap: var(--koi-space-4);

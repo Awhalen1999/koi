@@ -414,9 +414,9 @@ window.
 
 There is **no CSS blur anywhere in Koi's chrome**, and none is possible:
 `backdrop-filter` has nothing to sample over the chrome band or over the
-page card (content renders out of process). Popups macOS draws get its real
-blur; everything Firefox or Koi draws over the page is the opaque solid
-(koi-theme.css, Solid).
+page card (content renders out of process). Menus macOS draws get its real
+blur; every panel Firefox or Koi draws is the opaque solid (koi-theme.css,
+Solid).
 
 ### StaticPrefs plumbing
 
@@ -722,23 +722,23 @@ named.
   colour and opacity ease (`--koi-fade`, 150ms; a status leaving, the
   agent's ring and tag, takes `--koi-fade-out`, 500ms), and one shape: a folder's
   tray parting into tiles for a drag and closing up on the drop
-  (`--koi-settle`, 200ms ease-out), and arrow panels do not
-  slide. Motion returns as a pass of its own.
-- **Every popup is native, Zen's way.** Menupopups are native menus; arrow
-  panels become NSPopovers (`widget.macos.native-popovers`, which Zen
-  upstreamed), with Zen's fix for that pref taken whole (D299584, in the
-  nsCocoaWindow patches and global-shared-css.patch; a Koi override could not
-  restore the per-panel padding Firefox zeroes). What macOS draws keeps its
-  material; what Firefox or Koi draws over the page is the solid: the
-  address dropdown's results and "…" menu, the findbar, the status label, the
-  board's cards and the bookmark menus (Firefox-drawn for drag and drop;
-  Zen's native appearance for them is macOS 26's clear glass, greyer than
-  the popovers). **Decided 2026-10-12, not built:** the design pass (Koi
-  Designs canvas, Panels page) replaces the popovers with Koi-drawn panels
-  on the solid, no arrow, a subtle open of about 150ms, and white main
-  actions, the accent kept for focus and selection. With the pref off and
-  the solid behind them, Firefox already draws arrow panels cleanly:
-  rounded, hairline-edged, a few pixels below their button.
+  (`--koi-settle`, 200ms ease-out); arrow panels settle 4px into place
+  where Firefox slides them 70px. Motion returns as a pass of its own.
+- **Menus are native; panels are Koi's** (decided 2026-10-12 in the design
+  pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
+  panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
+  Panels; koi-panels.css): the solid at 98% (95% let page text read
+  through), a hairline, 16px corners, no arrow,
+  6px below its anchor, 30px menu rows and white main actions, the accent
+  kept for focus, selection and switches. Firefox's panels take it through
+  the tokens they paint from, so their structure is untouched. Native
+  popovers (`widget.macos.native-popovers`) are off, as upstream: macOS
+  owned their shape and motion. Zen's fix for that pref (D299584, in the
+  nsCocoaWindow patches and global-shared-css.patch) is inert now; drop it
+  with the next C++ change. Everything else over the page is the solid too:
+  the address dropdown's results and "…" menu, the findbar, the status
+  label, the board's cards and the bookmark menus. UI text never joins
+  fragments with "·"; it says a phrase ("Working in 1 tab for 4 min").
 - **In-content pages keep Firefox's accent** (Settings, Add-ons). The lever,
   `browser.theme.native-theme`, would also paint a native titlebar material
   on `#navigator-toolbox::after` (browser-shared.css) that koi-shell.css
@@ -779,8 +779,7 @@ named.
   when a window closes, so Firefox's saved-groups surfaces stay empty; smart
   groups are locked off (chrome-ui.yaml). The closed chip's favicon pile is
   Koi's; the "+N" beside a closed folder's selected tab and the hover list
-  are Firefox's, the list made `nonnative` because a popover under the
-  pointer took the hover with it. The tray is painted in per-tab pieces
+  are Firefox's. The tray is painted in per-tab pieces
   because `tab-group` has no box (`display: contents`); while anything drags
   the pieces round into tiles that slide whole with their tabs, and only the
   dragged tab is outlined, in the colour of the folder the drop would join.
@@ -826,7 +825,7 @@ named.
   dark**, in macOS Light too: its ink is white (koi-theme.css has no light
   variant), so LightweightThemeConsumer-sys-mjs.patch reports a dark toolbar
   scheme, which sets the chrome's `prefers-color-scheme`, the NSWindow's
-  appearance (vibrancy, native menus and popovers) and
+  appearance (vibrancy and native menus) and
   `browser.theme.toolbar-theme`. A CSS `color-scheme: dark` pin is not
   enough: Firefox's own chrome keys some colours on the media query. Website
   appearance (`browser.theme.content-theme`) still follows the system.
@@ -851,11 +850,11 @@ Labs") want a strings pass of their own.
 **Known issues, found and not yet fixed:**
 
 - **The address bar's engine button is hidden** (koi-chrome.css) because its
-  menu, a panel-list in a native popover, ignores real mouse clicks: the
-  dropdown keeps the keyboard and clicks on an engine do nothing. Arrows and
-  Enter work, and synthesized clicks (Marionette) pass, so only a real mouse
-  shows it. First test before re-adding: the same clicks with
-  `widget.macos.native-popovers` off.
+  menu, a panel-list, ignored real mouse clicks while native popovers were
+  on: the dropdown kept the keyboard and clicks on an engine did nothing.
+  Arrows and Enter worked, and synthesized clicks (Marionette) passed, so
+  only a real mouse shows it. Popovers are off now; retest with real clicks
+  in the address bar pass, which would have to dress the button again.
 - **Nimbus rollouts are on** (`nimbus.rollouts.enabled`, firefox.js), and
   they ignore the telemetry and studies switches, so Mozilla can still change
   Firefox-targeted features in Koi remotely; a rollout's Nimbus variable even

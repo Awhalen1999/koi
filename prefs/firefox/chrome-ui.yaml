@@ -65,13 +65,6 @@
 - name: browser.download.alwaysOpenPanel
   value: false
 
-# Arrow panels become native NSPopovers, with macOS's blurred material,
-# shadow and corners. Off upstream; Zen contributed it and ships it on.
-# koi-panels.css clears Firefox's paint so the material shows; Zen's fixes
-# for it are in the nsCocoaWindow and global-shared.css patches.
-- name: widget.macos.native-popovers
-  value: true
-
 # Firefox's profile switcher (an app menu row, a menu-bar Profiles menu).
 # Off, as in Zen.
 - name: browser.profiles.enabled

@@ -10,16 +10,16 @@
  *   - Its own button in row one, after ⚒, on every page: shown with
  *     Developer Mode on (☰, KoiDevMode.enabled) and whenever Allow agents is
  *     on. It is a setting, so the button has no pressed state.
- *   - The agents panel, a short list in the app menu's grammar: the Allow
- *     agents switch, then what it is (while off) or the status (Waiting,
- *     Connected with Disconnect, or why it could not start, with Try Again);
- *     then Claude Code added in one click (its own `claude mcp add`) and Copy
- *     setup for any other agent.
+ *   - The agents panel (the panel kit, koi-agents.css): the agent's tile
+ *     with its status dot and what it is doing, the actions for that state
+ *     (Show Folder and Disconnect, or Try Again), the Allow agents switch,
+ *     sharing this tab, then Claude Code added in one click (its own `claude
+ *     mcp add`) and Copy for any other agent.
  *   - Koi's prompt before each connection (gKoiAgents.ask, called by the
- *     module), a macOS permission alert under the agent's glyph joined to
- *     Koi's icon: Allow or Don't Allow, for every new connection. It stays
- *     up until answered; with Koi in the background, a macOS notification
- *     says it is waiting.
+ *     module), a permission alert under the agent's tile joined to Koi's
+ *     icon: Allow or Don't Allow, for every new connection. It stays up
+ *     until answered; with Koi in the background, a macOS notification says
+ *     it is waiting.
  *   - "Agent" at the end of the address field on the agent's tabs while one
  *     is connected; it opens the steps.
  *   - The steps (kept by KoiAgentSteps.sys.mjs): its last six, or all, each
@@ -45,19 +45,22 @@
     return node;
   };
 
-  // The panel's [state]: off, ready, connected, or KoiAgents.problem.
-  const STATES = {
-    ready: "Waiting",
-    connected: "Connected",
-    port: "Port 9222 in use",
-    error: "Couldn’t start",
+  // The panel's [state]: off, ready, connected, or KoiAgents.problem, with
+  // its title and note. Connected's note is written by render.
+  const HEADS = {
+    off: ["Agents", "Let coding agents work in your tabs."],
+    ready: ["Waiting for an agent", "Koi asks before one connects."],
+    connected: ["Connected", ""],
+    port: ["Couldn’t start", "Another app is using port 9222."],
+    error: ["Couldn’t start", "Koi couldn’t open the connection."],
   };
 
-  const CLAUDE_NOTES = {
-    found: "",
-    added: "Added",
-    missing: "Not installed",
-    failed: "Couldn’t add",
+  // Claude Code's row by its [status]: the note, and the button if any.
+  const CLAUDE = {
+    found: ["Use Koi from Claude Code", "Add"],
+    added: ["Added for every project", ""],
+    missing: ["Not installed", ""],
+    failed: ["Couldn’t add Koi", "Try Again"],
   };
 
   function build() {
@@ -77,38 +80,40 @@
     const fragment = MozXULElement.parseXULToFragment(`
       <panel id="koi-agents-panel" type="arrow" orient="vertical" class="panel-no-padding" aria-label="Agents">
         <html:div class="koi-agents-body">
-          <html:span class="koi-agents-heading">Access</html:span>
+          <html:div class="koi-agents-head">
+            <html:span class="koi-agents-tile"/>
+            <html:span class="koi-agents-who">
+              <html:span class="koi-agents-title"/>
+              <html:span class="koi-agents-note"/>
+            </html:span>
+          </html:div>
+          <html:div class="koi-agents-actions">
+            <html:button class="koi-agents-show koi-agents-primary">Show Folder</html:button>
+            <html:button class="koi-agents-disconnect">Disconnect</html:button>
+            <html:button class="koi-agents-retry koi-agents-primary">Try Again</html:button>
+          </html:div>
           <html:moz-toggle class="koi-agents-switch" label="Allow agents" inputlayout="inline-end"/>
-          <html:span class="koi-agents-caption">Lets coding agents on this Mac use your tabs. Stays on until you turn it off, and Koi asks before each agent connects.</html:span>
-          <html:div class="koi-agents-row koi-agents-status">
-            <html:span class="koi-agents-name">Status</html:span>
-            <html:span class="koi-agents-dot"/>
-            <html:span class="koi-agents-state"/>
-            <html:span class="koi-agents-since"/>
-            <html:button class="koi-agents-retry">Try Again</html:button>
-          </html:div>
-          <html:button class="koi-agents-disconnect">Disconnect</html:button>
-          <html:div class="koi-agents-row koi-agents-tabs">
-            <html:span class="koi-agents-name">Agent folder</html:span>
-            <html:span class="koi-agents-tab-count"/>
-            <html:button class="koi-agents-show">Show</html:button>
-          </html:div>
-          <html:div class="koi-agents-row">
-            <html:span class="koi-agents-name">This tab</html:span>
+          <html:span class="koi-agents-caption">Koi asks before each agent connects, and stays ready until you turn this off.</html:span>
+          <html:div class="koi-agents-row koi-agents-this-tab">
+            <html:span class="koi-agents-who">This tab</html:span>
             <html:button class="koi-agents-share"/>
           </html:div>
-          <toolbarseparator/>
           <html:span class="koi-agents-heading">Agents</html:span>
-          <html:div class="koi-agents-row koi-agents-claude">
+          <html:div class="koi-agents-row koi-agents-double koi-agents-claude">
             <html:img class="koi-agents-icon" src="chrome://browser/content/koi-agents/claude-code.png" alt=""/>
-            <html:span class="koi-agents-name">Claude Code</html:span>
-            <html:span class="koi-agents-claude-note"/>
+            <html:span class="koi-agents-who">
+              <html:span>Claude Code</html:span>
+              <html:span class="koi-agents-sub"/>
+            </html:span>
             <html:button class="koi-agents-add">Add</html:button>
           </html:div>
-          <html:div class="koi-agents-row">
+          <html:div class="koi-agents-row koi-agents-double">
             <html:span class="koi-agents-icon koi-agents-icon-other"/>
-            <html:span class="koi-agents-name">Other agents</html:span>
-            <html:button class="koi-agents-copy">Copy setup</html:button>
+            <html:span class="koi-agents-who">
+              <html:span>Other agents</html:span>
+              <html:span class="koi-agents-sub">Copy the setup command</html:span>
+            </html:span>
+            <html:button class="koi-agents-copy">Copy</html:button>
           </html:div>
         </html:div>
       </panel>
@@ -120,26 +125,28 @@
             <html:img class="koi-agents-koi" src="chrome://branding/content/about-logo-private.png" srcset="chrome://branding/content/about-logo-private@2x.png 2x" alt=""/>
           </html:div>
           <html:span class="koi-agents-title">Allow an agent to use Koi?</html:span>
-          <html:span class="koi-agents-note">It works in a folder of its own, and any tab you share, and can read their console and network until it disconnects.</html:span>
-          <html:div class="koi-agents-choices">
-            <html:button class="koi-agents-allow">Allow</html:button>
+          <html:span class="koi-agents-note">It works in a folder of its own and any tab you share, and can read their console and network until it disconnects.</html:span>
+          <html:div class="koi-agents-actions">
             <html:button class="koi-agents-deny">Don’t Allow</html:button>
+            <html:button class="koi-agents-allow koi-agents-primary">Allow</html:button>
           </html:div>
         </html:div>
       </panel>
       <panel id="koi-agents-steps" type="arrow" orient="vertical" class="panel-no-padding" aria-label="Agent steps">
         <html:div class="koi-agents-body">
-          <html:div class="koi-steps-head">
-            <html:span class="koi-steps-tile"/>
-            <html:span class="koi-steps-who">
-              <html:span class="koi-steps-name">Agent</html:span>
-              <html:span class="koi-steps-note"/>
+          <html:div class="koi-agents-head">
+            <html:span class="koi-agents-tile"/>
+            <html:span class="koi-agents-who">
+              <html:span class="koi-agents-title">Agent</html:span>
+              <html:span class="koi-agents-note"/>
             </html:span>
           </html:div>
           <html:div class="koi-steps-list"/>
-          <html:span class="koi-steps-empty">No steps yet.</html:span>
+          <html:div class="koi-steps-empty">
+            <html:span class="koi-steps-empty-title">No steps yet</html:span>
+            <html:span>What the agent does shows up here.</html:span>
+          </html:div>
           <html:span class="koi-steps-kept">Koi keeps the last 500 steps until it quits.</html:span>
-          <toolbarseparator/>
           <html:div class="koi-steps-foot">
             <html:button class="koi-steps-more"/>
             <html:button class="koi-steps-close-tabs">Close Tabs</html:button>
@@ -150,30 +157,30 @@
       <menupopup id="koi-agents-folder-menu">
         <menuitem class="koi-agents-show-steps" label="Show Steps"/>
         <menuitem class="koi-agents-open-panel" label="Open Agents Panel"/>
-        <menuitem class="koi-agents-share-current" label="Share Current Tab"/>
-        <menuitem class="koi-agents-close-tabs" label="Close Tabs"/>
         <menuseparator/>
-        <menuitem class="koi-agents-disconnect-item" label="Disconnect"/>
+        <menuitem class="koi-agents-share-current" label="Share Current Tab"/>
+        <menuitem class="koi-agents-close-tabs" label="Close Agent Tabs"/>
+        <menuseparator/>
+        <menuitem class="koi-agents-disconnect-item" label="Disconnect Agent"/>
       </menupopup>
     `);
     const panel = fragment.getElementById("koi-agents-panel");
     const folderMenu = fragment.getElementById("koi-agents-folder-menu");
     const steps = fragment.getElementById("koi-agents-steps");
-    const stepsNote = steps.querySelector(".koi-steps-note");
+    const stepsNote = steps.querySelector(".koi-agents-note");
     const stepsList = steps.querySelector(".koi-steps-list");
     const stepsKept = steps.querySelector(".koi-steps-kept");
     const stepsEmpty = steps.querySelector(".koi-steps-empty");
     const stepsMore = steps.querySelector(".koi-steps-more");
+    const stepsCloseTabs = steps.querySelector(".koi-steps-close-tabs");
     const stepsDisconnect = steps.querySelector(".koi-steps-disconnect");
     const prompt = fragment.getElementById("koi-agents-prompt");
     const toggle = panel.querySelector(".koi-agents-switch");
-    const stateLabel = panel.querySelector(".koi-agents-state");
-    const since = panel.querySelector(".koi-agents-since");
+    const title = panel.querySelector(".koi-agents-title");
+    const note = panel.querySelector(".koi-agents-note");
     const claudeRow = panel.querySelector(".koi-agents-claude");
     const addButton = panel.querySelector(".koi-agents-add");
     const copyButton = panel.querySelector(".koi-agents-copy");
-    const tabsRow = panel.querySelector(".koi-agents-tabs");
-    const tabCount = panel.querySelector(".koi-agents-tab-count");
     const showButton = panel.querySelector(".koi-agents-show");
     const shareButton = panel.querySelector(".koi-agents-share");
     document.getElementById("mainPopupSet").append(fragment);
@@ -201,17 +208,26 @@
 
     // The panel ------------------------------------------------------------
 
-    // How long the agent has been connected, read when shown; it does not
-    // tick while a panel is open.
-    const connectedFor = () => {
+    // What the connected agent is doing, read when shown; it does not tick
+    // while a panel is open.
+    const working = () => {
       const minutes = Math.floor((Date.now() - KoiAgents.connectedAt) / 60000);
-      return minutes ? `${minutes} min` : "just now";
+      const tabs = KoiAgentTabs.all.length;
+      if (!minutes) {
+        return "Connected just now";
+      }
+      if (!tabs) {
+        return `Connected for ${minutes} min`;
+      }
+      return `Working in ${tabs} ${tabs == 1 ? "tab" : "tabs"} for ${minutes} min`;
     };
 
     const setClaude = status => {
+      const [text, action] = CLAUDE[status];
       claudeRow.setAttribute("status", status);
-      claudeRow.querySelector(".koi-agents-claude-note").textContent =
-        CLAUDE_NOTES[status];
+      claudeRow.querySelector(".koi-agents-sub").textContent = text;
+      addButton.textContent = action;
+      addButton.hidden = !action;
     };
 
     panel.addEventListener("popupshowing", async event => {
@@ -354,13 +370,13 @@
         .getService(Ci.nsIClipboardHelper)
         .copyString(KoiAgents.setup);
       copyButton.textContent = "Copied";
-      setTimeout(() => (copyButton.textContent = "Copy setup"), 1500);
+      setTimeout(() => (copyButton.textContent = "Copy"), 1500);
     });
 
     label.addEventListener("click", () => openSteps(label));
 
     // The steps --------------------------------------------------------------
-    // Newest first: the last RECENT, or all of them. Read when the popover
+    // Newest first: the last RECENT, or all of them. Read when the panel
     // opens and again as steps arrive while it is open; times do not tick.
 
     const RECENT = 6;
@@ -390,7 +406,10 @@
       const icon = el("img", "koi-steps-icon");
       icon.src = step.icon;
       icon.alt = "";
-      const words = step.count > 1 ? `${step.text} ×${step.count}` : step.text;
+      const text = el("span", "koi-steps-text", step.text);
+      if (step.count > 1) {
+        text.append(" ", el("span", "koi-steps-count", `×${step.count}`));
+      }
       const tab = tabOf(step.browserId);
       const favicon = el("img", "koi-steps-favicon");
       favicon.alt = "";
@@ -402,7 +421,7 @@
       }
       row.append(
         icon,
-        el("span", "koi-steps-text", words),
+        text,
         favicon,
         el("span", "koi-steps-when", ago(step.at))
       );
@@ -418,19 +437,18 @@
     const renderSteps = () => {
       const all = KoiAgentSteps.list;
       const { connected } = KoiAgents;
-      if (connected) {
-        const tabs = KoiAgentTabs.all.length;
-        stepsNote.textContent = `Connected ${connectedFor()} · ${tabs} ${tabs == 1 ? "tab" : "tabs"} in its folder`;
-      } else {
-        stepsNote.textContent = `Disconnected · ${all.length} ${all.length == 1 ? "step" : "steps"}`;
-      }
+      steps.toggleAttribute("connected", connected);
+      stepsNote.textContent = connected
+        ? working()
+        : `Disconnected after ${all.length} ${all.length == 1 ? "step" : "steps"}`;
       const shown = (showAll ? all : all.slice(-RECENT)).toReversed();
       stepsList.replaceChildren(...shown.map(stepRow));
       stepsList.toggleAttribute("all", showAll);
       stepsEmpty.hidden = !!all.length;
       stepsKept.hidden = !showAll;
       stepsMore.hidden = !showAll && all.length <= RECENT;
-      stepsMore.textContent = showAll ? "Recent" : `All ${all.length} steps`;
+      stepsMore.textContent = showAll ? "Recent" : `All ${all.length} Steps`;
+      stepsCloseTabs.hidden = !KoiAgentTabs.all.length;
       stepsDisconnect.hidden = !connected;
     };
     const openSteps = anchor => {
@@ -447,9 +465,7 @@
       showAll = !showAll;
       renderSteps();
     });
-    steps
-      .querySelector(".koi-steps-close-tabs")
-      .addEventListener("click", () => KoiAgentTabs.closeAll());
+    stepsCloseTabs.addEventListener("click", () => KoiAgentTabs.closeAll());
     stepsDisconnect.addEventListener("click", () => KoiAgents.disconnect());
     const stepsObserver = {
       observe: () => steps.state == "open" && renderSteps(),
@@ -511,7 +527,7 @@
         });
         // Below the element when there is no room above it.
         touchBox.toggleAttribute("below", rect.top * zoom < 36);
-        touchTag.textContent = `Agent · ${touchOf.kind}`;
+        touchTag.textContent = touchOf.kind;
         browser.closest(".browserStack")?.append(touch);
         touch.setAttribute("shown", "");
         clearTimeout(tagTimer);
@@ -703,23 +719,20 @@
       const onAgentTab = KoiAgentTabs.is(gBrowser.selectedTab);
       label.hidden = !connected || !onAgentTab;
       toggle.pressed = enabled;
-      const tabs = KoiAgentTabs.all.length;
-      tabsRow.hidden = !tabs;
-      tabCount.textContent = tabs;
       const group = KoiAgentTabs.group(window);
-      showButton.disabled = !group;
+      showButton.hidden = !group;
       group?.toggleAttribute("koi-live", connected);
       wake(connected);
-      shareButton.textContent = onAgentTab ? "Take Back" : "Share This Tab";
+      shareButton.textContent = onAgentTab ? "Take Back" : "Share";
       let state = "off";
       if (connected) {
         state = "connected";
-        since.textContent = connectedFor();
       } else if (enabled) {
         state = problem ?? "ready";
       }
       panel.setAttribute("state", state);
-      stateLabel.textContent = STATES[state] ?? "";
+      title.textContent = HEADS[state][0];
+      note.textContent = connected ? working() : HEADS[state][1];
     };
 
     const observer = { observe: render };

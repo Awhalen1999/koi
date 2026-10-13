@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The agent's steps: what it did, in words, for the steps popover
+/* The agent's steps: what it did, in words, for the steps panel
  * (koi-agents.js), and the moment it acts on a tab, for the page ring and
- * the "Agent · Click" tag.
+ * the "Click" tag.
  *
  * Every command reaches Firefox through one of two exported entry points,
  * which Koi wraps with no patch: Marionette looks up each handler with
@@ -257,7 +257,7 @@ function run(name, params, context, command) {
 }
 
 export const KoiAgentSteps = {
-  /** Newest last; the popover reads, never writes. */
+  /** Newest last; the panel reads, never writes. */
   get list() {
     return steps;
   },

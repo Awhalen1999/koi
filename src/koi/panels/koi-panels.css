@@ -2,51 +2,101 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Floating surfaces. What macOS draws keeps its own material (a real blur);
- * what Firefox or Koi draws over the page takes the solid (koi-theme.css).
+/* Floating surfaces, drawn from the panel kit (koi-theme.css, Panels).
  *
- * Menupopups are native menus already (popup.css). Arrow panels (app menu,
- * extensions, downloads, site information, bookmark editor, doorhangers)
- * become NSPopovers through widget.macos.native-popovers (chrome-ui.yaml),
- * and, as in Zen (zen-panel-ui.css), Firefox's paint is cleared so the
- * material shows. A panel id that sets its own --panel-background-color (the
- * confirmation hint, the date picker) outranks this and keeps it. */
+ * Menupopups stay native menus (popup.css). Every arrow panel (app menu,
+ * extensions, downloads, site information, bookmark editor, doorhangers,
+ * Koi's own) is drawn by Firefox: the solid, the hairline, 16px corners, no
+ * arrow, the window server's shadow (popup.css). Native popovers are off
+ * (chrome-ui.yaml) because macOS would own their shape and motion. Rows and
+ * buttons take the kit through the tokens Firefox paints them from
+ * (panelUI-shared.css, moz-button.css, .footer-button in global-shared.css),
+ * so Firefox's panels follow without touching their structure. A panel id
+ * that sets its own --panel-background-color (the confirmation hint, the
+ * date picker) outranks this and keeps it. */
 
 panel[type="arrow"]:not(#feature-callout) {
-  --panel-background-color: transparent;
-  --panel-border-color: transparent;
-  /* No entrance slide (popup.css eases each panel down 70px). Not a fade
-   * either: Firefox skips -moz-window-opacity on Big Sur+, where the window
-   * shadow vanishes mid-fade (bug 1672091). */
-  -moz-window-transform: none;
+  /* 98%: a bright page softens the panel a touch. Lower, the page's text
+   * reads through it unblurred (nothing behind a panel can be blurred). */
+  --panel-background-color: color-mix(in srgb, var(--koi-solid) 98%, transparent);
+  --panel-border-color: var(--koi-hair);
+  --panel-border-radius: var(--koi-radius-panel);
+  --panel-text-color: var(--koi-fg);
+  color-scheme: dark;
+  /* 6px clear of its anchor; nsMenuPopupFrame offsets a popup by its margin. */
+  margin-block-start: 6px;
 
-  /* A [nonnative] panel (the selection shortcuts, the tab preview) never
-   * becomes a popover and would be bare with the paint cleared, so it takes
-   * the native menu material instead. */
-  &[nonnative] {
-    appearance: auto;
-    -moz-default-appearance: menupopup;
-    background-color: Menu;
+  /* Menu rows 30px: Firefox's 16px line plus 7px above and below. The
+   * shorthand is derived at :root (tokens-shared.css), so it is restated
+   * here for the new parts to reach it. */
+  --panel-menuitem-padding-block: 7px;
+  --panel-menuitem-padding-inline: var(--koi-row-inset);
+  --panel-menuitem-padding: var(--panel-menuitem-padding-block) var(--panel-menuitem-padding-inline);
+  --panel-menuitem-border-radius: var(--koi-radius-pill);
+  --panel-separator-color: var(--koi-rule);
+  --button-background-color-menu-hover: var(--koi-fill-lift);
+  --button-background-color-menu-active: var(--koi-fill-control-hover);
+
+  /* The main action is white; every other button sits on CONTROL. */
+  --button-background-color: var(--koi-fill-control);
+  --button-background-color-hover: var(--koi-fill-control-hover);
+  --button-background-color-active: var(--koi-glass-well);
+  --button-text-color: var(--koi-fg);
+  --button-background-color-primary: var(--koi-fg);
+  --button-background-color-primary-hover: color-mix(in srgb, var(--koi-fg) 88%, transparent);
+  --button-background-color-primary-active: color-mix(in srgb, var(--koi-fg) 80%, transparent);
+  --button-text-color-primary: var(--koi-solid);
+  --button-border-radius: var(--koi-radius-pill);
+
+  & .footer-button {
+    min-height: var(--koi-pill-height);
   }
 
-  /* A pressed switch's knob is the panel's canvas colour
-   * (moz-toggle.tokens.css), transparent here, so it vanished. White, as a
-   * macOS switch's knob is in either appearance. */
+  /* Switches in macOS's shape: a 32 by 20 track, a film off and the accent
+   * on, the knob white either way (moz-toggle.tokens.css derives the knob's
+   * size and travel from these). */
   & moz-toggle {
+    --toggle-width: 32px;
+    --toggle-height: 20px;
+    --toggle-border-color: transparent;
+    --toggle-background-color: var(--koi-hair);
+    --toggle-background-color-hover: var(--koi-glass-well);
+    --toggle-background-color-pressed: var(--koi-accent);
+    --toggle-background-color-pressed-hover: var(--koi-accent);
+    --toggle-background-color-pressed-active: var(--koi-accent);
+    --toggle-dot-background-color: white;
     --toggle-dot-background-color-on-pressed: white;
   }
+}
+
+/* Opening, a panel settles 4px into place where popup.css slides it 70px,
+ * on Firefox's timing. Same specificity as popup.css, so its open state
+ * still clears it. */
+@media not (prefers-reduced-motion) {
+  panel[type="arrow"] {
+    -moz-window-transform: translateY(-4px);
+
+    &:where([side="bottom"]) {
+      -moz-window-transform: translateY(4px);
+    }
+  }
+}
+
+/* A hovered row lifts: the fill above, and a small shadow. */
+panel[type="arrow"] :is(panelview .toolbarbutton-1, toolbarbutton.subviewbutton):not([disabled]):hover {
+  box-shadow: var(--koi-shadow-lift);
 }
 
 /* Bookmark menus (toolbar folders, the » overflow, the Bookmarks button)
  * need drag and drop, so Firefox draws them itself ([nonnative],
  * browserPlacesViews.js) in its panel grey (panelUI-shared.css). They take
- * the solid. Zen gives them the native menu appearance instead, which on
- * macOS 26 is a clear glass visibly greyer than the popovers. Same selectors
- * as Firefox's, so this later sheet wins. */
+ * the solid, as every panel does. Zen gives them the native menu appearance
+ * instead (macOS 26's clear glass). Same selectors as Firefox's, so this
+ * later sheet wins. */
 .toolbar-menupopup {
   &,
   menupopup {
-    --panel-background-color: var(--koi-solid);
+    --panel-background-color: color-mix(in srgb, var(--koi-solid) 98%, transparent);
     --panel-border-color: var(--koi-hair);
     color-scheme: dark;
   }
