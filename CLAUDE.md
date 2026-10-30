@@ -727,8 +727,8 @@ named.
 - **Menus are native; panels are Koi's** (decided 2026-10-12 in the design
   pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
   panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
-  Panels; koi-panels.css): the solid at 98% (95% let page text read
-  through), a hairline, 16px corners, no arrow,
+  Panels; koi-panels.css): the solid at 98% (`--koi-solid-panel`; 95% let
+  page text read through), a hairline, 16px corners, no arrow,
   6px below its anchor, 30px menu rows and white main actions, the accent
   kept for focus, selection and switches. Firefox's panels take it through
   the tokens they paint from, so their structure is untouched. Native
@@ -791,14 +791,28 @@ named.
   folders flattened. Firefox's tab menu lays itself out from a list of its items
   and refuses one it does not know (MenuSectionLayout), so a Koi item is
   added on popupshowing and removed on popuphidden.
-- **One palette** (koi-theme.css), loaded by the chrome and the about: pages:
-  GLASS (shell, well, hover, raised: see-through films on the wallpaper),
-  one SOLID for everything on or over the page, INK (three whites), hair,
-  accent, private, agent (with its live green and waiting yellow), the nine
-  folder colours, two scrims and three shadows (low, high, text). No colour
-  or shadow is written anywhere else, except the empty state's letter tiles
-  and about:rights' light-scheme ink. A new surface picks a family; a new
-  value goes into koi-theme.css first.
+- **One design system** (koi-theme.css), loaded by the chrome and the
+  about: pages, and every Koi sheet is written in it: space (multiples of 4,
+  plus INSET, the 10px text sits in from a pill's edge, and 6, a small
+  pill's glyph gap); one ladder of heights (BOX 20, PILL-SMALL 24, PILL 28,
+  TILE-SMALL 32, ROW 36, TILE 40, 48); icons 10–24; radii by the box's
+  height (4 to a BOX, 6, 8 for a PILL or ROW, 10, 12, 16 for a panel); type
+  (11, 12, 13, 15, 24, with leading for the three UI sizes; mono for
+  addresses at 12); INK (three whites); the accent, private, agent and
+  danger colours and the nine folder colours, with TINT (18%) and
+  TINT-STRONG (30%) as a colour's film; GLASS (shell, well, hover, raised:
+  films on the wallpaper); one SOLID for everything on or over the page,
+  with its own steps (rule, lift, hover, then the glass well); two scrims and
+  four shadows. No size, colour or shadow is written anywhere else, except
+  where the use site says why (the empty state's letter tiles, about:rights'
+  light ink, a page's reading measure). A new surface picks a family; a new
+  value goes into koi-theme.css first. Verified 2026-10-29 by capturing every
+  surface before and after (scratchpad/ds). Two traps found: a Firefox
+  rule that paints a glyph's fill through context-stroke (the app menu's
+  zoom discs) drops the colour's alpha, so a film must be mixed opaque; and
+  the address dropdown colours its URLs through `--link-color`, sized 0.85em
+  (view-proton.css), so koi-chrome.css sets both and drops the dash between
+  title and address.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
   built and search cannot find them: Firefox Home (Koi's new windows and tabs

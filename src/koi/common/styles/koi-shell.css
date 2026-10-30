@@ -24,7 +24,7 @@ body {
 
 /* A private window's film is violet (koi-theme.css, --koi-private). */
 :root[privatebrowsingmode="temporary"] {
-  --koi-glass-shell: color-mix(in srgb, var(--koi-private) 30%, transparent);
+  --koi-glass-shell: color-mix(in srgb, var(--koi-private) var(--koi-tint-strong), transparent);
 }
 
 /* Not !important, so Firefox's opaque fullscreen toolbox

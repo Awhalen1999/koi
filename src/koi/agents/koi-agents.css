@@ -26,30 +26,30 @@
   appearance: none;
   display: flex;
   align-items: center;
-  gap: 5px;
-  height: 20px;
+  gap: var(--koi-space-6);
+  height: var(--koi-box);
   margin-inline: var(--koi-space-4);
-  padding: 0 7px;
+  padding: 0 var(--koi-space-8);
   border: none;
   border-radius: var(--koi-radius-favicon);
-  background-color: color-mix(in srgb, var(--koi-agent) 18%, transparent);
+  background-color: color-mix(in srgb, var(--koi-agent) var(--koi-tint), transparent);
   color: var(--koi-agent-ink);
   font: menu;
-  font-size: var(--koi-text-11-5);
+  font-size: var(--koi-text-12);
   font-weight: 500;
   transition: background-color var(--koi-fade);
 
   &::before {
     content: "";
-    width: 10px;
-    height: 10px;
+    width: var(--koi-icon-10);
+    height: var(--koi-icon-10);
     background: url("chrome://browser/content/koi-agents/koi-agent.svg") center / contain no-repeat;
     -moz-context-properties: fill;
     fill: var(--koi-agent);
   }
 
   &:hover {
-    background-color: color-mix(in srgb, var(--koi-agent) 32%, transparent);
+    background-color: color-mix(in srgb, var(--koi-agent) var(--koi-tint-strong), transparent);
   }
 
   &[hidden] {
@@ -64,17 +64,17 @@
  * redeclared here; the selectors outrank koi-folders.css's, which loads
  * later. */
 #tabbrowser-tabs[orient="horizontal"] tab-group[koi-agent] {
-  --koi-folder-tint: color-mix(in srgb, var(--koi-agent) var(--koi-folder-tint-level), transparent);
+  --koi-folder-tint: color-mix(in srgb, var(--koi-agent) var(--koi-tint), transparent);
 
   & .tab-group-label {
     color: var(--koi-fg);
 
     &::before {
-      width: var(--koi-space-16);
-      height: var(--koi-space-16);
+      width: var(--koi-icon-16);
+      height: var(--koi-icon-16);
       vertical-align: -4px;
       border-radius: var(--koi-radius-favicon);
-      background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 10px no-repeat;
+      background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / var(--koi-icon-10) no-repeat;
       -moz-context-properties: fill;
       fill: var(--koi-fg);
       mask: none;
@@ -85,8 +85,8 @@
   &[koi-live] .tab-group-label::after {
     content: "";
     display: inline-block;
-    width: 6px;
-    height: 6px;
+    width: var(--koi-space-6);
+    height: var(--koi-space-6);
     margin-inline-start: var(--koi-space-8);
     vertical-align: 1px;
     border-radius: 50%;
@@ -113,22 +113,23 @@
 }
 
 /* The panels ------------------------------------------------------------- */
-/* A body 8px inside the rim; a head of the agent's tile, a title and a note;
- * 36px rows and 48px two-line rows, their text 10px in; 28px buttons in the
- * actions and the footer, 24px ones inside rows. */
+/* The panel kit (koi-theme.css): a body inside the rim; a head of the
+ * agent's tile, a title and a note; rows and two-line rows, their text an
+ * INSET in; PILL buttons in the actions and the footer, PILL-SMALL ones
+ * inside rows. */
 
 #koi-agents-panel,
 #koi-agents-prompt,
 #koi-agents-steps {
   font-size: var(--koi-text-13);
-  line-height: 18px;
+  line-height: var(--koi-line-13);
 }
 
 .koi-agents-body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  width: 304px;
+  width: var(--koi-panel-width);
   padding: var(--koi-panel-padding);
 }
 
@@ -136,7 +137,7 @@
   display: flex;
   align-items: center;
   gap: var(--koi-space-12);
-  padding: var(--koi-space-8) var(--koi-row-inset) var(--koi-space-12);
+  padding: var(--koi-space-8) var(--koi-inset) var(--koi-space-12);
 }
 
 .koi-agents-who {
@@ -148,7 +149,7 @@
 
 .koi-agents-title {
   font-size: var(--koi-text-15);
-  line-height: 20px;
+  line-height: var(--koi-line-15);
   font-weight: 600;
 }
 
@@ -156,7 +157,7 @@
 .koi-agents-sub {
   color: var(--koi-fg-2);
   font-size: var(--koi-text-12);
-  line-height: 16px;
+  line-height: var(--koi-line-12);
 }
 
 /* The agent's tile: its glyph on its blue, grey while none is there, and the
@@ -165,19 +166,20 @@
 .koi-agents-tile {
   position: relative;
   flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / 20px no-repeat;
+  width: var(--koi-tile);
+  height: var(--koi-tile);
+  border-radius: var(--koi-radius-tile);
+  background: var(--koi-agent) url("chrome://browser/content/koi-agents/koi-agent.svg") center / var(--koi-icon-20) no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg);
 
+  /* The dot overlaps the corner by a third, ringed in the solid. */
   &::after {
     position: absolute;
     right: -3px;
     bottom: -3px;
-    width: 10px;
-    height: 10px;
+    width: var(--koi-icon-10);
+    height: var(--koi-icon-10);
     border-radius: 50%;
     box-shadow: 0 0 0 2px var(--koi-solid);
   }
@@ -225,26 +227,26 @@
   }
 }
 
-/* The switch is a 36px row: moz-toggle's box is 22px around its 20px track. */
+/* The switch is a ROW: moz-toggle's box is 22px around its 20px track. */
 .koi-agents-switch {
-  padding: 7px var(--koi-row-inset);
+  padding: calc((var(--koi-row) - 22px) / 2) var(--koi-inset);
 }
 
 /* What Allow agents does, under the switch while it is off. */
 .koi-agents-caption {
-  padding: 0 var(--koi-row-inset) var(--koi-space-8);
+  padding: 0 var(--koi-inset) var(--koi-space-8);
   color: var(--koi-fg-3);
   font-size: var(--koi-text-12);
-  line-height: 16px;
+  line-height: var(--koi-line-12);
 }
 
 /* A row ends 6px in, so a button in it sits 8px from the rim, as rows do. */
 .koi-agents-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--koi-inset);
   min-height: var(--koi-row);
-  padding-inline: var(--koi-row-inset) 6px;
+  padding-inline: var(--koi-inset) var(--koi-space-6);
 }
 
 .koi-agents-double {
@@ -252,22 +254,22 @@
 }
 
 .koi-agents-heading {
-  padding: 6px var(--koi-row-inset);
+  padding: var(--koi-space-6) var(--koi-inset);
   color: var(--koi-fg-3);
   font-size: var(--koi-text-12);
-  line-height: 16px;
+  line-height: var(--koi-line-12);
   font-weight: 600;
 }
 
 .koi-agents-icon {
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: var(--koi-tile-small);
+  height: var(--koi-tile-small);
 }
 
 .koi-agents-icon-other {
   border-radius: var(--koi-radius-pill);
-  background: var(--koi-fill-lift) url("chrome://devtools/skin/images/tool-webconsole.svg") center / 16px no-repeat;
+  background: var(--koi-fill-lift) url("chrome://devtools/skin/images/tool-webconsole.svg") center / var(--koi-icon-16) no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
 }
@@ -275,13 +277,13 @@
 /* [status] is found, added, missing or failed (koi-agents.js setClaude). */
 .koi-agents-claude {
   &[status="added"] {
-    padding-inline-end: var(--koi-row-inset);
+    padding-inline-end: var(--koi-inset);
 
     &::after {
       content: "";
       flex: none;
-      width: 14px;
-      height: 14px;
+      width: var(--koi-icon-14);
+      height: var(--koi-icon-14);
       background: url("chrome://global/skin/icons/check.svg") center / contain no-repeat;
       -moz-context-properties: fill;
       fill: var(--koi-fg-2);
@@ -293,7 +295,7 @@
   }
 }
 
-/* Buttons sit on CONTROL; the main one is white, in the solid's ink
+/* Buttons sit on LIFT; the main one is white, in the solid's ink
  * (koi-panels.css sets both). */
 .koi-agents-body button {
   appearance: none;
@@ -317,8 +319,8 @@
   }
 
   &:focus-visible {
-    outline: 1px solid var(--koi-accent);
-    outline-offset: 2px;
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-outline-offset);
   }
 
   &:disabled {
@@ -341,9 +343,9 @@
 }
 
 .koi-agents-row button {
-  height: var(--koi-space-24);
-  padding: 0 10px;
-  border-radius: 6px;
+  height: var(--koi-pill-small);
+  padding: 0 var(--koi-inset);
+  border-radius: var(--koi-radius-small);
   font-size: var(--koi-text-12);
 }
 
@@ -353,23 +355,14 @@
 
 #koi-agents-steps {
   & .koi-agents-body {
-    width: 352px;
-  }
-
-  & .koi-agents-head {
-    padding-block-end: 10px;
+    width: var(--koi-panel-width-wide);
   }
 
   & .koi-agents-tile {
-    width: 32px;
-    height: 32px;
+    width: var(--koi-tile-small);
+    height: var(--koi-tile-small);
     border-radius: var(--koi-radius-pill);
-    background-size: 16px;
-
-    &::after {
-      width: 9px;
-      height: 9px;
-    }
+    background-size: var(--koi-icon-16);
   }
 }
 
@@ -377,8 +370,9 @@
   display: flex;
   flex-direction: column;
 
+  /* Ten rows, then it scrolls. */
   &[all] {
-    max-height: 360px;
+    max-height: calc(10 * var(--koi-row));
     overflow-y: auto;
   }
 }
@@ -387,10 +381,10 @@
 .koi-agents-body .koi-steps-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--koi-inset);
   height: auto;
   min-height: var(--koi-row);
-  padding: 0 var(--koi-row-inset);
+  padding: 0 var(--koi-inset);
   background-color: transparent;
   font-weight: normal;
   text-align: start;
@@ -403,8 +397,8 @@
 
 .koi-steps-icon {
   flex: none;
-  width: var(--koi-space-16);
-  height: var(--koi-space-16);
+  width: var(--koi-icon-16);
+  height: var(--koi-icon-16);
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
 }
@@ -423,9 +417,9 @@
 
 .koi-steps-favicon {
   flex: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
+  width: var(--koi-icon-14);
+  height: var(--koi-icon-14);
+  border-radius: var(--koi-radius-favicon);
 }
 
 .koi-steps-when {
@@ -442,16 +436,16 @@
   flex-direction: column;
   align-items: center;
   gap: var(--koi-space-4);
-  padding: 20px var(--koi-space-16) var(--koi-space-24);
+  padding: var(--koi-space-24) var(--koi-space-16);
   color: var(--koi-fg-3);
   font-size: var(--koi-text-12);
-  line-height: 16px;
+  line-height: var(--koi-line-12);
   text-align: center;
 
   &::before {
     content: "";
-    width: var(--koi-space-24);
-    height: var(--koi-space-24);
+    width: var(--koi-icon-24);
+    height: var(--koi-icon-24);
     margin-block-end: var(--koi-space-4);
     background: url("chrome://browser/skin/history.svg") center / contain no-repeat;
     -moz-context-properties: fill;
@@ -466,14 +460,14 @@
 .koi-steps-empty-title {
   color: var(--koi-fg-2);
   font-size: var(--koi-text-13);
-  line-height: 18px;
+  line-height: var(--koi-line-13);
 }
 
 .koi-steps-kept {
-  padding: 6px var(--koi-row-inset) 0;
+  padding: var(--koi-space-6) var(--koi-inset) 0;
   color: var(--koi-fg-3);
   font-size: var(--koi-text-12);
-  line-height: 16px;
+  line-height: var(--koi-line-12);
 }
 
 .koi-steps-foot {
@@ -486,7 +480,7 @@
 /* Quiet: it changes the list, not the agent. */
 .koi-agents-body .koi-steps-more {
   margin-inline-end: auto;
-  padding: 0 10px;
+  padding: 0 var(--koi-inset);
   background-color: transparent;
   color: var(--koi-fg-2);
 }
@@ -537,10 +531,10 @@
   left: -4px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 22px;
+  gap: var(--koi-space-6);
+  height: var(--koi-box);
   padding: 0 var(--koi-space-8);
-  border-radius: 6px;
+  border-radius: var(--koi-radius-favicon);
   background-color: var(--koi-agent);
   color: var(--koi-fg);
   font: menu;
@@ -550,8 +544,8 @@
 
   &::before {
     content: "";
-    width: 11px;
-    height: 11px;
+    width: var(--koi-icon-10);
+    height: var(--koi-icon-10);
     background: url("chrome://browser/content/koi-agents/koi-agent.svg") center / contain no-repeat;
     -moz-context-properties: fill;
     fill: var(--koi-fg);
@@ -570,13 +564,13 @@
 #koi-agents-prompt {
   & .koi-agents-body {
     align-items: center;
-    padding-block-start: 24px;
+    padding-block-start: var(--koi-space-24);
     text-align: center;
   }
 
   & .koi-agents-note {
-    margin-block-start: 6px;
-    padding-inline: var(--koi-row-inset);
+    margin-block-start: var(--koi-space-6);
+    padding-inline: var(--koi-inset);
   }
 
   & .koi-agents-actions {
@@ -588,21 +582,21 @@
 .koi-agents-join {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--koi-inset);
   margin-block-end: var(--koi-space-16);
 }
 
 /* Koi's icon carries macOS's transparent margin, so it is drawn at 48 to
  * show the tile's 40. */
 .koi-agents-koi {
-  width: 48px;
-  height: 48px;
+  width: var(--koi-tile-large);
+  height: var(--koi-tile-large);
   margin: -4px;
 }
 
 /* Three 4px dots, 4px apart, brightening towards Koi. */
 .koi-agents-dots {
-  width: 20px;
+  width: var(--koi-box);
   height: 4px;
   background:
     radial-gradient(circle, var(--koi-glass-hover) 2px, transparent 2px) 0 0 / 4px 4px no-repeat,

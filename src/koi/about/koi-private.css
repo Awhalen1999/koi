@@ -5,7 +5,8 @@
 /* about:privatebrowsing (koi-private.html), on koi-theme.css's tokens.
  * Deliberately unlike the normal empty state, so a private window is never
  * mistaken for one: the page is the solid under a violet glow instead of the
- * wallpaper, and the ghost leads. */
+ * wallpaper, and the ghost leads. The ⌘L line is the empty state's
+ * (koi-newtab.css), so the two pages share one keycap. */
 
 :root {
   color-scheme: dark;
@@ -21,60 +22,67 @@ body {
   place-items: center;
   min-height: 100vh;
   margin: 0;
-  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--koi-private) 28%, transparent), transparent 70%), var(--koi-solid);
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--koi-private) var(--koi-tint-strong), transparent), transparent 70%), var(--koi-solid);
   color: var(--koi-fg);
-  font:
-    15px/1.6 -apple-system,
-    system-ui,
-    sans-serif;
+  font: var(--koi-text-15) / 1.6 var(--koi-font-sans);
   text-align: center;
 }
 
 main {
   max-width: 30rem;
-  padding: 32px;
+  padding: var(--koi-space-32);
 }
 
+/* The ghost on its disc: a tile and a half, the ghost half of it. */
 .mark {
   display: grid;
   place-items: center;
   width: 64px;
   height: 64px;
-  margin: 0 auto 24px;
+  margin: 0 auto var(--koi-space-24);
   border-radius: 50%;
   background: var(--koi-private);
 
   & img {
-    width: 32px;
-    height: 32px;
+    width: var(--koi-space-32);
+    height: var(--koi-space-32);
   }
 }
 
 h1 {
-  margin: 0 0 8px;
-  font-size: 22px;
+  margin: 0 0 var(--koi-space-8);
+  font-size: var(--koi-text-24);
   font-weight: 600;
 }
 
 p {
-  margin: 0 0 12px;
+  margin: 0 0 var(--koi-space-12);
 }
 
 .aside,
 .hint {
   color: var(--koi-fg-2);
-  font-size: 13px;
+  font-size: var(--koi-text-13);
 }
 
 .hint {
-  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--koi-space-8);
+  margin-top: var(--koi-space-32);
 }
 
 kbd {
-  padding: 2px 6px;
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  height: var(--koi-box);
+  padding: 0 var(--koi-space-8);
+  border-radius: var(--koi-radius-favicon);
   background: var(--koi-glass-well);
-  font: inherit;
+  color: var(--koi-fg);
+  font-family: var(--koi-font-mono);
+  font-size: var(--koi-text-11);
 }
 
 :root:not(.normal) .normal,

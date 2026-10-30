@@ -43,15 +43,15 @@
    * hairline above is Koi's selected mark. */
   --tab-border-color-accent: none;
   --tab-border-color-selected: transparent;
-  /* Inside the pill: 10px inset, 8px from favicon to label. */
-  --tab-inline-padding: 10px;
+  /* Inside the pill: Koi's inset, 8px from favicon to label. */
+  --tab-inline-padding: var(--koi-inset);
   --tab-icon-end-margin: var(--koi-space-8);
   /* The × and the audio button share one box (tabs.css): 20px leaves 4px of
    * air in the 28px pill, and the ×'s 4px padding leaves a 12px glyph. Since
    * 157 Firefox reads these two; --tab-close-button-padding only feeds them
    * at :root, so setting it on the button does nothing. */
-  --tab-content-button-size: 20px;
-  --tab-content-button-padding: 4px;
+  --tab-content-button-size: var(--koi-box);
+  --tab-content-button-padding: calc((var(--koi-box) - var(--koi-icon-12)) / 2);
   /* Firefox draws a separator before the strip when a toolbarbutton precedes
    * it (tabs.css ::before), as back/forward/reload do. Every drawing reads
    * this variable; element-scoped rules could not reach the strip's DOM. */
@@ -256,9 +256,9 @@
  * vanish into the pill, so it takes the private tab's bare glyph. */
 .private-browsing-indicator-with-label {
   align-self: center;
-  gap: 6px;
-  height: var(--koi-space-24);
-  padding-inline: var(--koi-space-8) 10px;
+  gap: var(--koi-space-6);
+  height: var(--koi-pill-small);
+  padding-inline: var(--koi-space-8) var(--koi-inset);
   border-radius: var(--koi-radius-pill);
   background-color: var(--koi-private);
   color: var(--koi-fg);
@@ -269,8 +269,8 @@
   list-style-image: url("chrome://browser/skin/privatebrowsing/favicon.svg");
   -moz-context-properties: fill;
   fill: currentColor;
-  width: 14px;
-  height: 14px;
+  width: var(--koi-icon-14);
+  height: var(--koi-icon-14);
 }
 
 /* Row three: bookmarks. ------------------------------------------------------
@@ -278,9 +278,9 @@
  * Toolbars, so it is dressed to match. */
 
 #navigator-toolbox > #PersonalToolbar {
-  /* Pills one size down (24px), with the 4px of air the other rows keep
-   * around theirs (--koi-chrome-height). */
-  height: calc(var(--koi-space-24) + 2 * var(--koi-space-4));
+  /* Pills one size down, with the 4px of air the other rows keep around
+   * theirs (--koi-chrome-height). */
+  height: calc(var(--koi-pill-small) + 2 * var(--koi-space-4));
   min-height: 0;
   background-color: transparent;
   color: var(--koi-fg);
@@ -310,8 +310,8 @@
     }
 
     & .toolbarbutton-icon {
-      width: 16px;
-      height: 16px;
+      width: var(--koi-icon-16);
+      height: var(--koi-icon-16);
       margin-inline-end: var(--koi-space-8);
       border-radius: var(--koi-radius-favicon);
     }
@@ -370,7 +370,7 @@
   --toolbarbutton-background-color-hover: var(--koi-glass-well);
   --toolbarbutton-background-color-active: var(--koi-glass-hover);
   --toolbarbutton-border-radius: var(--koi-radius-pill);
-  --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - 16px) / 2);
+  --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - var(--koi-icon-16)) / 2);
   /* Firefox pins glyph fill to a fixed grey (tokens-platform.css), which the
    * button's colour never reaches; currentColor lets the ink states work. */
   --toolbarbutton-icon-fill: currentColor;
@@ -445,7 +445,7 @@
 
   & .urlbar-input {
     font-family: var(--koi-font-mono);
-    font-size: var(--koi-text-11-5);
+    font-size: var(--koi-text-12);
     color: var(--koi-fg);
 
     &::placeholder {
@@ -455,9 +455,8 @@
   }
 
   /* A lock and a star only: no identity label, tracking-protection icon,
-   * engine button or go button (Enter commits). The engine button is hidden
-   * until its menu takes mouse clicks as a native popover (CLAUDE.md, known
-   * issues). */
+   * engine button or go button (Enter commits). The engine button waits on
+   * the address bar pass (CLAUDE.md, known issues). */
   & #identity-icon-label,
   & #tracking-protection-icon-container,
   & .searchmode-switcher,
@@ -483,6 +482,43 @@
 
   & .urlbarView-result-menuitem[data-command="help"] {
     display: none;
+  }
+
+  /* The rows: a result's address in the field's mono at the third ink
+   * (Firefox colours it as a link, through --link-color, and sizes it
+   * 0.85em), with no dash between title and address; a folder's chip is
+   * the folder's TINT under its own ink, not Firefox's solid fill; an action
+   * chip (Switch to Tab) sits on LIFT with no border, as a row's button. */
+  & .urlbarView {
+    --link-color: var(--koi-fg-3);
+    /* A ROW, gutter included: Firefox's row is its min-height plus the
+     * gutter it pads with (view-proton.css), both set on this element. The
+     * gutter is 0.125rem, 1.375px at the chrome's 11px root; 2px keeps the
+     * row whole. */
+    --urlbarView-row-gutter: 2px;
+    --urlbarview-row-min-height: calc(var(--koi-row) - 2 * var(--urlbarView-row-gutter));
+  }
+
+  & .urlbarView-url {
+    font-family: var(--koi-font-mono);
+    font-size: var(--koi-text-12);
+  }
+
+  & .urlbarView-title-separator::before {
+    content: "";
+    margin: 0 var(--koi-space-4);
+  }
+
+  & .urlbarView-row[has-action] > .urlbarView-row-inner > .urlbarView-no-wrap > .urlbarView-action {
+    border: none;
+    border-radius: var(--koi-radius-small);
+    background-color: var(--koi-fill-lift);
+    color: var(--koi-fg);
+
+    &.urlbarView-tabGroup {
+      background-color: color-mix(in srgb, var(--tab-group-color) var(--koi-tint), transparent);
+      color: var(--tab-group-color);
+    }
   }
 }
 
@@ -526,7 +562,7 @@
    * squeezed to nothing and the mark is the background. */
   & .tab-icon-image[src="chrome://branding/content/icon32.png"] {
     box-sizing: border-box;
-    padding-inline-start: 16px;
+    padding-inline-start: var(--koi-icon-16);
     background: url("chrome://browser/content/koi-common/koi-mark.svg") center / contain no-repeat;
   }
 
@@ -546,8 +582,8 @@
     color: var(--koi-fg-2);
 
     & .toolbarbutton-icon {
-      width: 12px;
-      height: 12px;
+      width: var(--koi-icon-12);
+      height: var(--koi-icon-12);
     }
 
     &:hover {
@@ -570,7 +606,7 @@
  * ::part(button). (.tab-icon-overlay is the pinned tab's corner badge, a
  * different element.) */
 .tab-audio-button {
-  --icon-size: 10px;
+  --icon-size: var(--koi-icon-10);
   --button-border-radius: var(--koi-radius-favicon);
   /* A ghost moz-button paints hover and pressed from these (moz-button.css). */
   --button-background-color-ghost-hover: var(--koi-glass-well);

@@ -16,30 +16,28 @@
  * date picker) outranks this and keeps it. */
 
 panel[type="arrow"]:not(#feature-callout) {
-  /* 98%: a bright page softens the panel a touch. Lower, the page's text
-   * reads through it unblurred (nothing behind a panel can be blurred). */
-  --panel-background-color: color-mix(in srgb, var(--koi-solid) 98%, transparent);
+  --panel-background-color: var(--koi-solid-panel);
   --panel-border-color: var(--koi-hair);
   --panel-border-radius: var(--koi-radius-panel);
   --panel-text-color: var(--koi-fg);
   color-scheme: dark;
   /* 6px clear of its anchor; nsMenuPopupFrame offsets a popup by its margin. */
-  margin-block-start: 6px;
+  margin-block-start: var(--koi-space-6);
 
   /* Menu rows 30px: Firefox's 16px line plus 7px above and below. The
    * shorthand is derived at :root (tokens-shared.css), so it is restated
    * here for the new parts to reach it. */
   --panel-menuitem-padding-block: 7px;
-  --panel-menuitem-padding-inline: var(--koi-row-inset);
+  --panel-menuitem-padding-inline: var(--koi-inset);
   --panel-menuitem-padding: var(--panel-menuitem-padding-block) var(--panel-menuitem-padding-inline);
   --panel-menuitem-border-radius: var(--koi-radius-pill);
   --panel-separator-color: var(--koi-rule);
   --button-background-color-menu-hover: var(--koi-fill-lift);
-  --button-background-color-menu-active: var(--koi-fill-control-hover);
+  --button-background-color-menu-active: var(--koi-fill-hover);
 
-  /* The main action is white; every other button sits on CONTROL. */
-  --button-background-color: var(--koi-fill-control);
-  --button-background-color-hover: var(--koi-fill-control-hover);
+  /* The main action is white; every other button sits on LIFT. */
+  --button-background-color: var(--koi-fill-lift);
+  --button-background-color-hover: var(--koi-fill-hover);
   --button-background-color-active: var(--koi-glass-well);
   --button-text-color: var(--koi-fg);
   --button-background-color-primary: var(--koi-fg);
@@ -57,7 +55,7 @@ panel[type="arrow"]:not(#feature-callout) {
    * size and travel from these). */
   & moz-toggle {
     --toggle-width: 32px;
-    --toggle-height: 20px;
+    --toggle-height: var(--koi-box);
     --toggle-border-color: transparent;
     --toggle-background-color: var(--koi-hair);
     --toggle-background-color-hover: var(--koi-glass-well);
@@ -96,7 +94,7 @@ panel[type="arrow"] :is(panelview .toolbarbutton-1, toolbarbutton.subviewbutton)
 .toolbar-menupopup {
   &,
   menupopup {
-    --panel-background-color: color-mix(in srgb, var(--koi-solid) 98%, transparent);
+    --panel-background-color: var(--koi-solid-panel);
     --panel-border-color: var(--koi-hair);
     color-scheme: dark;
   }
@@ -146,13 +144,26 @@ panel[type="arrow"] :is(panelview .toolbarbutton-1, toolbarbutton.subviewbutton)
   color-scheme: dark;
   box-shadow: inset 0 0 0 0.5px var(--koi-hair);
   font-family: var(--koi-font-mono);
-  font-size: var(--koi-text-11-5);
+  font-size: var(--koi-text-12);
 }
 
 #statuspanel:not([hidden]) > #statuspanel-label:-moz-locale-dir(ltr),
 #statuspanel:not([hidden]) > #statuspanel-label:-moz-locale-dir(rtl) {
   padding: 3px var(--koi-space-8);
   border-radius: var(--koi-radius-pill);
+}
+
+/* The app menu's zoom buttons fill their discs through context-stroke
+ * (panelUI-shared.css), which drops the fill's alpha, so LIFT came out
+ * white. The same film, mixed opaque. */
+#appMenu-zoom-controls > :is(#appMenu-zoomReduce-button2, #appMenu-zoomEnlarge-button2) {
+  & > .toolbarbutton-icon {
+    stroke: color-mix(in srgb, var(--koi-fg) 9%, var(--koi-solid));
+  }
+
+  &:not([disabled]):hover > .toolbarbutton-icon {
+    stroke: color-mix(in srgb, var(--koi-fg) 14%, var(--koi-solid));
+  }
 }
 
 /* Firefox branding in the app menu's account area: the gradient "zap"

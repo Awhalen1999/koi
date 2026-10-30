@@ -56,11 +56,11 @@
 }
 
 .koi-empty-key {
-  height: 20px;
+  height: var(--koi-box);
   display: flex;
   align-items: center;
   padding: 0 var(--koi-space-8);
-  border-radius: 6px;
+  border-radius: var(--koi-radius-favicon);
   background: var(--koi-glass-well);
   font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
@@ -73,7 +73,7 @@
   /* Eight tiles a row, centred; koi-newtab.js caps pins at 24 (three rows). */
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 468px;
+  max-width: calc(8 * var(--koi-tile-large) + 7 * var(--koi-space-12));
   align-items: center;
   gap: var(--koi-space-12);
   margin-top: var(--koi-space-32);
@@ -92,8 +92,8 @@
   pointer-events: auto;
   appearance: none;
   border: none;
-  width: 48px;
-  height: 48px;
+  width: var(--koi-tile-large);
+  height: var(--koi-tile-large);
   flex: none;
   display: flex;
   align-items: center;
@@ -123,8 +123,8 @@
 }
 
 .koi-empty-pin-icon {
-  width: 24px;
-  height: 24px;
+  width: var(--koi-icon-24);
+  height: var(--koi-icon-24);
   border-radius: var(--koi-radius-favicon);
 }
 

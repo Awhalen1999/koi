@@ -46,11 +46,11 @@
   --tab-group-line-thickness: 0px;
 
   /* The tray: 2px around the pills, so its corners stay concentric with
-   * theirs (8 + 2), filled with the folder's colour at this level. */
+   * theirs (8 + 2), filled with the folder's colour as a TINT. */
   --koi-folder-pad: 2px;
   --koi-folder-radius: calc(var(--koi-radius-pill) + var(--koi-folder-pad));
-  --koi-folder-tint-level: 18%;
-  --koi-folder-icon: 14px;
+  /* A folder's name in the chip, before it ellipsises. */
+  --koi-folder-name: 120px;
 }
 
 /* Declared on the group, not :root: a custom property is computed where it
@@ -61,7 +61,7 @@
  * no folder is targeted, so [movingtab-ungroup] is what says "none". */
 tab-group,
 #tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
-  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-folder-tint-level), transparent);
+  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-tint), transparent);
 }
 
 /* That tab is the one outlined while a drag is on, in the folder's colour. */
@@ -190,7 +190,7 @@ tab-group,
   min-height: 0;
   min-width: 0;
   /* The tab's inset and icon gap, then up to 120px of name. */
-  max-width: calc(2 * var(--tab-inline-padding) + var(--koi-folder-icon) + var(--tab-icon-end-margin) + 120px);
+  max-width: calc(2 * var(--tab-inline-padding) + var(--koi-icon-14) + var(--tab-icon-end-margin) + var(--koi-folder-name));
   margin: 0;
   padding-inline: var(--tab-inline-padding);
   line-height: var(--koi-pill-height);
@@ -208,8 +208,8 @@ tab-group,
   &::before {
     content: "";
     display: inline-block;
-    width: var(--koi-folder-icon);
-    height: var(--koi-folder-icon);
+    width: var(--koi-icon-14);
+    height: var(--koi-icon-14);
     margin-inline-end: var(--tab-icon-end-margin);
     vertical-align: -3px;
     background-color: var(--tab-group-color);
@@ -219,7 +219,9 @@ tab-group,
 
 /* Room for the pile after the name. */
 #tabbrowser-tabs[orient="horizontal"] tab-group[koi-pile] .tab-group-label {
-  max-width: calc(2 * var(--tab-inline-padding) + var(--koi-folder-icon) + var(--tab-icon-end-margin) + 120px + var(--koi-space-8) + var(--koi-pile-width));
+  max-width: calc(
+    2 * var(--tab-inline-padding) + var(--koi-icon-14) + var(--tab-icon-end-margin) + var(--koi-folder-name) + var(--koi-space-8) + var(--koi-pile-width)
+  );
   padding-inline-end: calc(var(--tab-inline-padding) + var(--koi-space-8) + var(--koi-pile-width));
 }
 
@@ -247,8 +249,8 @@ tab-group,
   display: flex;
 
   & > img {
-    width: var(--koi-folder-icon);
-    height: var(--koi-folder-icon);
+    width: var(--koi-icon-14);
+    height: var(--koi-icon-14);
     border-radius: var(--koi-radius-favicon);
     /* The empty-state mark and the default favicon are drawn in the chrome's
      * ink; a site's favicon has its own colours. */
@@ -310,8 +312,8 @@ tab-group,
     &::before {
       content: "";
       display: block;
-      width: var(--koi-folder-icon);
-      height: var(--koi-folder-icon);
+      width: var(--koi-icon-14);
+      height: var(--koi-icon-14);
       margin: auto;
       background-color: currentColor;
       mask: var(--koi-folder-glyph) center / contain no-repeat;

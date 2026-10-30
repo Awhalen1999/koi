@@ -7,6 +7,8 @@
  * (page pixels cannot be blurred, koi-theme.css); cards are the solid. */
 
 #koi-board {
+  /* A card's width, in the grid's columns and the peek row. */
+  --koi-card: 240px;
   display: none;
   /* The page card's own geometry, floated over it. */
   position: absolute;
@@ -36,7 +38,7 @@
 /* Board: a responsive grid, scrolling when the window is short. */
 #koi-board[mode="board"] .koi-board-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--koi-card), 1fr));
   gap: var(--koi-space-16);
   align-content: start;
   padding: var(--koi-space-24);
@@ -53,7 +55,7 @@
 }
 
 #koi-board[mode="peek"] .koi-card {
-  width: 240px;
+  width: var(--koi-card);
   flex: none;
 }
 
@@ -105,14 +107,14 @@
   display: flex;
   align-items: center;
   gap: var(--koi-space-8);
-  padding-inline: 10px var(--koi-space-4);
+  padding-inline: var(--koi-inset) var(--koi-space-4);
   color: var(--koi-fg);
   font-size: var(--koi-text-12);
 }
 
 .koi-card-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--koi-icon-16);
+  height: var(--koi-icon-16);
   flex: none;
   border-radius: var(--koi-radius-favicon);
 }
@@ -133,10 +135,10 @@
   appearance: none;
   border: none;
   flex: none;
-  width: 20px;
-  height: 20px;
+  width: var(--koi-box);
+  height: var(--koi-box);
   border-radius: var(--koi-radius-favicon);
-  background: center / 12px no-repeat;
+  background: center / var(--koi-icon-12) no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
   transition:
@@ -168,7 +170,7 @@
   /* 4px to the ×, trimmed from the header's 8px gap; a hidden badge leaves
    * no gap. */
   margin-inline-end: calc(var(--koi-space-4) - var(--koi-space-8));
-  background-size: 10px;
+  background-size: var(--koi-icon-10);
   background-image: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg");
 
   &:is(.playing, .muted) {

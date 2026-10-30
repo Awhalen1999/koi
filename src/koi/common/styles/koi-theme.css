@@ -2,28 +2,61 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Koi's design tokens. Every Koi stylesheet is written in them, and no
- * colour or shadow is written anywhere else (the empty state's letter tiles
- * aside). All are --koi-* because Firefox defines hundreds of custom
- * properties on the same :root. A token nothing uses is deleted. Koi's
- * chrome sheets load after Firefox's (koi-assets.inc.xhtml), so they win
- * specificity ties without !important; the about: pages link this file
- * too.
+/* Koi's design system: the tokens every Koi stylesheet is written in. No
+ * size, colour or shadow is written anywhere else, except where a comment
+ * at the use site says why (the empty state's letter tiles, about:rights'
+ * light ink, a page's own measure). All are --koi-* because Firefox defines
+ * hundreds of custom properties on the same :root. A token nothing uses is
+ * deleted. Koi's chrome sheets load after Firefox's (koi-assets.inc.xhtml),
+ * so they win specificity ties without !important; the about: pages link
+ * this file too.
  *
- * Three families: GLASS, see-through films on the wallpaper; SOLID, the one
- * opaque surface for everything on or over the page; INK, the text. The
- * chrome always sits on the wallpaper, so its ink is always light: there is
- * no light variant. */
+ * Three families of surface: GLASS, see-through films on the wallpaper;
+ * SOLID, the one opaque surface for everything on or over the page; INK,
+ * the text. The chrome always sits on the wallpaper, so its ink is always
+ * light: there is no light variant. */
 
 :root {
-  /* Scale: every size, gap and radius is a multiple of 4px. Named for the
-   * value, not the multiple: --koi-space-12 is 12px. */
+  /* Space ------------------------------------------------------------------
+   * Multiples of 4, named for the value. Two exceptions, both about text in
+   * a pill: INSET is how far text sits in from a pill's or row's edge, and
+   * the gap between a row's icon and its text; 6 is the glyph gap in a
+   * small pill (24px and under), where 8 reads as air. */
   --koi-space-4: 4px;
+  --koi-space-6: 6px;
   --koi-space-8: 8px;
   --koi-space-12: 12px;
   --koi-space-16: 16px;
   --koi-space-24: 24px;
   --koi-space-32: 32px;
+  --koi-inset: 10px;
+
+  /* Sizes ------------------------------------------------------------------
+   * One ladder of heights. PILL is the control: tabs, the address field,
+   * toolbar buttons, chips, panel buttons; 28 is tuned by eye (24 is too
+   * short, Firefox's 36 too tall; Helium uses 28). PILL-SMALL is a button
+   * inside a row and the bookmarks row's pills. BOX is a glyph's own box:
+   * a tab's ×, the audio badge, a keycap, a label. ROW is a panel row, 48
+   * with a second line. TILEs carry an icon on a fill: 32 in a row, 40 in a
+   * panel's head, 48 on the empty state. */
+  --koi-box: 20px;
+  --koi-pill-small: 24px;
+  --koi-pill-height: 28px;
+  --koi-tile-small: 32px;
+  --koi-row: 36px;
+  --koi-tile: 40px;
+  --koi-row-double: 48px;
+  --koi-tile-large: 48px;
+
+  /* Icons: 16 is the glyph and the favicon; 14 sits in a line of 12px text
+   * (a folder's icon, a favicon in a dense row); 12 is a mark inside a BOX
+   * (the ×, a check); 10 a badge's glyph; 20 and 24 fill a TILE. */
+  --koi-icon-10: 10px;
+  --koi-icon-12: 12px;
+  --koi-icon-14: 14px;
+  --koi-icon-16: 16px;
+  --koi-icon-20: 20px;
+  --koi-icon-24: 24px;
 
   /* Chrome: two rows, each the pill height plus 4px above and below. The top
    * row acts on the window, the bottom row on the page. The gutter (the page
@@ -41,58 +74,70 @@
   --koi-field-max: clamp(640px, 60vw, 1200px);
   --koi-tab-max: 178px;
 
-  /* No window radius: AppKit draws the window's corners. */
-  --koi-radius-page: 12px;
-  --koi-radius-pill: 8px;
+  /* Radii, by the height of the box: 4 up to a BOX (and every favicon), 6
+   * for a PILL-SMALL, 8 for a PILL or a ROW, 10 for a TILE, 12 for the page
+   * card and a 48px tile, 16 for a panel. Concentric: a row's 8 inside a
+   * panel's 8px padding meets its 16. No window radius: AppKit draws the
+   * window's corners. */
   --koi-radius-favicon: 4px;
+  --koi-radius-small: 6px;
+  --koi-radius-pill: 8px;
+  --koi-radius-tile: 10px;
+  --koi-radius-page: 12px;
+  --koi-radius-panel: 16px;
 
-  /* One pill height for tabs and the address field; every row derives from
-   * it. 28px is tuned by eye: 24 is too short, Firefox's 36 too tall.
-   * Helium uses 28 as well. */
-  --koi-pill-height: 28px;
-
-  /* Type: one mono stack, spelled once, since quoted family names are where
-   * stacks drift. No sans token: the chrome's `font: menu` is already SF. The
-   * half-pixel size is drift, to be settled in a type pass. */
+  /* Type ------------------------------------------------------------------
+   * The chrome's `font: menu` is already SF; the sans stack is for Koi's own
+   * pages, which get no UI font. One mono stack, for addresses and hosts.
+   * Sizes: 11 for a caption, a count or a keycap; 12 for the chrome's
+   * labels (tabs, bookmarks, secondary text in a row); 13 for a row's
+   * text; 15 for a panel's title; 24 for a page's. Leading pairs with the
+   * three UI sizes where a block wraps or stacks. */
+  --koi-font-sans: -apple-system, system-ui, sans-serif;
   --koi-font-mono: ui-monospace, "SF Mono", monospace;
 
   --koi-text-11: 11px;
-  --koi-text-11-5: 11.5px;
   --koi-text-12: 12px;
   --koi-text-13: 13px;
   --koi-text-15: 15px;
+  --koi-text-24: 24px;
+  --koi-line-12: 16px;
+  --koi-line-13: 18px;
+  --koi-line-15: 20px;
 
   /* Ink: white at three levels of emphasis, on glass and solid alike. */
   --koi-fg: #fff;
   --koi-fg-2: rgba(255, 255, 255, 0.62);
   --koi-fg-3: rgba(255, 255, 255, 0.42);
 
-  /* The chrome's only colour, meaning "this one, now" (the board's focused
-   * card, focus rings). It is the macOS accent, live from System Settings, so
-   * Koi imposes no colour of its own; Graphite makes it grey, accepted. */
+  /* Colour ----------------------------------------------------------------
+   * The chrome's only colour of its own is the accent, meaning "this one,
+   * now" (focus rings, a switch that is on, the board's focused card). It
+   * is the macOS accent, live from System Settings, so Koi imposes nothing;
+   * Graphite makes it grey, accepted. Everything else below names a state. */
   --koi-accent: AccentColor;
 
   /* Private windows' violet: the window's tint, the tab row's label and
    * about:privatebrowsing, so a private window is never mistaken for a normal
-   * one. With the agent's blue and its status colours, the chrome's only other
-   * colours. */
+   * one. */
   --koi-private: rgb(122, 92, 255);
 
   /* An agent at work (src/koi/agents/): macOS's blue, the colour agent
    * browsers use for it. The ink is its tint, readable on the dark address
-   * field. */
+   * field. Its status dot: macOS's green for a live connection, yellow
+   * while waiting for one. */
   --koi-agent: #0a84ff;
   --koi-agent-ink: #6cb6ff;
-
-  /* The agents panel's status dot: macOS's system green for a live
-   * connection, its yellow while waiting for one. */
   --koi-live: #30d158;
   --koi-waiting: #ffd60a;
 
+  /* Destructive actions and failures: Delete Folder, a failed download, a
+   * connection Koi could not open. */
+  --koi-danger: #ff6b63;
+
   /* Folders (src/koi/folders/): Firefox's nine group colours in Koi's
-   * values, pastel enough to tint a tray and ink a glyph on dark glass. The
-   * tray is the colour at 18% (koi-folders.css); the agent's folder uses
-   * --koi-agent, outside this rotation. */
+   * values, pastel enough to tint a tray and ink a glyph on dark glass; the
+   * agent's folder uses --koi-agent, outside this rotation. */
   --koi-folder-blue: #7fb3ff;
   --koi-folder-purple: #c7a6ff;
   --koi-folder-cyan: #6fd3e6;
@@ -102,6 +147,12 @@
   --koi-folder-green: #8ee3a6;
   --koi-folder-gray: #a8a9b0;
   --koi-folder-red: #ff8a8a;
+
+  /* A colour as a film: TINT is a folder's tray, the agent's label and the
+   * dropdown's folder chip (the colour at 18% behind its own ink); STRONG is
+   * the label under the pointer and the private window's glass. */
+  --koi-tint: 18%;
+  --koi-tint-strong: 30%;
 
   /* Hairlines: white on glass, dark on the page card. */
   --koi-hair: rgba(255, 255, 255, 0.16);
@@ -126,37 +177,31 @@
   /* Solid ------------------------------------------------------------------
    * The one opaque surface: the ground behind a page that paints no
    * background, the address field, and everything Firefox or Koi floats
-   * over the page (the address dropdown, findbar, status label, bookmark
-   * menus, board cards).
-   * Opaque because nothing behind it can be blurred and page text ghosts
-   * through anything less. The depth of Zen's solids (#1c1c1c); edged by
-   * --koi-hair, so a surface over a dark page still reads. Light pages get
-   * --koi-solid-light. */
+   * over the page (panels, the address dropdown, findbar, status label,
+   * bookmark menus, board cards). Opaque because nothing behind it can be
+   * blurred and page text ghosts through anything less: a panel takes it at
+   * 98%, which only softens it over a bright page (95% let the text read
+   * through). The depth of Zen's solids (#1c1c1c); edged by --koi-hair, so a
+   * surface over a dark page still reads. Light pages get --koi-solid-light.
+   *
+   * On the solid, films step from LIFT: a hovered row and a control at rest
+   * (a lighter fill, and for a row a small shadow); HOVER, a hovered control
+   * or a pressed row; then the glass WELL for a pressed control. RULE is the
+   * hairline between groups of rows. */
   --koi-solid: #1c1c1e;
   --koi-solid-light: #fff;
-
-  /* Panels -----------------------------------------------------------------
-   * The panel kit (the Koi Designs canvas, Foundations page): every floating
-   * panel is the solid, edged by the hairline, its rows 8px in from the rim
-   * so the panel's 16px corners and the rows' 8px stay concentric. A row is
-   * 36 tall, 48 with a second line (a menu item is 30, koi-panels.css): the
-   * kit's heights, the one place the 4px scale gives way. Hover and
-   * selection LIFT a row (a lighter fill and a small shadow) instead of
-   * tinting it; controls sit on CONTROL, a step up when hovered. RULE is the
-   * hairline between groups of menu items. */
-  --koi-radius-panel: 16px;
-  --koi-panel-padding: var(--koi-space-8);
-  --koi-row-inset: 10px;
-  --koi-row: 36px;
-  --koi-row-double: 48px;
-  --koi-fill-lift: rgba(255, 255, 255, 0.09);
-  --koi-shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
-  --koi-fill-control: rgba(255, 255, 255, 0.1);
-  --koi-fill-control-hover: rgba(255, 255, 255, 0.14);
+  --koi-solid-panel: color-mix(in srgb, var(--koi-solid) 98%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
+  --koi-fill-lift: rgba(255, 255, 255, 0.09);
+  --koi-fill-hover: rgba(255, 255, 255, 0.14);
+  --koi-shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
 
-  /* Destructive actions and failures: Delete Folder, a failed download. */
-  --koi-danger: #ff6b63;
+  /* Panels: 8px of padding inside the rim, so a row's 8px corners sit
+   * concentric with the panel's 16; two widths, for a list and for a list
+   * with words in it (the agent's steps). */
+  --koi-panel-padding: var(--koi-space-8);
+  --koi-panel-width: 304px;
+  --koi-panel-width-wide: 352px;
 
   /* Scrims: the board is a full takeover, peek a lighter overlay. Dim only
    * (see Glass). */
