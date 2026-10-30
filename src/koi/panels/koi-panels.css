@@ -166,10 +166,10 @@ panel[type="arrow"] :is(panelview .toolbarbutton-1, toolbarbutton.subviewbutton)
   }
 }
 
-/* Firefox branding in the app menu's account area: the gradient "zap"
- * separator (panelUI-shared.css) becomes a plain rule; the sign-in promo's
- * fox (kit-signed-out.svg) is hidden, as in Zen; and its violet card turns
- * the SHELL film, leaving the Sign in button's accent. */
+/* Firefox branding in the account area: the app menu's gradient "zap"
+ * separator (panelUI-shared.css) becomes a plain rule, and the account
+ * panel's sign-in promo loses its fox (kit-signed-out.svg), as in Zen, and
+ * its violet card for the SHELL film. */
 toolbarseparator.proton-zap {
   --panel-separator-zap-gradient: none;
 }
@@ -178,9 +178,95 @@ toolbarseparator.proton-zap {
   display: none;
 }
 
-:is(#appMenu-fxa-sign-in-promo, #PanelUI-fxa-menu-sign-in-promo) {
+#PanelUI-fxa-menu-sign-in-promo {
   --promo-background-color-vibrant: var(--koi-glass-shell);
   --promo-message-text-color-vibrant: currentColor;
+}
+
+/* The app menu's account row. A user who never signed in gets a promo card
+ * from Firefox (a heading, a line and a button, panelUI-shared.css) in
+ * place of the row; Koi keeps the row in every state and draws it as one
+ * quiet row: the empty avatar, "Sign In to Sync" (koi-strings.js), a
+ * chevron. Firefox swaps the two with a long :has() chain, so these two
+ * displays are !important rather than a copy of it. Signed in, the row is
+ * Firefox's. */
+#appMenu-fxa-sign-in-promo {
+  display: none !important;
+}
+
+#appMenu-fxa-status2 {
+  display: flex !important;
+
+  &:not([fxastatus]) {
+    padding: 0;
+
+    & > #appMenu-fxa-text {
+      display: none;
+    }
+
+    & > #appMenu-fxa-label2 {
+      flex: 1;
+      align-items: center;
+      min-height: var(--koi-row);
+      padding: 0 var(--koi-inset);
+      background-color: transparent;
+      font-weight: normal;
+
+      &::before,
+      &::after {
+        -moz-context-properties: fill, fill-opacity;
+        fill: currentColor;
+      }
+
+      &::before {
+        content: url(chrome://browser/skin/fxa/avatar-empty.svg);
+        margin-inline-end: var(--koi-inset);
+      }
+
+      &::after {
+        content: url(chrome://global/skin/icons/arrow-right.svg);
+        margin-inline-start: auto;
+        fill-opacity: 0.6;
+      }
+
+      &:hover {
+        background-color: var(--koi-fill-lift);
+      }
+    }
+  }
+}
+
+/* The history and bookmarks views end in a sync promo card (sync-promo.mjs,
+ * dismissed one state at a time). Koi shows none. */
+#PanelUI-history-sync-promo,
+#PanelUI-bookmarks-sync-promo {
+  display: none;
+}
+
+/* Permission prompts: no Learn More. The link explains the permission on
+ * Mozilla's support site; the prompt says what the site asks for. */
+.popup-notification-learnmore-link {
+  display: none;
+}
+
+/* The bookmark editor: Done is the white main action, last as macOS puts it
+ * (moz-button-group); Remove is danger ink on no fill, at the start. Its
+ * title says what just happened (koi.ftl). */
+#editBookmarkPanelRemoveButton {
+  margin-inline-end: auto;
+  background-color: transparent;
+  color: var(--koi-danger);
+}
+
+/* Site information: the header is the host alone (koi.ftl), in the address
+ * field's type; "Connection not secure" takes the danger ink its icon has. */
+#identity-popup-mainView-panel-header-span {
+  font-family: var(--koi-font-mono);
+  font-size: var(--koi-text-13);
+}
+
+.identity-popup-connection-not-secure {
+  color: var(--koi-danger);
 }
 
 /* The extensions panel's empty state. Both its illustrations are the fox, so

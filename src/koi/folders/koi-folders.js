@@ -11,18 +11,16 @@
  *     a group's id, name, colour and collapsed state only (TabGroupState),
  *     so the pick lives in a JSON pref keyed by group id; ids survive
  *     session restore and a move to another window.
- *   - Words: Firefox says "group"; the items Koi touches say "folder". The
- *     editor's are relabelled once, their Fluent ids dropped. The tab menu's
- *     get their ids back from Firefox on every open (tab-context-menu.js
- *     updateContextMenu), so they are relabelled on every open and again as
- *     Fluent's deferred translation lands. Copy Links keeps Firefox's
- *     wording: Firefox re-sets it with a count each time.
+ *   - The editor's actions: a glyph each (koi-folders.css) and, after
+ *     Delete Folder, what it closes. The words themselves, "folder" for
+ *     Firefox's "group" in the editor and the tab menu, are koi.ftl's
+ *     (koi-strings.js).
  *   - Firefox's Save and Close and Share Group stay hidden: a folder lives
  *     in the strip or not at all, and "share" is the agent's word. Groups
  *     are not saved when a window closes either (saveOnWindowClose), so
  *     Firefox's saved-groups surfaces stay empty. */
 
-/* global gBrowser, delayedStartupPromise, TabContextMenu */
+/* global gBrowser, delayedStartupPromise */
 
 (() => {
   const ICON_PREF = "koi.folders.icons";
@@ -132,30 +130,19 @@
     group.style.setProperty("--koi-pile-width", `${width}px`);
   };
 
-  // The editor and the tab menu -------------------------------------------
+  // The editor ------------------------------------------------------------
 
-  const word = (id, label) => {
-    const item = document.getElementById(id);
-    item.removeAttribute("data-lazy-l10n-id");
-    item.removeAttribute("data-l10n-id");
-    item.setAttribute("label", label);
-  };
+  const strings = new Localization([{ path: "koi.ftl", optional: true }], true);
 
   const buildEditor = () => {
     const editor = document.getElementById("tab-group-editor");
     const panel = editor.querySelector("panel");
-    for (const [id, text] of [
-      ["tab-group-editor-title-create", "New Folder"],
-      ["tab-group-editor-title-edit", "Edit Folder"],
-    ]) {
-      const heading = document.getElementById(id);
-      heading.removeAttribute("data-l10n-id");
-      heading.textContent = text;
+    for (const action of editor.querySelectorAll(
+      ".tab-group-edit-actions > toolbarbutton"
+    )) {
+      action.classList.add("subviewbutton-iconic");
     }
-    word("tabGroupEditor_addNewTabInGroup", "New Tab in Folder");
-    word("tabGroupEditor_moveGroupToNewWindow", "Move Folder to New Window");
-    word("tabGroupEditor_ungroupTabs", "Ungroup Tabs");
-    word("tabGroupEditor_deleteGroup", "Delete Folder");
+    const remove = document.getElementById("tabGroupEditor_deleteGroup");
 
     const icons = document.createElementNS(XHTML, "div");
     icons.className = "koi-folder-icons";
@@ -193,6 +180,12 @@
       }
       colour(group);
       check(readIcons()[group.id] ?? "folder");
+      remove.setAttribute(
+        "shortcut",
+        strings.formatValueSync("koi-folder-closes-tabs", {
+          tabCount: group.tabs.length,
+        })
+      );
       // Firefox re-decides both on every open.
       document.getElementById("tabGroupEditor_saveAndCloseGroup").hidden = true;
       document.getElementById("tabGroupEditor_shareTabGroup").hidden = true;
@@ -201,34 +194,6 @@
       if (event.target == editor.activeGroup && panel.state == "open") {
         colour(event.target);
       }
-    });
-  };
-
-  const buildTabMenu = () => {
-    const menu = document.getElementById("tabContextMenu");
-    const words = {};
-    const apply = () => {
-      for (const [id, label] of Object.entries(words)) {
-        if (document.getElementById(id).getAttribute("label") != label) {
-          word(id, label);
-        }
-      }
-    };
-    new MutationObserver(apply).observe(menu, {
-      attributes: true,
-      attributeFilter: ["label"],
-      subtree: true,
-    });
-    menu.addEventListener("popupshowing", event => {
-      if (event.target != menu) {
-        return;
-      }
-      const tabs = TabContextMenu.contextTabs.length > 1 ? "Tabs" : "Tab";
-      words.context_moveTabToNewGroup = `Add ${tabs} to New Folder`;
-      words.context_moveTabToGroup = `Add ${tabs} to Folder`;
-      words.context_moveTabToGroupNewGroup = "New Folder…";
-      words.context_ungroupTab = "Remove from Folder";
-      apply();
     });
   };
 
@@ -283,7 +248,6 @@
     gBrowser.getAllTabGroups().forEach(adopt);
 
     buildEditor();
-    buildTabMenu();
   };
 
   addEventListener(

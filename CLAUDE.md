@@ -223,6 +223,14 @@ rules in koi-chrome.css and koi-panels.css carry one.
   one. Capture by window id: `CGWindowListCopyWindowInfo([], …)` (empty
   option set) filtered to the owner, then `screencapture -l<id>`. Headless
   `--screenshot` cannot see chrome.
+- **`npm run vm` runs the current build in a VM** (scripts/vm.sh): `mach
+  package` makes the self-contained app (dev builds are symlinks into the
+  repo), the DMG goes into the Cua Space `koi`, a headless macOS 26 VM
+  on this Mac, and Koi launches there. `cua do screenshot`, `cua do click`
+  and `cua do shell` drive it without touching the real screen. The Space
+  must be running (`cua spaces start koi`). A packaged build reads
+  omni.ja, so the sandbox pref and the startup-cache clearing above do not
+  apply to it.
 - `npm start` pipes through `scripts/koi-log.mjs`: red/yellow = chrome JS
   errors/warnings, magenta = Koi's own files, gray = page JS and macOS noise.
 
@@ -774,8 +782,7 @@ named.
   (the pick lives in `koi.folders.icons`, a JSON pref by group id, since
   Firefox persists only id, name, colour and collapsed); the nine colours
   are Koi's values of Firefox's names (koi-theme.css); open and close are
-  instant; the words say "folder" (set in JS; the full strings pass is
-  deferred); Save and Close and Share Group are hidden and nothing is saved
+  instant; the words say "folder" (koi.ftl); Save and Close and Share Group are hidden and nothing is saved
   when a window closes, so Firefox's saved-groups surfaces stay empty; smart
   groups are locked off (chrome-ui.yaml). The closed chip's favicon pile is
   Koi's; the "+N" beside a closed folder's selected tab and the hover list
@@ -813,6 +820,26 @@ named.
   the address dropdown colours its URLs through `--link-color`, sized 0.85em
   (view-proton.css), so koi-chrome.css sets both and drops the dash between
   title and address.
+- **Koi's words in Firefox's panels** (src/koi/strings/, 2026-10-29).
+  koi.ftl holds a message per Firefox string Koi rewords, named
+  koi-<Firefox's id> with the same arguments, and koi-strings.js points each
+  element at Koi's as its popup or panel view opens (and again once shown,
+  for an id Firefox sets after opening). Firefox's strings are untouched:
+  one file, no patch, and Firefox resetting an id (the tab menu, the folder
+  editor's Copy Links) just gets reworded again. Actions and titles are
+  Title Case, as macOS writes menus; descriptions, status lines and
+  checkbox labels stay sentence case. A string Firefox formats in JS has no
+  id to repoint (the app menu's sign-in row): its text is written directly.
+  Two ways that do not work: redefining Firefox's ids in a Koi resource (a
+  message defined twice in one bundle is a console error, and resources
+  join a bundle in a hash set's order), and a second copy of a Firefox file
+  in a higher-priority source (every message not in the copy went
+  unresolved). Firefox's panels beyond words: the app menu's sign-in promo
+  card and the history and bookmarks views' sync promos are hidden, Learn
+  More leaves permission prompts, the bookmark editor says Bookmark Added
+  with Remove and Done, site information is headed by the host alone, and
+  the folder editor's actions carry glyphs and Delete Folder says what it
+  closes.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
   built and search cannot find them: Firefox Home (Koi's new windows and tabs
@@ -859,7 +886,7 @@ them). No fox shows by default; the urlbar's "Firefox View" quick action
 (typed) still has one, as in Zen. Help ▸ Get Help, Share Ideas and Feedback
 and Switching to a New Device still lead to Mozilla's Firefox pages, as in
 Zen, until Koi has its own. Strings naming Firefox literally ("Firefox
-Labs") want a strings pass of their own.
+Labs") go into koi.ftl as they are found.
 
 **Known issues, found and not yet fixed:**
 

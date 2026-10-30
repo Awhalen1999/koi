@@ -9,6 +9,7 @@
     "download": "surfer download",
     "bootstrap": "surfer bootstrap",
     "prefs": "node scripts/gen-prefs.js",
+    "vm": "bash scripts/vm.sh",
     "import": "surfer import && npm run prefs",
     "export": "surfer export",
     "build": "surfer build",

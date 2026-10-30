@@ -331,3 +331,30 @@ tab-group,
     }
   }
 }
+
+/* The editor's actions carry a glyph each, Firefox's icons (the folder for
+ * Ungroup); koi-folders.js marks them iconic. Delete Folder says what it
+ * closes in the shortcut slot Firefox draws after a row's label. */
+#tabGroupEditor_addNewTabInGroup {
+  list-style-image: url(chrome://global/skin/icons/plus.svg);
+}
+
+#tabGroupEditor_moveGroupToNewWindow {
+  list-style-image: url(chrome://browser/skin/window.svg);
+}
+
+#tabGroupEditor_copyAllLinks {
+  list-style-image: url(chrome://global/skin/icons/link.svg);
+}
+
+#tabGroupEditor_ungroupTabs {
+  list-style-image: url(chrome://global/skin/icons/folder.svg);
+}
+
+#tabGroupEditor_deleteGroup {
+  list-style-image: url(chrome://global/skin/icons/delete.svg);
+
+  &::after {
+    color: var(--koi-fg-3);
+  }
+}
