@@ -10,6 +10,11 @@
   /* A card's width, in the grid's columns and the peek row. */
   --koi-card: 240px;
   display: none;
+  opacity: 0;
+  /* Leaves as a quick fade; display steps to none as it ends. */
+  transition:
+    opacity var(--koi-leave),
+    display var(--koi-leave) allow-discrete;
   /* The page card's own geometry, floated over it. */
   position: absolute;
   inset: var(--koi-gutter);
@@ -19,8 +24,30 @@
   color-scheme: dark;
 }
 
+/* Arrives as a crossfade, the cards settling in from 98%; leaves the same
+ * way, shorter. */
 #koi-board[mode] {
   display: flex;
+  opacity: 1;
+  transition: opacity var(--koi-arrive);
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+.koi-board-grid {
+  transform: scale(0.98);
+  transition: transform var(--koi-leave);
+}
+
+#koi-board[mode] .koi-board-grid {
+  transform: none;
+  transition: transform var(--koi-arrive);
+
+  @starting-style {
+    transform: scale(0.98);
+  }
 }
 
 #koi-board[mode="board"] {
@@ -82,6 +109,7 @@
     box-shadow:
       var(--koi-shadow-high),
       0 0 0 1px var(--koi-fg-3);
+    transition: none;
   }
 
   &.koi-card-current {
@@ -148,6 +176,7 @@
   &:hover {
     fill: var(--koi-fg);
     background-color: var(--koi-glass-well);
+    transition: none;
   }
 
   &:hover:active {

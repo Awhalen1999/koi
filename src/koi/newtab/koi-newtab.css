@@ -108,6 +108,7 @@
   &:hover {
     background: var(--koi-glass-hover);
     box-shadow: var(--koi-shadow-high);
+    transition: none;
   }
 
   /* Pressed, the shadow returns to rest; a letter tile keeps its colour. */

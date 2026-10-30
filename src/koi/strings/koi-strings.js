@@ -18,7 +18,8 @@
  * Firefox sets theirs, and again once a popup is shown, for an id Firefox
  * sets after opening (the folder editor's Copy Links); a view holds its
  * showing until the translation lands (PanelMultiView's blocker), so no
- * Firefox word shows first. The app menu's
+ * Firefox word shows first. The chrome itself is repointed once built, and
+ * the address field whenever Firefox sets its placeholder. The app menu's
  * sign-in row has no id (browser-sync.js writes its text), so its text is
  * written here. */
 
@@ -81,6 +82,9 @@
     "origin-controls-state-always-on",
     "origin-controls-state-when-clicked",
     "origin-controls-state-no-access",
+    "urlbar-placeholder-with-name",
+    "private-browsing-indicator-label",
+    "unified-extensions-empty-reason-zero-extensions-onboarding2",
   ]);
 
   const registry = L10nRegistry.getInstance();
@@ -133,4 +137,19 @@
     }
     event.detail.addBlocker(document.l10n.translateFragment(view));
   });
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      reword(document.documentElement);
+      // Firefox sets the address field's placeholder id itself, at startup
+      // and when the default engine changes.
+      const field = document.getElementById("urlbar-input");
+      new MutationObserver(() => reword(field.parentNode)).observe(field, {
+        attributes: true,
+        attributeFilter: ["data-l10n-id"],
+      });
+    },
+    { once: true }
+  );
 })();

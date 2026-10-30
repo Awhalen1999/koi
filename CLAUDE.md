@@ -230,7 +230,11 @@ rules in koi-chrome.css and koi-panels.css carry one.
   and `cua do shell` drive it without touching the real screen. The Space
   must be running (`cua spaces start koi`). A packaged build reads
   omni.ja, so the sandbox pref and the startup-cache clearing above do not
-  apply to it.
+  apply to it. The guest has python3, so the Marionette harness runs inside
+  it (launch with `--marionette --remote-allow-system-access --profile`,
+  `marionette.port` in the profile's user.js). Its display hands a recorder
+  only the frames that changed, a few a second during motion, so motion is
+  judged from clips on this Mac; the VM's job is stills and computed styles.
 - `npm start` pipes through `scripts/koi-log.mjs`: red/yellow = chrome JS
   errors/warnings, magenta = Koi's own files, gray = page JS and macOS noise.
 
@@ -726,12 +730,32 @@ named.
   `ShortcutUtils.getSystemActionForEvent` (on macOS it takes ⌘{ and ⌘} by
   charCode, and ⇧⌘ with punctuation varies by layout — use letters) and
   `ShortcutKeyDefinitions.cpp`. ⌘E is macOS-wide "Use Selection for Find".
-- **The shell does not move**: no entrances, springs or hover lifts; only
-  colour and opacity ease (`--koi-fade`, 150ms; a status leaving, the
-  agent's ring and tag, takes `--koi-fade-out`, 500ms), and one shape: a folder's
-  tray parting into tiles for a drag and closing up on the drop
-  (`--koi-settle`, 200ms ease-out); arrow panels settle 4px into place
-  where Firefox slides them 70px. Motion returns as a pass of its own.
+- **Motion is felt, not watched** (koi-theme.css, Motion; the passes of
+  2026-10-30). Nothing springs, bounces or slides across the shell, and
+  nothing holds the user up: a change is mostly done before it is noticed
+  and ends where no one is looking. One curve for the shell, quick then
+  soft, in four lengths: FADE (200ms) for a state letting go (a hover fill,
+  the old tab's fill), ARRIVE (260ms) for a surface coming in (the board
+  crossfades with its cards settling from 98%, a tab's slot grows, a panel
+  grows from 96% at its anchor's edge in place of Firefox's 70px slide),
+  LEAVE (160ms) for one going (the board shrinking back as it fades, a tab's
+  slot closing), SETTLE (200ms) for a shape giving way (a folder's tray
+  parting into tiles for a drag). A state answering the pointer or the
+  keyboard is instant, as on macOS: every hover, a button whose panel is
+  open and the selected tab's fill turn their transition off, so a fade is
+  only ever the letting go. A tab's content fades in as its slot opens and
+  out as it closes, so a title is never seen squeezed; that means showing
+  what Firefox hides while a tab is not [fadein], at tabs.css's specificity,
+  with pointer events off. A panel cannot fade (a window-opacity animation
+  loses the shadow on Big Sur and later, bug 1672091), and the window
+  transform's origin is the window's corner, so the scale is recentred by a
+  translate. The address dropdown is instant; a status leaving (the agent's
+  ring and tag) takes the slower --koi-fade-out. The board enters and leaves
+  through `@starting-style` and a discrete `display` transition, no JS.
+  Reduced motion zeroes every timing. Weighed and held back as the easiest
+  thing to overdo: the board opening from the page (the current tab's card
+  shrinking from the page card into its tile, as Safari's tab overview
+  does); if it comes, it is a FLIP of the card Koi already draws.
 - **Menus are native; panels are Koi's** (decided 2026-10-12 in the design
   pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
   panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
@@ -830,6 +854,8 @@ named.
   Title Case, as macOS writes menus; descriptions, status lines and
   checkbox labels stay sentence case. A string Firefox formats in JS has no
   id to repoint (the app menu's sign-in row): its text is written directly.
+  The chrome itself is repointed once built, and the address field's
+  placeholder whenever Firefox sets it (at startup and on an engine change).
   Two ways that do not work: redefining Firefox's ids in a Koi resource (a
   message defined twice in one bundle is a console error, and resources
   join a bundle in a hash set's order), and a second copy of a Firefox file
@@ -839,7 +865,20 @@ named.
   More leaves permission prompts, the bookmark editor says Bookmark Added
   with Remove and Done, site information is headed by the host alone, and
   the folder editor's actions carry glyphs and Delete Folder says what it
-  closes.
+  closes. The polish pass of 2026-10-30 (a pilot of the packaged build in a
+  VM, scratchpad/cua/pilot2): panel titles start at the left; closing a
+  folder around the selected tab selects the nearest tab outside it
+  (Firefox keeps the selected one on show, so nothing seemed to happen);
+  the address field reverts to the page's address when a load becomes a
+  download (Firefox leaves the download's); the folder tray is TINT over
+  the SHELL film, so a blue folder reads on a blue wallpaper; tab titles
+  fade over 16px; the tab menu drops Send to Mobile, Open in New Container
+  Tab, Unload Tab and Select All Tabs; the find bar keeps Highlight All and
+  Match Case; the extensions panel's empty state is a glyph and "No
+  extensions yet"; the downloads button is always in row one and the
+  private window's second indicator (the flame) is off (chrome-ui.yaml);
+  one placeholder, "Search or enter address"; the private pill says
+  "Private"; the alerts service is made on first use, not at startup.
 - **Settings leaves groups out rather than hiding them.**
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
   built and search cannot find them: Firefox Home (Koi's new windows and tabs

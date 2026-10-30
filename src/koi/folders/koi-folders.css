@@ -46,7 +46,8 @@
   --tab-group-line-thickness: 0px;
 
   /* The tray: 2px around the pills, so its corners stay concentric with
-   * theirs (8 + 2), filled with the folder's colour as a TINT. */
+   * theirs (8 + 2), filled with the folder's colour as a TINT over the SHELL
+   * film, so it still reads on a wallpaper of its own colour. */
   --koi-folder-pad: 2px;
   --koi-folder-radius: calc(var(--koi-radius-pill) + var(--koi-folder-pad));
   /* A folder's name in the chip, before it ellipsises. */
@@ -61,7 +62,7 @@
  * no folder is targeted, so [movingtab-ungroup] is what says "none". */
 tab-group,
 #tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
-  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-tint), transparent);
+  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-tint), var(--koi-glass-shell));
 }
 
 /* That tab is the one outlined while a drag is on, in the folder's colour. */
@@ -178,9 +179,11 @@ tab-group,
 #tabbrowser-tabs[orient="horizontal"] tab-group[previewpanelactive] > .tab-group-label-container > .tab-group-label-hover-highlight {
   background-color: var(--koi-glass-hover);
   box-shadow: none;
+  transition: none;
 
   & > .tab-group-label {
     color: var(--koi-fg);
+    transition: none;
   }
 }
 

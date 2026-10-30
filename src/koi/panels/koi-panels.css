@@ -67,15 +67,23 @@ panel[type="arrow"]:not(#feature-callout) {
   }
 }
 
-/* Opening, a panel settles 4px into place where popup.css slides it 70px,
- * on Firefox's timing. Same specificity as popup.css, so its open state
- * still clears it. */
+/* Opening, a panel grows out of its anchor's edge from 96%, as a macOS
+ * popover does, where popup.css slides it 70px; on ARRIVE. The window
+ * transform's origin is the window's top-left corner (nsCocoaWindow.mm), so
+ * the shift recentres the scaled panel under its anchor. No fade, as
+ * Firefox: animating the window's opacity loses its shadow on Big Sur and
+ * later (bug 1672091). Same specificity as popup.css, so its open state
+ * still clears the transform. */
 @media not (prefers-reduced-motion) {
   panel[type="arrow"] {
-    -moz-window-transform: translateY(-4px);
+    -moz-window-transform: translateX(2%) scale(0.96);
 
     &:where([side="bottom"]) {
-      -moz-window-transform: translateY(4px);
+      -moz-window-transform: translate(2%, 4%) scale(0.96);
+    }
+
+    &[animate="open"] {
+      transition: -moz-window-transform var(--koi-arrive);
     }
   }
 }
@@ -83,6 +91,46 @@ panel[type="arrow"]:not(#feature-callout) {
 /* A hovered row lifts: the fill above, and a small shadow. */
 panel[type="arrow"] :is(panelview .toolbarbutton-1, toolbarbutton.subviewbutton):not([disabled]):hover {
   box-shadow: var(--koi-shadow-lift);
+}
+
+/* A panel's title starts at the left in the title size, as Koi's own panels'
+ * do. Firefox centres it (panelUI-shared.css) and, beside a back button or an
+ * info button, pads the h1 to keep it centred; the second selector ties
+ * those rules' specificity, so this later sheet wins. */
+panel[type="arrow"] .panel-header {
+  justify-content: flex-start;
+  text-align: start;
+  padding: var(--koi-space-8) var(--koi-inset);
+
+  & > h1,
+  & > :is(.subviewbutton-back, .additional-element-on-inline-start) + h1 {
+    margin-inline: 0;
+    font-size: var(--koi-text-15);
+    line-height: var(--koi-line-15);
+    font-weight: 600;
+  }
+}
+
+/* The tab preview (tab-hover-preview.css): the title in the row weight, the
+ * host in the address field's type, the thumbnail on an 8px corner with the
+ * hairline. */
+#tab-preview-panel {
+  & .tab-preview-title {
+    font-weight: 500;
+  }
+
+  & .tab-preview-uri {
+    color: var(--koi-fg-3);
+    font-family: var(--koi-font-mono);
+    font-size: var(--koi-text-12);
+  }
+
+  & .tab-preview-thumbnail-container > canvas {
+    border: none;
+    border-radius: var(--koi-radius-pill);
+    outline: 0.5px solid var(--koi-hair);
+    outline-offset: -0.5px;
+  }
 }
 
 /* Bookmark menus (toolbar folders, the » overflow, the Bookmarks button)
@@ -125,6 +173,11 @@ panel[type="arrow"] :is(panelview .toolbarbutton-1, toolbarbutton.subviewbutton)
     &:focus {
       outline: none;
     }
+  }
+
+  /* Two of Firefox's four options stay: Highlight All and Match Case. */
+  & :is(.findbar-match-diacritics, .findbar-entire-word) {
+    display: none;
   }
 }
 
@@ -269,19 +322,43 @@ toolbarseparator.proton-zap {
   color: var(--koi-danger);
 }
 
-/* The extensions panel's empty state. Both its illustrations are the fox, so
- * every state keeps only its text. Zen hides the whole box. */
-#unified-extensions-empty-state > img {
-  display: none;
-}
+/* The extensions panel with nothing installed: a glyph and "No extensions
+ * yet" (koi.ftl) over the rule and Manage Extensions. Firefox's two
+ * illustrations are the fox (replaced the way Firefox sets them, through
+ * content), and its line pitches recommendations Koi turns off
+ * (about-pages.yaml). The other empty states, extensions installed but off,
+ * keep their line. */
+#unified-extensions-empty-state {
+  align-items: center;
+  padding: var(--koi-space-16) 0 var(--koi-space-8);
 
-/* With nothing installed, the text pitches recommendations Koi turns off
- * (about-pages.yaml), so it goes too, and the separator under the empty list,
- * which would double the header's. */
-/* stylelint-disable stylelint-plugin-mozilla/no-has-selector -- the separator
-   sits outside the box that holds the state. */
-#unified-extensions-empty-state > .extensions-onboardingpanel-state ~ *,
-.panel-subview-body:has(> #unified-extensions-empty-state:not([hidden]) > .extensions-onboardingpanel-state) + toolbarseparator {
-  display: none;
+  & > img:is(.extensions-onboardingpanel-state, .extensions-emptypanel-state) {
+    content: url("chrome://mozapps/skin/extensions/extension.svg");
+    width: var(--koi-icon-24);
+    height: var(--koi-icon-24);
+    margin: 0;
+    aspect-ratio: auto;
+    -moz-context-properties: fill;
+    fill: var(--koi-fg-3);
+  }
+
+  & > h2 {
+    margin: var(--koi-space-8) 0 0;
+    padding: 0;
+    color: var(--koi-fg-2);
+    font-size: var(--koi-text-13);
+    font-weight: normal;
+  }
+
+  & > description {
+    margin: 0;
+    padding: var(--koi-space-4) var(--koi-inset) 0;
+    color: var(--koi-fg-3);
+    font-size: var(--koi-text-12);
+    text-align: center;
+  }
+
+  & > .extensions-onboardingpanel-state ~ description {
+    display: none;
+  }
 }
-/* stylelint-enable stylelint-plugin-mozilla/no-has-selector */

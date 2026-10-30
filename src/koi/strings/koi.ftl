@@ -69,6 +69,12 @@ koi-appmenu-help-exit-troubleshoot-mode =
     .label = Turn Troubleshoot Mode Off
     .accesskey = M
 
+## The chrome (browser/browser.ftl)
+
+koi-urlbar-placeholder-with-name =
+    .placeholder = Search or enter address
+koi-private-browsing-indicator-label = Private
+
 ## Site information (browser/browser.ftl)
 
 koi-identity-site-information = { $host }
@@ -164,6 +170,7 @@ koi-downloads-history =
 koi-unified-extensions-manage-extensions =
     .label = Manage Extensions
 koi-unified-extensions-item-message-manage = Manage Extension
+koi-unified-extensions-empty-reason-zero-extensions-onboarding2 = No extensions yet
 koi-origin-controls-state-always-on = Can read and change this site
 koi-origin-controls-state-when-clicked = Asks to read and change this site
 koi-origin-controls-state-no-access = Can’t read or change this site

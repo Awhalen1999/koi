@@ -13,7 +13,7 @@
 
 /* Browser-window global (koi/ is outside eslint.config.mjs's browser-window
  * paths). */
-/* global RTL_UI */
+/* global RTL_UI, gURLBar, delayedStartupPromise */
 
 (() => {
   addEventListener(
@@ -139,6 +139,55 @@
         set("--koi-nav-trail", before - after);
       });
       balance.observe(navBar);
+    },
+    { once: true }
+  );
+
+  // Two manners, once the window is up.
+  addEventListener(
+    "DOMContentLoaded",
+    () => {
+      if (!window.toolbar.visible) {
+        return;
+      }
+      delayedStartupPromise.then(() => {
+        // A load that turns into a download leaves its address in the field
+        // (Firefox shows the address it set out for, and the page on screen
+        // never changes), so the page stands under another address. The
+        // field reverts to the page's as a download starts, unless the user
+        // is typing in it.
+        const { Downloads } = ChromeUtils.importESModule(
+          "resource://gre/modules/Downloads.sys.mjs"
+        );
+        Downloads.getList(Downloads.ALL).then(list =>
+          list.addView({
+            onDownloadAdded() {
+              if (!gURLBar.focused) {
+                gURLBar.handleRevert();
+              }
+            },
+          })
+        );
+
+        // The tab menu loses what needs sync or containers, and the
+        // housekeeping items. Firefox resets some of these on every open, in
+        // its own popupshowing handler, which runs first.
+        const menu = document.getElementById("tabContextMenu");
+        menu.addEventListener("popupshowing", event => {
+          if (event.target != menu) {
+            return;
+          }
+          for (const id of [
+            "context_sendTabToDevice",
+            "context_sendTabToDeviceSeparator",
+            "context_reopenInContainer",
+            "context_unloadTab",
+            "context_selectAllTabs",
+          ]) {
+            document.getElementById(id).hidden = true;
+          }
+        });
+      });
     },
     { once: true }
   );

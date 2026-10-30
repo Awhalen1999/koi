@@ -50,6 +50,7 @@
 
   &:hover {
     background-color: color-mix(in srgb, var(--koi-agent) var(--koi-tint-strong), transparent);
+    transition: none;
   }
 
   &[hidden] {
@@ -312,6 +313,7 @@
 
   &:hover {
     background-color: var(--button-background-color-hover);
+    transition: none;
   }
 
   &:hover:active {

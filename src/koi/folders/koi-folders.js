@@ -216,6 +216,21 @@
         writeIcons(icons);
       }
     });
+    // A closed folder keeps its selected tab on show (Firefox's rule), so
+    // closing one around it looked like nothing happened. Koi moves on to
+    // the nearest tab outside, when there is one.
+    strip.addEventListener("TabGroupCollapse", event => {
+      const group = event.target;
+      const tab = gBrowser.selectedTab;
+      if (tab.group != group) {
+        return;
+      }
+      const outside = gBrowser.visibleTabs.filter(t => t.group != group);
+      if (outside.length) {
+        gBrowser.selectedTab =
+          outside.find(t => t._tPos > tab._tPos) ?? outside.at(-1);
+      }
+    });
     for (const type of ["TabGroupCollapse", "TabGroupExpand"]) {
       strip.addEventListener(type, event => paint(event.target));
     }

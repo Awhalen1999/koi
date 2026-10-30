@@ -69,3 +69,13 @@
 # Off, as in Zen.
 - name: browser.profiles.enabled
   value: false
+
+# The downloads button stays in row one rather than appearing with the first
+# download; a control arriving mid-session is a thing popping up.
+- name: browser.download.autohideButton
+  value: false
+
+# One private-window mark, the tab row's pill (koi-chrome.css): this is the
+# flame button in row one that ends the private session.
+- name: browser.privatebrowsing.resetPBM.enabled
+  value: false

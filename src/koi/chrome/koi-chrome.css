@@ -307,6 +307,7 @@
 
     &:hover {
       color: var(--koi-fg);
+      transition: none;
     }
 
     & .toolbarbutton-icon {
@@ -317,8 +318,9 @@
     }
   }
 
-  /* The first-run "Import bookmarks…" message. */
+  /* The first-run "place your bookmarks here" message, its link included. */
   & #personal-toolbar-empty-description {
+    --link-color: var(--koi-fg-2);
     color: var(--koi-fg-3);
   }
 }
@@ -385,6 +387,16 @@
 
     & > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
       transition: background-color var(--koi-fade);
+    }
+
+    /* Answering the pointer, or opening a panel, is instant; letting go
+     * fades (koi-theme.css, Motion). */
+    &:is(:hover, [open]) {
+      transition: none;
+
+      & > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+        transition: none;
+      }
     }
   }
 }
@@ -534,9 +546,52 @@
 .tabbrowser-tab {
   color: var(--koi-fg-2);
   font-size: var(--koi-text-12);
+  /* A tab's slot grows in on ARRIVE and closes on LEAVE (Firefox: 100ms
+   * both ways), and a long title fades out over 16px rather than Firefox's
+   * 1em. */
+  --tab-width-transition: min-width var(--koi-arrive), max-width var(--koi-arrive);
+  --tab-label-mask-size: var(--koi-space-16);
 
   &[selected] {
     color: var(--koi-fg);
+  }
+
+  /* The fill answers at once and lets go over FADE (tab.tokens.css paints
+   * the fills). */
+  & .tab-background {
+    transition: background-color var(--koi-fade);
+  }
+
+  &:is(:hover, [selected]) .tab-background {
+    transition: none;
+  }
+
+  /* The content fades in as the slot opens and out as it closes, so a
+   * title is never seen squeezed into a half-open tab. Firefox hides the
+   * tab and its pieces outright while it is not [fadein] (tabs.css); shown
+   * again here, the fade covers them (the throbber stays hidden: a spinner
+   * has nothing to fade), and the closing tab takes no clicks, as the
+   * hidden one took none. */
+  & .tab-content {
+    transition: opacity var(--koi-fade);
+  }
+
+  &:not([fadein]) {
+    --tab-width-transition: min-width var(--koi-leave), max-width var(--koi-leave);
+    pointer-events: none;
+
+    & .tab-content {
+      opacity: 0;
+      transition: opacity var(--koi-leave);
+    }
+
+    & .tab-label {
+      display: revert;
+    }
+
+    & :is(.tab-icon-pending, .tab-icon-image, .tab-close-button, .tab-background) {
+      visibility: inherit;
+    }
   }
 
   &[selected] .tab-label {
@@ -599,6 +654,13 @@
   }
 }
 
+/* The tab's own hiding while it is not [fadein], at tabs.css's specificity
+ * (its rule is scoped to the horizontal strip and unpinned tabs): the fade
+ * above needs the tab shown. */
+#tabbrowser-tabs[orient="horizontal"] .tabbrowser-tab:not([pinned]):not([fadein]) {
+  visibility: visible;
+}
+
 /* The tab audio button shares the ×'s 20px box. Its glyph is 10px to the
  * ×'s 12px because Firefox's speaker fills its canvas while the × keeps a
  * margin inside its own, so both draw about 9px. It is a moz-button:
@@ -619,6 +681,7 @@
 
   &:hover::part(button) {
     fill: var(--koi-fg);
+    transition: none;
   }
 }
 

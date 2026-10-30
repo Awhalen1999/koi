@@ -543,9 +543,10 @@
     // that one connection without holding off the next.
 
     const ALERT = "koi-agents-prompt";
-    const alerts = Cc["@mozilla.org/alerts-service;1"].getService(
-      Ci.nsIAlertsService
-    );
+    // The alerts service is made the first time Koi has something to say:
+    // making it registers Koi with Notification Center, which is when macOS
+    // should ask the user about notifications, not at launch.
+    let alerts = null;
     let answer;
     const answerPrompt = allow => {
       answer = allow;
@@ -577,7 +578,7 @@
           const done = new AbortController();
           const finish = () => {
             done.abort();
-            alerts.closeAlert(ALERT);
+            alerts?.closeAlert(ALERT);
             resolve(answer);
           };
           const { signal } = done;
@@ -624,6 +625,9 @@
             "Allow an agent to use Koi?",
             "Click to answer.",
             true
+          );
+          alerts ??= Cc["@mozilla.org/alerts-service;1"].getService(
+            Ci.nsIAlertsService
           );
           alerts.showAlert(alert, (subject, topic) => {
             if (topic == "alertclickcallback") {
