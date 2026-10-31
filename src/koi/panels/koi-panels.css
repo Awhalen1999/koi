@@ -67,25 +67,13 @@ panel[type="arrow"]:not(#feature-callout) {
   }
 }
 
-/* Opening, a panel grows out of its anchor's edge from 96%, as a macOS
- * popover does, where popup.css slides it 70px; on ARRIVE. The window
- * transform's origin is the window's top-left corner (nsCocoaWindow.mm), so
- * the shift recentres the scaled panel under its anchor. No fade, as
- * Firefox: animating the window's opacity loses its shadow on Big Sur and
- * later (bug 1672091). Same specificity as popup.css, so its open state
- * still clears the transform. */
-@media not (prefers-reduced-motion) {
-  panel[type="arrow"] {
-    -moz-window-transform: translateX(2%) scale(0.96);
-
-    &:where([side="bottom"]) {
-      -moz-window-transform: translate(2%, 4%) scale(0.96);
-    }
-
-    &[animate="open"] {
-      transition: -moz-window-transform var(--koi-arrive);
-    }
-  }
+/* A panel appears in place, where popup.css slides it in from 70px off:
+ * it is opened many times an hour. Same specificity as popup.css, later in
+ * the cascade. Nothing waits on the transition it still declares: panel.js
+ * clears [animating] on popupshown, not on transitionend, which is what
+ * reduced motion relies on. */
+panel[type="arrow"] {
+  -moz-window-transform: none;
 }
 
 /* A hovered row lifts: the fill above, and a small shadow. */

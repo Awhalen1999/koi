@@ -2,19 +2,26 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The board and peek (koi-board.js). [mode] switches the layout: board is a
- * grid over the heavy scrim, peek one row over the light one. Scrims only dim
- * (page pixels cannot be blurred, koi-theme.css); cards are the solid. */
+/* The board and peek (koi-board.js). [open] shows it; [mode] switches the
+ * layout, board a grid over the heavy scrim, peek one row over the light
+ * one, and stays through the leave so the fade has its scrim and cards.
+ * Scrims only dim (page pixels cannot be blurred, koi-theme.css); cards are
+ * the solid. */
 
 #koi-board {
   /* A card's width, in the grid's columns and the peek row. */
   --koi-card: 240px;
-  display: none;
+  display: flex;
+  visibility: hidden;
   opacity: 0;
-  /* Leaves as a quick fade; display steps to none as it ends. */
+  /* Leaves as a quick fade, visibility holding it shown until the fade ends
+   * (a visibility transition reads visible all the way). Not display: Gecko
+   * never starts a transition to display none (allow-discrete or not), so
+   * the board vanished before its fade; a hidden board is unfocusable and
+   * takes no clicks, as a display none one was. */
   transition:
     opacity var(--koi-leave),
-    display var(--koi-leave) allow-discrete;
+    visibility var(--koi-leave);
   /* The page card's own geometry, floated over it. */
   position: absolute;
   inset: var(--koi-gutter);
@@ -26,14 +33,10 @@
 
 /* Arrives as a crossfade, the cards settling in from 98%; leaves the same
  * way, shorter. */
-#koi-board[mode] {
-  display: flex;
+#koi-board[open] {
+  visibility: visible;
   opacity: 1;
   transition: opacity var(--koi-arrive);
-
-  @starting-style {
-    opacity: 0;
-  }
 }
 
 .koi-board-grid {
@@ -41,13 +44,9 @@
   transition: transform var(--koi-leave);
 }
 
-#koi-board[mode] .koi-board-grid {
+#koi-board[open] .koi-board-grid {
   transform: none;
   transition: transform var(--koi-arrive);
-
-  @starting-style {
-    transform: scale(0.98);
-  }
 }
 
 #koi-board[mode="board"] {

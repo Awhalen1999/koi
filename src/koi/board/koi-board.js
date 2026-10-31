@@ -241,6 +241,7 @@
         }
         openMode = mode;
         surface.setAttribute("mode", mode);
+        surface.toggleAttribute("open", true);
         (
           grid.querySelector(".koi-card-current") ?? grid.firstElementChild
         )?.focus();
@@ -253,8 +254,9 @@
           return;
         }
         openMode = null;
-        surface.removeAttribute("mode");
-        grid.replaceChildren();
+        // [mode] and the cards stay, so the leave has its scrim and cards
+        // to fade; the next open rebuilds the cards.
+        surface.removeAttribute("open");
         captureQueue.length = 0;
         for (const [type, listener] of tabListeners) {
           gBrowser.tabContainer.removeEventListener(type, listener);

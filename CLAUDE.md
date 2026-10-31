@@ -731,31 +731,34 @@ named.
   charCode, and ⇧⌘ with punctuation varies by layout — use letters) and
   `ShortcutKeyDefinitions.cpp`. ⌘E is macOS-wide "Use Selection for Find".
 - **Motion is felt, not watched** (koi-theme.css, Motion; the passes of
-  2026-10-30). Nothing springs, bounces or slides across the shell, and
-  nothing holds the user up: a change is mostly done before it is noticed
-  and ends where no one is looking. One curve for the shell, quick then
-  soft, in four lengths: FADE (200ms) for a state letting go (a hover fill,
-  the old tab's fill), ARRIVE (260ms) for a surface coming in (the board
-  crossfades with its cards settling from 98%, a tab's slot grows, a panel
-  grows from 96% at its anchor's edge in place of Firefox's 70px slide),
-  LEAVE (160ms) for one going (the board shrinking back as it fades, a tab's
-  slot closing), SETTLE (200ms) for a shape giving way (a folder's tray
-  parting into tiles for a drag). A state answering the pointer or the
+  2026-10-30 and 31). Only the chrome moves, and nothing springs, bounces or
+  slides across it: a change is mostly done before it is noticed and ends
+  where no one is looking. One curve, quick then soft, in four lengths: FADE
+  (150ms) for a state letting go (a hover fill, the old tab's fill), ARRIVE
+  (200ms) for a surface coming in (the board crossfades with its cards
+  settling from 98%, a tab's slot grows, a folder's tabs grow out of its
+  chip), LEAVE (120ms) for one going (the board shrinking back as it fades,
+  a tab's slot closing), SETTLE (150ms) for a shape giving way (a folder's
+  tray parting into tiles for a drag). A state answering the pointer or the
   keyboard is instant, as on macOS: every hover, a button whose panel is
   open and the selected tab's fill turn their transition off, so a fade is
   only ever the letting go. A tab's content fades in as its slot opens and
   out as it closes, so a title is never seen squeezed; that means showing
   what Firefox hides while a tab is not [fadein], at tabs.css's specificity,
-  with pointer events off. A panel cannot fade (a window-opacity animation
-  loses the shadow on Big Sur and later, bug 1672091), and the window
-  transform's origin is the window's corner, so the scale is recentred by a
-  translate. The address dropdown is instant; a status leaving (the agent's
-  ring and tag) takes the slower --koi-fade-out. The board enters and leaves
-  through `@starting-style` and a discrete `display` transition, no JS.
-  Reduced motion zeroes every timing. Weighed and held back as the easiest
-  thing to overdo: the board opening from the page (the current tab's card
-  shrinking from the page card into its tile, as Safari's tab overview
-  does); if it comes, it is a FLIP of the card Koi already draws.
+  with pointer events off. A folder closes at once (Firefox shrinks its tabs
+  over the width transition, which tore the tray into pieces) and opens as
+  its tabs do; the tray's corners never transition, since the rounded end
+  moves to another piece. Panels appear in place, where Firefox slides them
+  70px and a pass of 2026-10-31 grew them from their anchor: opened many
+  times an hour, any motion there is a wait. The address dropdown is instant
+  too; a status leaving (the agent's ring and tag) takes the slower
+  --koi-fade-out. The board shows through [open] and visibility, not display
+  (Gecko never starts a transition to display none, allow-discrete or not),
+  and keeps its [mode] and cards through the leave so the fade has something
+  to fade. Reduced motion zeroes every timing. Weighed and held back as the
+  easiest thing to overdo: the board opening from the page (the current
+  tab's card shrinking from the page card into its tile, as Safari's tab
+  overview does); if it comes, it is a FLIP of the card Koi already draws.
 - **Menus are native; panels are Koi's** (decided 2026-10-12 in the design
   pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
   panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
@@ -805,8 +808,8 @@ named.
   and taken out: too easy to start by accident)
   (the pick lives in `koi.folders.icons`, a JSON pref by group id, since
   Firefox persists only id, name, colour and collapsed); the nine colours
-  are Koi's values of Firefox's names (koi-theme.css); open and close are
-  instant; the words say "folder" (koi.ftl); Save and Close and Share Group are hidden and nothing is saved
+  are Koi's values of Firefox's names (koi-theme.css); a folder closes at
+  once and opens as its tabs do (Motion); the words say "folder" (koi.ftl); Save and Close and Share Group are hidden and nothing is saved
   when a window closes, so Firefox's saved-groups surfaces stay empty; smart
   groups are locked off (chrome-ui.yaml). The closed chip's favicon pile is
   Koi's; the "+N" beside a closed folder's selected tab and the hover list

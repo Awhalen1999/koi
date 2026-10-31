@@ -86,8 +86,7 @@ tab-group,
     calc(-1 * var(--tab-overflow-clip-margin)) 0 var(--koi-folder-tint);
   transition:
     background-color var(--koi-fade),
-    box-shadow var(--koi-settle),
-    border-radius var(--koi-settle);
+    box-shadow var(--koi-settle);
 
   & > .tab-background {
     margin-block: var(--koi-folder-pad);
@@ -113,6 +112,21 @@ tab-group,
   margin-inline-end: var(--koi-folder-pad);
 }
 
+/* Closing a folder is instant. Firefox shrinks its tabs over the width
+ * transition, and the tray tore as they went: the clip margins drop at once
+ * (tabs.css), opening seams between the pieces, and the chip's end rounds
+ * while the tabs are still there. Opening, the slots grow out of the chip
+ * on ARRIVE and the titles fade in on FADE, as a tab opens. The pieces'
+ * corners never transition: on an open or a close the rounded end moves to
+ * another piece, and a corner on its way would show a sharp one. */
+#tabbrowser-tabs[orient="horizontal"] tab-group[collapsed] > .tabbrowser-tab:not([visuallyselected], [multiselected]) {
+  transition: none;
+
+  & .tab-content {
+    opacity: 0;
+  }
+}
+
 /* The chip's slot opens the tray. Firefox spaces it 3px either side for its
  * underline; here the tray's own padding, and the gap to the first pill is
  * that pill's 2px clip margin plus 2. */
@@ -127,7 +141,6 @@ tab-group,
   border-start-start-radius: var(--koi-folder-radius);
   border-end-start-radius: var(--koi-folder-radius);
   justify-content: center;
-  transition: border-radius var(--koi-settle);
 }
 
 /* While anything drags, the tray comes apart into tiles: every piece rounds
@@ -135,7 +148,7 @@ tab-group,
  * lifts the dragged tab out of the row and slides the others with
  * transforms (drag-and-drop.js); a tile moves whole with its tab, where a
  * joined tray would part or overlap at its seams. On the drop the corners
- * square and the hairlines grow back over --koi-settle, so the tiles close
+ * square at once and the hairlines grow back over --koi-settle, so the tiles close
  * up into one tray. */
 #tabbrowser-tabs[orient="horizontal"][movingtab] :is(tab-group > .tabbrowser-tab, .tabbrowser-tab[dragtarget]) > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"][movingtab] tab-group > :is(.tab-group-label-container, .tab-group-overflow-count-container) {
@@ -283,9 +296,7 @@ tab-group,
   margin-block: var(--koi-folder-pad);
   padding: 0 var(--koi-space-8) 0 calc(var(--koi-space-8) - var(--tab-overflow-clip-margin));
   background-color: var(--koi-folder-tint);
-  transition:
-    background-color var(--koi-fade),
-    border-radius var(--koi-settle);
+  transition: background-color var(--koi-fade);
 
   & > .tab-group-overflow-count {
     margin: 0;
