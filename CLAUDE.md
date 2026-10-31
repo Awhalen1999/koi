@@ -721,9 +721,9 @@ named.
   helper named enum.py once shadowed the stdlib.
   A second instance cannot listen while the real Koi has Allow agents on:
   9222 is taken, and it shows "Port 9222 in use".
-- **Peek has no trigger yet.** koi-board.js carries a `peek` mode (one row of
-  cards over the light scrim) that nothing opens; its trigger is hold-a-tab.
-  The board is ⇧⌘E.
+- **The board is a plain grid** (⇧⌘E, koi-board.js): every tab as a card,
+  folders flattened. Decks for folders and a hold-a-tab peek were weighed
+  and declined (2026-10-31); an untriggered peek mode was taken out.
 - **Shortcuts: bind as little as possible**, as a XUL `<key>` in a keyset of
   Koi's own (the WebExtension pattern), never a window key listener.
   Auditing a chord means three places: `browser-sets.inc.xhtml`,
@@ -754,7 +754,7 @@ named.
   too; a status leaving (the agent's ring and tag) takes the slower
   --koi-fade-out. The board shows through [open] and visibility, not display
   (Gecko never starts a transition to display none, allow-discrete or not),
-  and keeps its [mode] and cards through the leave so the fade has something
+  and keeps its cards through the leave so the fade has something
   to fade. Reduced motion zeroes every timing. Weighed and held back as the
   easiest thing to overdo: the board opening from the page (the current
   tab's card shrinking from the page card into its tile, as Safari's tab
@@ -836,7 +836,7 @@ named.
   danger colours and the nine folder colours, with TINT (18%) and
   TINT-STRONG (30%) as a colour's film; GLASS (shell, well, hover, raised:
   films on the wallpaper); one SOLID for everything on or over the page,
-  with its own steps (rule, lift, hover, then the glass well); two scrims and
+  with its own steps (rule, lift, hover, then the glass well); one scrim and
   four shadows. No size, colour or shadow is written anywhere else, except
   where the use site says why (the empty state's letter tiles, about:rights'
   light ink, a page's reading measure). A new surface picks a family; a new
@@ -920,11 +920,8 @@ named.
   Session).
 
 **Not yet done:** Agent Connect's pick-and-copy (phase 3), the field-as-progress-bar
-tint, hold-a-tab to peek,
-re-pointing View › Show All Tabs at the board, a bookmarks surface with
-folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision, a
-board that shows folders (Board · Decks on the canvas; today it flattens
-them). No fox shows by default; the urlbar's "Firefox View" quick action
+tint, re-pointing View › Show All Tabs at the board, a bookmarks surface with
+folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision. No fox shows by default; the urlbar's "Firefox View" quick action
 (typed) still has one, as in Zen. Help ▸ Get Help, Share Ideas and Feedback
 and Switching to a New Device still lead to Mozilla's Firefox pages, as in
 Zen, until Koi has its own. Strings naming Firefox literally ("Firefox

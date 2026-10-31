@@ -2,15 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The board and peek (koi-board.js). [open] shows it; [mode] switches the
- * layout, board a grid over the heavy scrim, peek one row over the light
- * one, and stays through the leave so the fade has its scrim and cards.
- * Scrims only dim (page pixels cannot be blurred, koi-theme.css); cards are
- * the solid. */
+/* The board (koi-board.js): every tab as a card, in a grid over the scrim,
+ * floated over the page card. [open] shows it. The scrim only dims (page
+ * pixels cannot be blurred, koi-theme.css); cards are the solid. */
 
 #koi-board {
-  /* A card's width, in the grid's columns and the peek row. */
-  --koi-card: 240px;
   display: flex;
   visibility: hidden;
   opacity: 0;
@@ -18,7 +14,8 @@
    * (a visibility transition reads visible all the way). Not display: Gecko
    * never starts a transition to display none (allow-discrete or not), so
    * the board vanished before its fade; a hidden board is unfocusable and
-   * takes no clicks, as a display none one was. */
+   * takes no clicks, as a display none one was. The cards stay through the
+   * leave, so the fade has them. */
   transition:
     opacity var(--koi-leave),
     visibility var(--koi-leave);
@@ -27,6 +24,7 @@
   inset: var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   overflow: clip;
+  background: var(--koi-scrim-board);
   /* So light-dark() tokens and the scrollbar match the scrim and tint. */
   color-scheme: dark;
 }
@@ -39,7 +37,16 @@
   transition: opacity var(--koi-arrive);
 }
 
+/* A responsive grid of cards at least 240px wide, scrolling when the window
+ * is short. */
 .koi-board-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--koi-space-16);
+  align-content: start;
+  padding: var(--koi-space-24);
+  overflow-y: auto;
   transform: scale(0.98);
   transition: transform var(--koi-leave);
 }
@@ -47,42 +54,6 @@
 #koi-board[open] .koi-board-grid {
   transform: none;
   transition: transform var(--koi-arrive);
-}
-
-#koi-board[mode="board"] {
-  background: var(--koi-scrim-board);
-}
-
-#koi-board[mode="peek"] {
-  background: var(--koi-scrim-float);
-}
-
-.koi-board-grid {
-  width: 100%;
-}
-
-/* Board: a responsive grid, scrolling when the window is short. */
-#koi-board[mode="board"] .koi-board-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--koi-card), 1fr));
-  gap: var(--koi-space-16);
-  align-content: start;
-  padding: var(--koi-space-24);
-  overflow-y: auto;
-}
-
-/* Peek: one row under the chrome; the page stays visible beneath. */
-#koi-board[mode="peek"] .koi-board-grid {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--koi-space-12);
-  padding: var(--koi-space-12);
-  overflow-x: auto;
-}
-
-#koi-board[mode="peek"] .koi-card {
-  width: var(--koi-card);
-  flex: none;
 }
 
 /* A card: a solid header over the thumbnail. Each state has its own

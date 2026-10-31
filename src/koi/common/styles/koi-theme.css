@@ -203,10 +203,8 @@
   --koi-panel-width: 304px;
   --koi-panel-width-wide: 352px;
 
-  /* Scrims: the board is a full takeover, peek a lighter overlay. Dim only
-   * (see Glass). */
+  /* The scrim under the board, a full takeover. Dim only (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
-  --koi-scrim-float: rgba(8, 10, 14, 0.28);
 
   /* Shadows: LOW for small things at rest, HIGH for anything lifted or large
    * (the page card, the empty-state card, board cards, a hovered pin), TEXT

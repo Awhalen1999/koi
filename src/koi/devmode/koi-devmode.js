@@ -62,8 +62,7 @@
       {
         class: "toolbarbutton-1",
         badged: "true",
-        // The folders' code glyph: Firefox's inspector icon reads as a frame.
-        image: "chrome://browser/content/koi-folders/icons/code.svg",
+        image: "chrome://devtools/skin/images/tool-inspector.svg",
         tooltiptext: `Developer Tools (${ShortcutUtils.prettifyShortcut(toolboxKey)})`,
       },
       () => toolboxKey.doCommand()

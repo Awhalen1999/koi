@@ -6,9 +6,7 @@
  * paths). */
 /* global gBrowser, PageThumbs, ShortcutUtils */
 
-/* The board (⇧⌘E): every tab as a card, in a modal over the page card. Peek
- * is the same cards in one row over a lighter scrim (the mode attribute only
- * changes layout, koi-board.css); its trigger, hold-a-tab, is not built.
+/* The board (⇧⌘E): every tab as a card, in a modal over the page card.
  *
  * Cards are built on open, kept in step with the strip while it shows, and
  * torn down on close; the tab listeners exist only while it shows.
@@ -53,13 +51,10 @@
       surface.append(grid);
       tabbox.append(surface);
 
-      // null when closed, else "peek" | "board".
-      let openMode = null;
+      let open = false;
 
       // Thumbnails --------------------------------------------------------
-      // Sized for the largest card the CSS draws (board cards stay sharp,
-      // peek cards downscale), as Firefox's hover preview is
-      // (tab-hover-preview.mjs).
+      // Sized as Firefox's hover preview is (tab-hover-preview.mjs).
       const THUMB_W = 320;
       const THUMB_H = 200;
 
@@ -228,19 +223,16 @@
         ["TabAttrModified", onTabAttrModified],
       ];
 
-      const openSurface = mode => {
-        if (openMode === mode) {
+      const toggleSurface = () => {
+        if (open) {
           closeSurface();
           return;
         }
-        if (!openMode) {
-          grid.replaceChildren(...boardTabs().map(cardFor));
-          for (const [type, listener] of tabListeners) {
-            gBrowser.tabContainer.addEventListener(type, listener);
-          }
+        grid.replaceChildren(...boardTabs().map(cardFor));
+        for (const [type, listener] of tabListeners) {
+          gBrowser.tabContainer.addEventListener(type, listener);
         }
-        openMode = mode;
-        surface.setAttribute("mode", mode);
+        open = true;
         surface.toggleAttribute("open", true);
         (
           grid.querySelector(".koi-card-current") ?? grid.firstElementChild
@@ -250,12 +242,12 @@
       // Focus returns to the page on close, unless the user moved it
       // elsewhere (the focusout handler).
       const closeSurface = ({ restoreFocus = true } = {}) => {
-        if (!openMode) {
+        if (!open) {
           return;
         }
-        openMode = null;
-        // [mode] and the cards stay, so the leave has its scrim and cards
-        // to fade; the next open rebuilds the cards.
+        open = false;
+        // The cards stay, so the leave has them to fade; the next open
+        // rebuilds them.
         surface.removeAttribute("open");
         captureQueue.length = 0;
         for (const [type, listener] of tabListeners) {
@@ -279,7 +271,7 @@
       // no relatedTarget.
       surface.addEventListener("focusout", event => {
         if (
-          openMode &&
+          open &&
           event.relatedTarget &&
           !surface.contains(event.relatedTarget)
         ) {
@@ -347,7 +339,7 @@
       key.id = "key_koiBoard";
       key.setAttribute("key", "E");
       key.setAttribute("modifiers", "accel,shift");
-      key.addEventListener("command", () => openSurface("board"));
+      key.addEventListener("command", toggleSurface);
       const keyset = document.createXULElement("keyset");
       keyset.append(key);
       document.documentElement.append(keyset);
@@ -366,7 +358,7 @@
         "tooltiptext",
         `Board (${ShortcutUtils.prettifyShortcut(key)})`
       );
-      boardButton.addEventListener("command", () => openSurface("board"));
+      boardButton.addEventListener("command", toggleSurface);
       gBrowser.tabContainer.before(boardButton);
     },
     { once: true }
