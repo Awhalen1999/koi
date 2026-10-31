@@ -15,11 +15,12 @@
  *     (Show Folder and Disconnect, or Try Again), the Allow agents switch,
  *     sharing this tab, then Claude Code added in one click (its own `claude
  *     mcp add`) and Copy for any other agent.
- *   - Koi's prompt before each connection (gKoiAgents.ask, called by the
+ *   - Koi's prompt before a connection (gKoiAgents.ask, called by the
  *     module), a permission alert under the agent's tile joined to Koi's
- *     icon: Allow or Don't Allow, for every new connection. It stays up
- *     until answered; with Koi in the background, a macOS notification says
- *     it is waiting.
+ *     icon: Allow or Don't Allow. An Allow holds until Koi quits, the agent
+ *     is disconnected or Allow agents goes off (KoiAgents.sys.mjs). It
+ *     stays up until answered or UNANSWERED_MS; with Koi in the background,
+ *     a macOS notification says it is waiting.
  *   - "Agent" at the end of the address field on the agent's tabs while one
  *     is connected; it opens the steps.
  *   - The steps (kept by KoiAgentSteps.sys.mjs): its last six, or all, each
@@ -93,7 +94,7 @@
             <html:button class="koi-agents-retry koi-agents-primary">Try Again</html:button>
           </html:div>
           <html:moz-toggle class="koi-agents-switch" label="Allow agents" inputlayout="inline-end"/>
-          <html:span class="koi-agents-caption">Koi asks before each agent connects, and stays ready until you turn this off.</html:span>
+          <html:span class="koi-agents-caption">Koi asks the first time an agent connects, and stays ready until you turn this off.</html:span>
           <html:div class="koi-agents-row koi-agents-this-tab">
             <html:span class="koi-agents-who">This tab</html:span>
             <html:button class="koi-agents-share"/>
@@ -328,7 +329,6 @@
       if (event.target != tabMenu) {
         return;
       }
-      TabContextMenu._ensureMenuArranged(tabMenu);
       if (!KoiAgents.enabled || PrivateBrowsingUtils.isWindowPrivate(window)) {
         return;
       }
@@ -539,10 +539,15 @@
     // noautohide keeps it up through clicks elsewhere and app switches
     // (without it, a switch to Koi closes it, which reads as Don't Allow), so
     // it ends with an answer: Allow, or Don't Allow and Escape. Otherwise only
-    // the window closing or access turning off (render) ends it, which refuses
-    // that one connection without holding off the next.
+    // the window closing, access turning off (render) or UNANSWERED_MS ends
+    // it, which refuses that one connection without holding off the next.
 
     const ALERT = "koi-agents-prompt";
+    // The connector gives up on a session not accepted within 45 s, and an
+    // Allow after that made a session it never used, which kept the agent
+    // out until Disconnect. Ended unanswered just before, the agent's next
+    // call asks again.
+    const UNANSWERED_MS = 40 * 1000;
     // The alerts service is made the first time Koi has something to say:
     // making it registers Koi with Notification Center, which is when macOS
     // should ask the user about notifications, not at launch.
@@ -578,12 +583,16 @@
           const done = new AbortController();
           const finish = () => {
             done.abort();
+            clearTimeout(expire);
+            prompt.hidePopup();
             alerts?.closeAlert(ALERT);
             resolve(answer);
           };
           const { signal } = done;
           prompt.addEventListener("popuphidden", finish, { signal });
           addEventListener("unload", finish, { signal });
+          // Ends here even if the popup was refused and never opened.
+          const expire = setTimeout(finish, UNANSWERED_MS);
         });
         // The prompt hangs off the button, which shows while Allow agents is
         // on but not in fullscreen: page fullscreen ends, as for Firefox's
@@ -593,6 +602,17 @@
         }
         if (window.fullScreen) {
           FullScreen.showNavToolbox();
+        }
+        // A minimized window refuses popups (nsXULPopupManager.cpp), and with
+        // every window minimized the frontmost is one of them. Restoring is
+        // asynchronous on macOS, so the panel waits for it.
+        if (window.windowState == window.STATE_MINIMIZED) {
+          const restored = new Promise(resolve => {
+            addEventListener("sizemodechange", resolve, { once: true });
+            setTimeout(resolve, 1000);
+          });
+          window.restore();
+          await restored;
         }
         // A panel opened while another of Koi's windows is active (a popup,
         // a dialog) rolls up at once, unseen, which reads as Don't Allow. So
@@ -722,7 +742,7 @@
       button.hidden = !KoiDevMode.enabled && !enabled;
       const onAgentTab = KoiAgentTabs.is(gBrowser.selectedTab);
       label.hidden = !connected || !onAgentTab;
-      toggle.pressed = enabled;
+      toggle.toggleAttribute("pressed", enabled);
       const group = KoiAgentTabs.group(window);
       showButton.hidden = !group;
       group?.toggleAttribute("koi-live", connected);
@@ -736,7 +756,13 @@
       }
       panel.setAttribute("state", state);
       title.textContent = HEADS[state][0];
-      note.textContent = connected ? working() : HEADS[state][1];
+      if (connected) {
+        note.textContent = working();
+      } else if (state == "ready" && KoiAgents.allowed) {
+        note.textContent = "Allowed until you quit Koi.";
+      } else {
+        note.textContent = HEADS[state][1];
+      }
     };
 
     const observer = { observe: render };

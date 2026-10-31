@@ -53,17 +53,17 @@ const ICONS = {
 // WebDriver's codes for the keys an agent presses on their own; modifiers
 // and printable characters are not named.
 const KEYS = {
-  "": "Backspace",
-  "": "Tab",
-  "": "Return",
-  "": "Enter",
-  "": "Escape",
-  "": "Space",
-  "": "Left",
-  "": "Up",
-  "": "Right",
-  "": "Down",
-  "": "Delete",
+  "\uE003": "Backspace",
+  "\uE004": "Tab",
+  "\uE006": "Return",
+  "\uE007": "Enter",
+  "\uE00C": "Escape",
+  "\uE00D": "Space",
+  "\uE012": "Left",
+  "\uE013": "Up",
+  "\uE014": "Right",
+  "\uE015": "Down",
+  "\uE017": "Delete",
 };
 
 let steps = [];
@@ -123,7 +123,7 @@ function readActions(actions = []) {
     }
     if (source.type == "key") {
       const values = list.filter(a => a.type == "keyDown").map(a => a.value);
-      const typed = values.some(v => !(v in KEYS) && v >= " " && v < "");
+      const typed = values.some(v => !(v in KEYS) && v >= " " && v < "\uE000");
       if (typed) {
         return { kind: "Type", point: {} };
       }

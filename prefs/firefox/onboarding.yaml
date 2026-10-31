@@ -15,10 +15,6 @@
 - name: browser.startup.homepage_override.mstone
   value: "ignore"
 
-# Suppresses the first-run rights notification.
-- name: browser.rights.3.shown
-  value: true
-
 # ASRouter's add-on and feature recommendations. ASRouter starts every launch
 # (BrowserGlue) whatever the new tab page does, so these are off at their own
 # prefs, as in Zen.

@@ -24,12 +24,16 @@
  *     is how a new session takes "the current tab"; it takes an agent tab
  *     instead, opening one if the window has none.
  *   - Selecting a tab (TabManager.selectTab) and raising a window
- *     (browser.Context.focusWindow) do nothing: the agent works in the
- *     background. geckodriver asks for focus on every switch (marionette.rs
- *     sends no focus flag), which would flip the strip through every tab on
- *     each listing.
- *   - New tabs (browser.Context.openTab, TabManager.addTab) open in the
- *     background, in the folder.
+ *     (browser.Context.focusWindow, BiDi's browsingContext.activate) do
+ *     nothing: the agent works in the background. geckodriver asks for focus
+ *     on every switch (marionette.rs sends no focus flag), which would flip
+ *     the strip through every tab on each listing.
+ *   - New tabs (browser.Context.openTab, TabManager.addTab, BiDi's
+ *     browsingContext.create) open in the background, in the folder, never
+ *     in a private window. BiDi waits for the selected tab to hide when it
+ *     opens a tab in front or brings one forward, which with selection a
+ *     no-op would wait forever, so create always asks for the background
+ *     and activate is answered at once.
  * A workspace, not a lock: a tab's handle still reaches it. Install also
  * registers KoiAgentPage, the agent tabs' page helper (instant scrolling,
  * and the element an action touches).
@@ -40,6 +44,7 @@
 import { BrowserWindowTracker } from "resource:///modules/BrowserWindowTracker.sys.mjs";
 import { PrivateBrowsingUtils } from "resource://gre/modules/PrivateBrowsingUtils.sys.mjs";
 import { TabManager } from "chrome://remote/content/shared/TabManager.sys.mjs";
+import { WebDriverSession } from "chrome://remote/content/shared/webdriver/Session.sys.mjs";
 import { windowManager } from "chrome://remote/content/shared/WindowManager.sys.mjs";
 import { browser } from "chrome://remote/content/marionette/browser.sys.mjs";
 
@@ -69,8 +74,13 @@ export const KoiAgentTabs = {
    * @param {boolean} [on]
    */
   share(tab, on = true) {
-    const { gBrowser } = tab.documentGlobal;
-    const group = this.group(tab.documentGlobal);
+    const win = tab.documentGlobal;
+    // Never in a private window: the agent sees every window's folder.
+    if (on && PrivateBrowsingUtils.isWindowPrivate(win)) {
+      return;
+    }
+    const { gBrowser } = win;
+    const group = this.group(win);
     if (on) {
       // A pinned tab cannot be grouped (Tabbrowser.sys.mjs).
       if (tab.pinned) {
@@ -82,6 +92,8 @@ export const KoiAgentTabs = {
         gBrowser
           .addTabGroup([tab], { label: "Agent", color: "blue" })
           .setAttribute(ATTR, "");
+        // Firefox announced the folder before it was the agent's.
+        Services.obs.notifyObservers(null, "koi-agents");
       }
     } else if (this.is(tab)) {
       gBrowser.ungroupTab(tab);
@@ -152,7 +164,13 @@ export const KoiAgentTabs = {
     Object.defineProperty(TabManager, "allTabs", { get: () => this.all });
 
     const { addTab } = TabManager;
-    TabManager.addTab = async function (options) {
+    TabManager.addTab = async function (options = {}) {
+      const win = options.referenceTab
+        ? TabManager.getWindowForTab(options.referenceTab)
+        : (options.window ?? Services.wm.getMostRecentBrowserWindow());
+      if (PrivateBrowsingUtils.isWindowPrivate(win)) {
+        return KoiAgentTabs.open(win);
+      }
       const tab = await addTab.call(this, options);
       if (!KoiAgentTabs.is(tab)) {
         KoiAgentTabs.share(tab);
@@ -160,6 +178,17 @@ export const KoiAgentTabs = {
       return tab;
     };
     TabManager.selectTab = async () => {};
+
+    const { execute } = WebDriverSession.prototype;
+    WebDriverSession.prototype.execute = function (module, command, params) {
+      if (module == "browsingContext" && command == "activate") {
+        return Promise.resolve();
+      }
+      if (module == "browsingContext" && command == "create") {
+        params = { ...params, background: true };
+      }
+      return execute.call(this, module, command, params);
+    };
 
     const { prototype } = browser.Context;
     const { switchToTab } = prototype;

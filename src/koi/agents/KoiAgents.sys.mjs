@@ -21,14 +21,17 @@
  *     #listen), so 9222 is checked first and Marionette is given port 0.
  *   - Asking: Firefox asks before any session it was not launched for
  *     (ConnectionPrompt.sys.mjs), in a modal window; its show() is replaced
- *     by Koi's prompt, asked for every new connection. Firefox allows one
- *     session and refuses a second before asking (WebDriverBiDi.sys.mjs
+ *     by Koi's prompt. Once allowed, connections are let in without asking
+ *     until Koi quits, the user disconnects or Allow agents goes off: the
+ *     connector drops its session after 30 idle minutes and takes a new one
+ *     on its next call, which would otherwise ask mid-task. Firefox allows
+ *     one session and refuses a second before asking (WebDriverBiDi.sys.mjs
  *     createSession), so agents take turns. After Don't Allow, Koi refuses
  *     without asking for DENY_MS: an agent may retry at once. A prompt that
  *     ends unanswered (its window closed) refuses only that connection.
  *   - Connected is any session on the servers. It ends when the agent quits,
- *     when the connector drops it after 30 idle minutes (it reconnects, and
- *     is asked again, on its next call), or on Disconnect.
+ *     when the connector drops it after 30 idle minutes (it reconnects on its
+ *     next call), or on Disconnect.
  *   - Steps: what the agent does, in words, and the moment it acts
  *     (KoiAgentSteps.sys.mjs).
  *   - Tabs: the agent works in a folder of its own, in the background, and
@@ -53,16 +56,28 @@ const MARIONETTE_PORT_PREF = "marionette.port";
 const REMOTE_AGENT_PORT = 9222;
 const DENY_MS = 60 * 1000;
 
-// What an agent runs to reach Koi. The developer preset adds the console and
-// network tools to the connector's default set.
+// What an agent runs to reach Koi. The connector is pinned to the release
+// Koi was tested with, since a new one can rename or drop tools; bump it
+// after testing. Its tool modules are its developer preset (the default set
+// plus console and network) without the profiler, debugger, screencasts,
+// extensions and downloads: coding agents rarely call them, and a client
+// that loads every tool definition up front pays for each on every turn.
 const SERVER = [
   "npx",
   "-y",
-  "@mozilla/firefox-devtools-mcp",
+  "@mozilla/firefox-devtools-mcp@0.10.7",
   "--connect-existing",
   "--lookup-marionette-port",
-  "--tool-preset",
-  "developer",
+  "--tools",
+  "pages",
+  "snapshot",
+  "input",
+  "screenshot",
+  "script",
+  "utilities",
+  "management",
+  "console",
+  "network",
 ];
 
 // Claude Code's own installer, then Homebrew's prefixes. A shell's PATH is not
@@ -100,6 +115,7 @@ if (!LAUNCHED_FOR_AUTOMATION) {
 }
 
 let connectedAt = 0;
+let allowed = false;
 let deniedAt = -Infinity;
 let problem = null;
 let queue = Promise.resolve();
@@ -114,6 +130,9 @@ RemoteControlServers.addListener(() => {
 
 const firefoxShow = ConnectionPrompt.show;
 ConnectionPrompt.show = async function () {
+  if (allowed) {
+    return ConnectionPromptResult.ALLOW;
+  }
   if (Date.now() - deniedAt < DENY_MS) {
     return ConnectionPromptResult.DENY;
   }
@@ -123,11 +142,12 @@ ConnectionPrompt.show = async function () {
   if (!win?.gKoiAgents) {
     return firefoxShow.call(this);
   }
-  const allowed = await win.gKoiAgents.ask();
-  if (allowed) {
+  const answer = await win.gKoiAgents.ask();
+  if (answer) {
+    allowed = true;
     return ConnectionPromptResult.ALLOW;
   }
-  if (allowed === false) {
+  if (answer === false) {
     deniedAt = Date.now();
   }
   return ConnectionPromptResult.DENY;
@@ -218,6 +238,11 @@ export const KoiAgents = {
     return this.listening && RemoteControlServers.hasActiveSession;
   },
 
+  /** True once an agent was allowed, until Koi quits or it is disconnected. */
+  get allowed() {
+    return allowed;
+  },
+
   /** When the agent connected (ms since epoch), or 0. */
   get connectedAt() {
     return connectedAt;
@@ -233,6 +258,7 @@ export const KoiAgents = {
 
   /** @param {boolean} on Turns Allow agents on or off. */
   setEnabled(on) {
+    allowed &&= on;
     Services.prefs.setBoolPref(ENABLED_PREF, on);
     return sync();
   },
@@ -250,6 +276,7 @@ export const KoiAgents = {
 
   /** Ends the agent's session. The servers keep waiting for the next. */
   disconnect() {
+    allowed = false;
     RemoteAgent.webDriverBiDi?.deleteSession();
   },
 
@@ -264,10 +291,14 @@ export const KoiAgents = {
     return null;
   },
 
-  /** @returns {Promise<boolean>} Whether Claude Code already knows Koi. */
+  /**
+   * @returns {Promise<boolean>} Whether Claude Code runs this Koi's command:
+   *   an entry from an older Koi counts as missing, so Add replaces it.
+   */
   async claudeHasKoi() {
     try {
-      return !!(await IOUtils.readJSON(CLAUDE_CONFIG)).mcpServers?.koi;
+      const koi = (await IOUtils.readJSON(CLAUDE_CONFIG)).mcpServers?.koi;
+      return !!koi && [koi.command, ...koi.args].join(" ") == this.setup;
     } catch {
       return false;
     }
@@ -283,13 +314,19 @@ export const KoiAgents = {
       "resource://gre/modules/Subprocess.sys.mjs"
     );
     // An npm-installed claude runs under node, which the app's PATH lacks.
-    const proc = await Subprocess.call({
-      command,
-      arguments: ["mcp", "add", "--scope", "user", "koi", "--", ...SERVER],
-      environment: { PATH: `${CLAUDE_PATHS.join(":")}:/usr/bin:/bin` },
-      environmentAppend: true,
-    });
-    const { exitCode } = await proc.wait();
-    return exitCode === 0;
+    const claude = async args => {
+      const proc = await Subprocess.call({
+        command,
+        arguments: ["mcp", ...args],
+        environment: { PATH: `${CLAUDE_PATHS.join(":")}:/usr/bin:/bin` },
+        environmentAppend: true,
+      });
+      return (await proc.wait()).exitCode;
+    };
+    // `mcp add` refuses a name it has, so an older Koi's entry goes first.
+    await claude(["remove", "--scope", "user", "koi"]);
+    return (
+      (await claude(["add", "--scope", "user", "koi", "--", ...SERVER])) === 0
+    );
   },
 };

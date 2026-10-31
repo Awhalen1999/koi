@@ -246,8 +246,7 @@
           return;
         }
         open = false;
-        // The cards stay, so the leave has them to fade; the next open
-        // rebuilds them.
+        // The cards stay until the leave has faded them (below).
         surface.removeAttribute("open");
         captureQueue.length = 0;
         for (const [type, listener] of tabListeners) {
@@ -257,6 +256,19 @@
           gBrowser.selectedBrowser?.focus();
         }
       };
+
+      // The leave has faded the cards: they go, with their thumbnails. With
+      // reduced motion there is no transition, and the next open replaces
+      // them.
+      surface.addEventListener("transitionend", event => {
+        if (
+          !open &&
+          event.target == surface &&
+          event.propertyName == "visibility"
+        ) {
+          grid.replaceChildren();
+        }
+      });
 
       // A click on the scrim (not on a card) dismisses.
       surface.addEventListener("click", event => {

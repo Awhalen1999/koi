@@ -61,11 +61,11 @@
 /* The agent's folder (KoiAgentTabs.sys.mjs): a folder (koi-folders.css) in
  * the agent's blue, its chip the glyph on its tile, as on the toolbar and
  * the prompt, with the live dot while an agent is connected ([koi-live],
- * koi-agents.js). Firefox sets --tab-group-color inline, so the tint is
- * redeclared here; the selectors outrank koi-folders.css's, which loads
- * later. */
+ * koi-agents.js). Firefox sets --tab-group-color inline (tabgroup.mjs), so
+ * the agent's colour takes it with !important, and the tray, chip and drag
+ * states follow koi-folders.css as any folder's do. */
 #tabbrowser-tabs[orient="horizontal"] tab-group[koi-agent] {
-  --koi-folder-tint: color-mix(in srgb, var(--koi-agent) var(--koi-tint), transparent);
+  --tab-group-color: var(--koi-agent) !important;
 
   & .tab-group-label {
     color: var(--koi-fg);

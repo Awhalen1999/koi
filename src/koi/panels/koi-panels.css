@@ -7,8 +7,8 @@
  * Menupopups stay native menus (popup.css). Every arrow panel (app menu,
  * extensions, downloads, site information, bookmark editor, doorhangers,
  * Koi's own) is drawn by Firefox: the solid, the hairline, 16px corners, no
- * arrow, the window server's shadow (popup.css). Native popovers are off
- * (chrome-ui.yaml) because macOS would own their shape and motion. Rows and
+ * arrow, the window server's shadow (popup.css). Native popovers are off,
+ * as upstream: macOS would own their shape and motion. Rows and
  * buttons take the kit through the tokens Firefox paints them from
  * (panelUI-shared.css, moz-button.css, .footer-button in global-shared.css),
  * so Firefox's panels follow without touching their structure. A panel id

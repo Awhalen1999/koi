@@ -15,6 +15,10 @@
  *     Delete Folder, what it closes. The words themselves, "folder" for
  *     Firefox's "group" in the editor and the tab menu, are koi.ftl's
  *     (koi-strings.js).
+ *   - A folder made by dropping a tab on a tab is left unnamed, with no
+ *     editor: Firefox opens its editor on every folder the user makes
+ *     (Tabbrowser.sys.mjs on_TabGroupCreateByUser), so a drop's
+ *     announcement is stopped on the way.
  *   - Firefox's Save and Close and Share Group stay hidden: a folder lives
  *     in the strip or not at all, and "share" is the agent's word. Groups
  *     are not saved when a window closes either (saveOnWindowClose), so
@@ -208,6 +212,17 @@
       paint(group);
     };
     strip.addEventListener("TabGroupCreate", event => adopt(event.target));
+    // Firefox listens on the window, so this capturing listener runs first.
+    addEventListener(
+      "TabGroupCreateByUser",
+      event => {
+        const { DRAG_AND_DROP } = gBrowser.TabMetrics.METRIC_SOURCE;
+        if (event.detail.metricsContext.telemetrySource == DRAG_AND_DROP) {
+          event.stopImmediatePropagation();
+        }
+      },
+      true
+    );
     // A folder on its way to another window keeps its icon.
     strip.addEventListener("TabGroupRemoved", event => {
       const icons = readIcons();

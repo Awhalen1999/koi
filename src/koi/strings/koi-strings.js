@@ -6,11 +6,8 @@
  * Firefox's strings stay as they are; an element Koi rewords is pointed at
  * Koi's message instead, named koi-<Firefox's id> with the same arguments,
  * so Fluent writes Koi's words however often Firefox sets the id back (the
- * tab menu and the folder editor do on every open). Redefining Firefox's
- * ids was tried and dropped: a message defined twice in one bundle is an
- * error in the console, and the order resources join a bundle is a hash
- * set's; a second copy of a Firefox file in a source of higher priority
- * left every other message in that file unresolved.
+ * tab menu and the folder editor do on every open). Why not redefine
+ * Firefox's ids instead: CLAUDE.md, Koi's words in Firefox's panels.
  *
  * koi.ftl reaches Fluent through a file source of Koi's own in the
  * registry, one per process, and as a resource of this window's document.

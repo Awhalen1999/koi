@@ -124,7 +124,7 @@
   color: var(--koi-fg);
   /* This row is the titlebar, so it drags the window. Firefox's drag region,
    * .browser-titlebar, is on the tab row unless tabs are hidden
-   * (tabbrowser.js). Buttons and inputs opt out themselves (xul.css). */
+   * (tab-bar-visibility.js). Buttons and inputs opt out themselves (xul.css). */
   -moz-window-dragging: drag;
 
   /* 12px each side of the lights (osx/browser.css gives none after them);
@@ -477,7 +477,7 @@
   }
 
   /* Rows arrive whole: no slide-in of each row's action label
-   * (view-nova.css) on a list that repaints every keystroke. */
+   * (view-proton.css) on a list that repaints every keystroke. */
   & .urlbarView-action[slide-in] {
     animation: none;
   }
@@ -612,7 +612,7 @@
   }
 
   /* Firefox gives about:newtab and about:home tabs the branding raster
-   * (tabbrowser.js FAVICON_DEFAULTS); Koi shows the empty state's mark. Gecko
+   * (Tabbrowser.sys.mjs FAVICON_DEFAULTS); Koi shows the empty state's mark. Gecko
    * cannot `content:`-replace an image, so the raster's content box is
    * squeezed to nothing and the mark is the background. */
   & .tab-icon-image[src="chrome://branding/content/icon32.png"] {
@@ -747,8 +747,7 @@
   }
 }
 
-/* The right cluster: extensions, downloads (shown once something downloads),
- * menu. No dividers; the 12px spacing groups them. */
+/* The right cluster: extensions, downloads, menu. No dividers; the 12px spacing groups them. */
 
 #downloads-button {
   order: 1;

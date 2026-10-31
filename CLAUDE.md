@@ -70,9 +70,10 @@ way (below). If it conflicts on a Firefox update, delete both files.
   the common `jar.inc.mn` and loaded with
   `ChromeUtils.importESModule("chrome://browser/content/koi-common/….mjs")`,
   as Zen does: no moz.build, no patch. Until then every script is an IIFE.
-  The trigger is a third copy: `el()` and the XHTML constant are duplicated
-  in koi-newtab.js and koi-board.js, and two copies cost less than the
-  indirection.
+  `el()` and the XHTML constant are in koi-newtab.js and koi-board.js, with
+  a variant that also sets text in koi-agents.js: three six-line copies
+  still cost less than the indirection. The trigger is a helper worth
+  sharing that is more than a few lines.
 - **`src/koi/about/` is the content-page dir**, with rules no chrome dir has:
   its own `default-src chrome:` CSP, chrome:// assets (koi-theme.css
   included) reachable only because `content browser` is
@@ -563,7 +564,7 @@ the sandbox pref (Workflow).
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 35 rows, all
+After `npm run import`, `git -C engine status --short` shows 34 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -574,7 +575,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `toolkit/themes/shared/global-shared.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 18 patches |
+| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 17 patches |
 | ` T ` × 9 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -649,19 +650,25 @@ named.
   is on. Allow agents is a setting (`koi.agents.enabled`), never switched off
   for the user: while on, Firefox's remote-control servers wait for agents
   from launch, and an agent that disconnects, idles out (the connector drops
-  its session after 30 minutes) or is disconnected leaves them waiting. Koi's
-  prompt replaces Firefox's modal one before each connection. It is
+  its session after 30 minutes) or is disconnected leaves them waiting.
+  Koi's prompt replaces Firefox's modal one. Once allowed, connections are
+  let in without asking until Koi quits, the user disconnects or Allow
+  agents goes off (2026-10-31): the connector's idle drop would otherwise
+  ask again mid-task. It is
   `noautohide`, so clicks elsewhere and app switches cannot close it (a
   switch to Koi used to, which read as a refusal); only Don't Allow (or
   Escape) holds off prompts for a minute, and a prompt ended any other way
-  refuses just that connection. With Koi in the background, the Dock icon
+  (40 seconds unanswered, just inside the connector's 45-second wait) refuses
+  just that connection. With Koi in the background, the Dock icon
   bounces and a macOS notification, the only one Koi sends, brings Koi
   forward to the prompt. Firefox refuses a second agent before asking, so
   agents take turns. An "Agent" label sits at the end of the
   address field while one is connected. Firefox's banners and red
   address-bar stripes are off. The panel adds Koi to Claude Code (`claude mcp add`, user scope)
-  or copies the command for any other agent; the connector needs
-  `--tool-preset developer` for its console and network tools, and
+  or copies the command for any other agent; the connector is
+  pinned to a tested release (KoiAgents.sys.mjs, SERVER; bump after testing)
+  and given its console and network tools without the developer preset's
+  rarely used ones, and
   Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's 0.1.0
   (it disables version-gated tools). **The agent works in a folder of its
   own** (KoiAgentTabs.sys.mjs), as Claude in Chrome does: a tab group marked
@@ -768,9 +775,7 @@ named.
   kept for focus, selection and switches. Firefox's panels take it through
   the tokens they paint from, so their structure is untouched. Native
   popovers (`widget.macos.native-popovers`) are off, as upstream: macOS
-  owned their shape and motion. Zen's fix for that pref (D299584, in the
-  nsCocoaWindow patches and global-shared-css.patch) is inert now; drop it
-  with the next C++ change. Everything else over the page is the solid too:
+  owned their shape and motion. Everything else over the page is the solid too:
   the address dropdown's results and "…" menu, the findbar, the status
   label, the board's cards and the bookmark menus. UI text never joins
   fragments with "·"; it says a phrase ("Working in 1 tab for 4 min").

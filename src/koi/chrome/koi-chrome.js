@@ -155,19 +155,26 @@
         // (Firefox shows the address it set out for, and the page on screen
         // never changes), so the page stands under another address. The
         // field reverts to the page's as a download starts, unless the user
-        // is typing in it.
+        // is typing in it. addView replays the downloads already listed,
+        // which are not starting; the view goes with the window.
         const { Downloads } = ChromeUtils.importESModule(
           "resource://gre/modules/Downloads.sys.mjs"
         );
-        Downloads.getList(Downloads.ALL).then(list =>
-          list.addView({
-            onDownloadAdded() {
-              if (!gURLBar.focused) {
-                gURLBar.handleRevert();
-              }
-            },
-          })
-        );
+        let listening = false;
+        const view = {
+          onDownloadAdded() {
+            if (listening && !gURLBar.focused) {
+              gURLBar.handleRevert();
+            }
+          },
+        };
+        Downloads.getList(Downloads.ALL).then(list => {
+          list.addView(view);
+          listening = true;
+          addEventListener("unload", () => list.removeView(view), {
+            once: true,
+          });
+        });
 
         // The tab menu loses what needs sync or containers, and the
         // housekeeping items. Firefox resets some of these on every open, in

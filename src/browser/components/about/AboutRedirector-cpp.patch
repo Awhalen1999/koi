@@ -1,5 +1,5 @@
 diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
-index ef00297de7f44f6c2942a5595264addc4559d96e..a7983ad93c8879fb793513a19a39eca1a1fa6ed4 100644
+index ef00297de7f44f6c2942a5595264addc4559d96e..696553054da7fed45cb125139e395fa32802a565 100644
 --- a/browser/components/about/AboutRedirector.cpp
 +++ b/browser/components/about/AboutRedirector.cpp
 @@ -108,7 +108,7 @@ static const RedirEntry kRedirMap[] = {
@@ -11,15 +11,12 @@ index ef00297de7f44f6c2942a5595264addc4559d96e..a7983ad93c8879fb793513a19a39eca1
       nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
           nsIAboutModule::URI_MUST_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
           nsIAboutModule::URI_CAN_LOAD_IN_PRIVILEGEDABOUT_PROCESS},
-@@ -130,9 +130,8 @@ static const RedirEntry kRedirMap[] = {
+@@ -130,7 +130,7 @@ static const RedirEntry kRedirMap[] = {
           nsIAboutModule::HIDE_FROM_ABOUTABOUT},
      {"restartrequired", "chrome://browser/content/aboutRestartRequired.xhtml",
       nsIAboutModule::ALLOW_SCRIPT | nsIAboutModule::HIDE_FROM_ABOUTABOUT},
 -    {"rights", "https://www.mozilla.org/about/legal/terms/firefox/",
--     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
--         nsIAboutModule::URI_MUST_LOAD_IN_CHILD},
 +    {"rights", "chrome://browser/content/koi-about/koi-rights.html",
-+     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT},
-     {"robots", "chrome://browser/content/aboutRobots.xhtml",
       nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
-          nsIAboutModule::ALLOW_SCRIPT},
+          nsIAboutModule::URI_MUST_LOAD_IN_CHILD},
+     {"robots", "chrome://browser/content/aboutRobots.xhtml",
