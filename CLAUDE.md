@@ -799,32 +799,32 @@ named.
   build (named tab sets, hidden with `hideTab`) was finished and taken out;
   it is in git history up to `b6165a0`.
 - **Folders are Firefox's tab groups** (src/koi/folders/; koi-folders.css's
-  header has the DOM and the drawing, koi-folders.js's what Koi adds). A
-  tinted tray around a chip and its tabs, painted piece by piece because
-  `tab-group` is `display: contents`; Firefox's underline, chip fill and
-  hover halo are zeroed at their tokens. Decided (2026-10-10, the Koi Tab Row
-  canvas): drag-to-merge makes an unnamed folder with no panel; right-click
-  opens Firefox's editor with Koi's icon row (a double-click rename was built
-  and taken out: too easy to start by accident)
-  (the pick lives in `koi.folders.icons`, a JSON pref by group id, since
-  Firefox persists only id, name, colour and collapsed); the nine colours
-  are Koi's values of Firefox's names (koi-theme.css); a folder closes at
-  once and opens as its tabs do (Motion); the words say "folder" (koi.ftl); Save and Close and Share Group are hidden and nothing is saved
+  header has the DOM and the drawing, its "While a drag is on" section the
+  drag states, koi-folders.js's header what Koi adds). A tinted tray around
+  a chip and its tabs, painted piece by piece because `tab-group` is
+  `display: contents` (a real box was weighed and rejected: Firefox lifts
+  the dragged tab out of the row and slides the rest with transforms, so a
+  box would end a tab short without JS following the drag); while anything
+  drags the pieces round into tiles that slide whole with their tabs.
+  Firefox's own feedback (the underline, the chip's fill, the hover halo,
+  the drag rings and fills) is zeroed at its tokens or outranked by
+  selector; nothing is ringed while a drag is on, the tint says it, and a
+  drop target shows the tray the drop would make or join. Decided
+  (2026-10-10, the Koi Tab Row canvas): drag-to-merge makes an unnamed
+  folder with no panel; right-click opens Firefox's editor with Koi's icon
+  row (a double-click rename was built and taken out: too easy to start by
+  accident; the pick lives in `koi.folders.icons`, a JSON pref by group id,
+  since Firefox persists only id, name, colour and collapsed); the nine
+  colours are Koi's values of Firefox's names (koi-theme.css); a folder
+  closes at once and opens as its tabs do (Motion); the words say "folder"
+  (koi.ftl); Save and Close and Share Group are hidden and nothing is saved
   when a window closes, so Firefox's saved-groups surfaces stay empty; smart
   groups are locked off (chrome-ui.yaml). The closed chip's favicon pile is
   Koi's; the "+N" beside a closed folder's selected tab and the hover list
-  are Firefox's. The tray is painted in per-tab pieces
-  because `tab-group` has no box (`display: contents`); while anything drags
-  the pieces round into tiles that slide whole with their tabs, and only the
-  dragged tab is outlined, in the colour of the folder the drop would join.
-  A real box for the folder was weighed and rejected: Firefox lifts the
-  dragged tab out of the row and slides the rest with transforms, so a box
-  would end a tab short or let tabs slide out of it without JS following
-  the drag. Firefox's own drag feedback is its underline, which Koi zeroes,
-  and a solid fill on a merge target, softened. The board lists every tab,
-  folders flattened. Firefox's tab menu lays itself out from a list of its items
-  and refuses one it does not know (MenuSectionLayout), so a Koi item is
-  added on popupshowing and removed on popuphidden.
+  are Firefox's. The board lists every tab, folders flattened. Firefox's
+  tab menu lays itself out from a list of its items and refuses one it does
+  not know (MenuSectionLayout), so a Koi item is added on popupshowing and
+  removed on popuphidden.
 - **One design system** (koi-theme.css), loaded by the chrome and the
   about: pages, and every Koi sheet is written in it: space (multiples of 4,
   plus INSET, the 10px text sits in from a pill's edge, and 6, a small

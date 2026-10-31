@@ -47,34 +47,28 @@
 
   /* The tray: 2px around the pills, so its corners stay concentric with
    * theirs (8 + 2), filled with the folder's colour as a TINT over the SHELL
-   * film, so it still reads on a wallpaper of its own colour. */
+   * film, so it still reads on a wallpaper of its own colour; a drop target
+   * turns the strength up to TINT-STRONG. */
   --koi-folder-pad: 2px;
   --koi-folder-radius: calc(var(--koi-radius-pill) + var(--koi-folder-pad));
+  --koi-folder-tint-strength: var(--koi-tint);
   /* A folder's name in the chip, before it ellipsises. */
   --koi-folder-name: 120px;
 }
 
-/* Declared on the group, not :root: a custom property is computed where it
- * is declared, and --tab-group-color exists only from tab-group down. The
- * tab being dragged, and a tab it is held over to make a folder, take the
- * colour of the folder the drop would join, which drag-and-drop.js sets on
- * the strip. Firefox toggles [movingtab-addToGroup] on every dragover once
- * no folder is targeted, so [movingtab-ungroup] is what says "none". */
+/* The tint, computed where --tab-group-color is (a custom property is
+ * computed where it is declared): on the group, which tabgroup.mjs colours
+ * inline, on the chip's slot, so a drop target can turn its own strength
+ * up, and on the two tabs a drag colours (While a drag is on, below). */
 tab-group,
+tab-group > .tab-group-label-container,
 #tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
-  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-tint), var(--koi-glass-shell));
+  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-folder-tint-strength), var(--koi-glass-shell));
 }
 
-/* That tab is the one outlined while a drag is on, in the folder's colour. */
-#tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
-  --tab-group-color: var(--dragover-tab-group-color);
-  --tab-border-color: var(--tab-group-color);
-  --tab-border-color-hover: var(--tab-group-color);
-  --tab-border-color-selected: var(--tab-group-color);
-}
-
-/* The tabs' pieces: the stack carries the tint and, in a shadow on each side,
- * reaches the tab's edge; the pill keeps its 28px inside the 32px tray. */
+/* The tabs' pieces, a folder's and the two a drag colours: the stack carries
+ * the tint and, in a shadow on each side, reaches the tab's edge; the pill
+ * keeps its 28px inside the 32px tray. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tabbrowser-tab > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"]:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup])
   .tabbrowser-tab:is([dragtarget], [dragover-groupTarget])
@@ -141,32 +135,80 @@ tab-group,
   border-start-start-radius: var(--koi-folder-radius);
   border-end-start-radius: var(--koi-folder-radius);
   justify-content: center;
+  transition: background-color var(--koi-fade);
 }
 
-/* While anything drags, the tray comes apart into tiles: every piece rounds
- * its corners and drops the hairlines joining it to its neighbours. Firefox
- * lifts the dragged tab out of the row and slides the others with
- * transforms (drag-and-drop.js); a tile moves whole with its tab, where a
- * joined tray would part or overlap at its seams. On the drop the corners
- * square at once and the hairlines grow back over --koi-settle, so the tiles close
- * up into one tray. */
-#tabbrowser-tabs[orient="horizontal"][movingtab] :is(tab-group > .tabbrowser-tab, .tabbrowser-tab[dragtarget]) > .tab-stack,
-#tabbrowser-tabs[orient="horizontal"][movingtab] tab-group > :is(.tab-group-label-container, .tab-group-overflow-count-container) {
+/* While a drag is on. Firefox's states, set on the strip by drag-and-drop.js:
+ * [movingtab] throughout; [movingtab-ungroup] while the held tab is over
+ * nothing or a plain tab (it toggles [movingtab-addToGroup] on every
+ * dragover there, so ungroup is what says "none"); [movingtab-addToGroup]
+ * over an open folder's tabs; [movingtab-group] once a plain tab or a
+ * closed folder's chip has been under it past the delay, that target
+ * [dragover-groupTarget]. The colour the drop would give is
+ * --dragover-tab-group-color on the strip. Firefox's own feedback is rings
+ * (a pale one on the target, 2px on the held tab, which the drag selects, a
+ * 3px halo on a chip) and a solid fill; here nothing is ringed, the tint
+ * says it. */
+
+/* The held tab, and a target, take the colour. */
+#tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
+  --tab-group-color: var(--dragover-tab-group-color);
+}
+
+/* The tray comes apart into tiles: every piece rounds its corners and drops
+ * the hairlines joining it to its neighbours. Firefox lifts the held tab
+ * out of the row and slides the others with transforms; a tile moves whole
+ * with its tab, where a joined tray would part or overlap at its seams. On
+ * the drop the corners square at once and the hairlines grow back over
+ * SETTLE, so the tiles close up into one tray. The second selector is the
+ * pieces rule's, so the held tab's and a target's tiles outrank their
+ * pieces. */
+#tabbrowser-tabs[orient="horizontal"][movingtab]
+  :is(tab-group > .tabbrowser-tab > .tab-stack, tab-group > .tab-group-label-container, tab-group > .tab-group-overflow-count-container),
+#tabbrowser-tabs[orient="horizontal"]:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup])
+  .tabbrowser-tab:is([dragtarget], [dragover-groupTarget])
+  > .tab-stack {
   border-radius: var(--koi-folder-radius);
   box-shadow: none;
 }
 
-/* Dragged out of its folder, a plain tab again. */
-#tabbrowser-tabs[orient="horizontal"][movingtab-ungroup] .tabbrowser-tab[dragtarget] > .tab-stack {
+/* The held tab is its pill alone: carried, over a plain tab, and in the
+ * preview. Over an open folder's tabs it keeps the tile, in that folder's
+ * colour, there being no one target to mark. */
+#tabbrowser-tabs[orient="horizontal"][movingtab]:is([movingtab-ungroup], [movingtab-group]) .tabbrowser-tab[dragtarget] > .tab-stack {
   background-color: transparent;
 }
 
-/* Firefox fills a merge target's pill solid in the folder's colour, which
- * drowns the label on Koi's pastels; the tile and outline say it, and the
- * pill only brightens. */
-#tabbrowser-tabs[orient="horizontal"][movingtab-group] .tabbrowser-tab[dragover-groupTarget] > .tab-stack > .tab-background {
-  background-color: var(--koi-glass-hover);
+#tabbrowser-tabs[orient="horizontal"][movingtab-group] .tab-background {
+  outline-color: transparent;
 }
+
+/* The target, a plain tab or a closed folder's chip, shows the tray the drop
+ * would make or join: its piece a shade stronger, its pill gone and its
+ * content stepped back so the held tab's title reads over it. */
+/* stylelint-disable stylelint-plugin-mozilla/no-has-selector -- Firefox
+   marks the chip's label; the piece is its slot. */
+#tabbrowser-tabs[orient="horizontal"][movingtab-group]:not([movingtab-ungroup])
+  :is(
+    .tabbrowser-tab[dragover-groupTarget],
+    tab-group > .tab-group-label-container:has(> .tab-group-label-hover-highlight > .tab-group-label[dragover-groupTarget])
+  ) {
+  --koi-folder-tint-strength: var(--koi-tint-strong);
+
+  & :is(.tab-background, .tab-group-label-hover-highlight) {
+    background-color: transparent;
+  }
+
+  & :is(.tab-content, .tab-group-label-hover-highlight) {
+    opacity: 0.4;
+  }
+
+  /* Firefox's halo. */
+  & .tab-group-label {
+    box-shadow: none;
+  }
+}
+/* stylelint-enable stylelint-plugin-mozilla/no-has-selector */
 
 /* The chip: a pill in the tab's metrics. Firefox's hover halo (a spread
  * shadow past the label) goes; the film is the tab's hover token, held
@@ -181,7 +223,9 @@ tab-group,
   border-radius: var(--koi-radius-pill);
   background-color: transparent;
   box-shadow: none;
-  transition: background-color var(--koi-fade);
+  transition:
+    background-color var(--koi-fade),
+    opacity var(--koi-fade);
 
   & > * {
     grid-area: 1 / 1;
