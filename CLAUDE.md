@@ -162,12 +162,10 @@ rules in koi-chrome.css and koi-panels.css carry one.
 - When a rule seems not to work, do not reason about why: build it with an
   unmissable value (24px padding, red background, 3px outline) and look.
   Serving a file over `chrome://` proves it is registered, not applied.
-- Spacing or sizing off? Set `koi.debug.outline` in about:config (live):
-  koi-outline.css outlines the rows, every control's drawn shape and the
-  page card, and tints the rows, so a dark seam is an unowned gap. To go
-  deeper, paint every box in the stack a different translucent colour in one
-  throwaway build: a colour outgrowing its children is that element inflating
-  the row.
+- Spacing or sizing off? Paint every box in the stack a different
+  translucent colour in one throwaway build: a colour outgrowing its
+  children is that element inflating the row, and a dark seam is a gap no
+  box owns.
 - Change one variable per measurement, and do not read small differences off
   scaled screenshots.
 - **Drags need real mouse input.** WebDriver pointer actions never start a
@@ -954,8 +952,7 @@ multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
 `.python-version` pin. Before a release: a Google Safe Browsing API key
 (without one, phishing and malware protection is silently off), the
-macOS updater's signing team id, removing the debug outlines
-(koi-outline.css's header lists the pieces), and checking the Claude Code
+macOS updater's signing team id, and checking the Claude Code
 icon in the agents panel (agents/claude-code.png, Claude's app icon) against
 Anthropic's brand guidelines.
 
