@@ -160,9 +160,10 @@ tab-group > .tab-group-label-container,
  * out of the row and slides the others with transforms; a tile moves whole
  * with its tab, where a joined tray would part or overlap at its seams. On
  * the drop the corners square at once and the hairlines grow back over
- * SETTLE, so the tiles close up into one tray. The second selector is the
- * pieces rule's, so the held tab's and a target's tiles outrank their
- * pieces. */
+ * SETTLE, so the tiles close up into one tray. A tile keeps its pill 2px
+ * in from its sides, as the hairlines did, or a selected tab's fill meets
+ * its edge. The second selector is the pieces rule's, so the held tab's and
+ * a target's tiles outrank their pieces. */
 #tabbrowser-tabs[orient="horizontal"][movingtab]
   :is(tab-group > .tabbrowser-tab > .tab-stack, tab-group > .tab-group-label-container, tab-group > .tab-group-overflow-count-container),
 #tabbrowser-tabs[orient="horizontal"]:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup])
@@ -170,13 +171,21 @@ tab-group > .tab-group-label-container,
   > .tab-stack {
   border-radius: var(--koi-folder-radius);
   box-shadow: none;
+
+  & > .tab-background {
+    margin-inline: var(--koi-folder-pad);
+  }
 }
 
-/* The held tab is its pill alone: carried, over a plain tab, and in the
- * preview. Over an open folder's tabs it keeps the tile, in that folder's
- * colour, there being no one target to mark. */
+/* The held tab is its pill alone, at full width: carried, over a plain tab,
+ * and in the preview. Over an open folder's tabs it keeps the tile, in that
+ * folder's colour, there being no one target to mark. */
 #tabbrowser-tabs[orient="horizontal"][movingtab]:is([movingtab-ungroup], [movingtab-group]) .tabbrowser-tab[dragtarget] > .tab-stack {
   background-color: transparent;
+
+  & > .tab-background {
+    margin-inline: 0;
+  }
 }
 
 #tabbrowser-tabs[orient="horizontal"][movingtab-group] .tab-background {
