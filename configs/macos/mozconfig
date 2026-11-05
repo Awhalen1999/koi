@@ -33,4 +33,10 @@ if test "$KOI_RELEASE"; then
 
   mk_add_options MOZILLA_OFFICIAL=1
   export MOZILLA_OFFICIAL=1
+
+  # Safe Browsing (phishing and malware warnings) needs Koi's own Google key;
+  # without it the protection is silently off. Kept out of the repo, as Zen does.
+  if test -f "$HOME/.koi-keys/safebrowsing.dat"; then
+    ac_add_options --with-google-safebrowsing-api-keyfile="$HOME/.koi-keys/safebrowsing.dat"
+  fi
 fi

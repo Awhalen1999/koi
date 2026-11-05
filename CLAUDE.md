@@ -950,9 +950,10 @@ Labs") go into koi.ftl as they are found.
 **Deferred outright** (Zen has it, Koi does not need it yet): crowdin and
 multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
-`.python-version` pin. Before a release: a Google Safe Browsing API key
-(without one, phishing and malware protection is silently off), the
-macOS updater's signing team id, and checking the Claude Code
+`.python-version` pin. Release builds read the Google Safe Browsing key
+from `~/.koi-keys/safebrowsing.dat` (configs/macos/mozconfig), never the
+repo; without it phishing and malware protection is silently off. Before a
+release: the macOS updater's signing team id, and checking the Claude Code
 icon in the agents panel (agents/claude-code.png, Claude's app icon) against
 Anthropic's brand guidelines.
 
