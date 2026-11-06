@@ -22,3 +22,12 @@
 # Koi's builds.
 - name: xpinstall.signatures.required
   value: false
+
+# Google's v5 API refuses Koi's key two lists (goog-badbinurl-proto and
+# goog-downloadwhite-proto, the download checks; not in its public docs,
+# though Firefox's and Zen's keys get them), and one refused list fails the
+# whole request, which left phishing and malware protection empty. Without
+# them here, v4 (google4) fetches those two, which it does serve Koi's key.
+# If Google retires v4, or grants Koi's key the two lists, drop this pref.
+- name: browser.safebrowsing.provider.google5.lists
+  value: "goog-phish-proto,googpub-phish-proto,goog-malware-proto,goog-unwanted-proto,goog-harmful-proto,goog-globalcache-proto"

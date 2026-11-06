@@ -13,11 +13,14 @@ ac_add_options --disable-tests
 #
 # Release-only, gated by $KOI_RELEASE so local builds stay fast.
 if test "$KOI_RELEASE"; then
+  # Its own objdir, so a release build leaves the dev build alone. Not obj-*:
+  # surfer warns when it finds two.
+  mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir-release
+
   ac_add_options --enable-release
   ac_add_options --enable-optimize
   ac_add_options --enable-hardening
   ac_add_options --enable-rust-simd
-  ac_add_options --enable-wasm-simd
   ac_add_options --disable-debug
   ac_add_options --disable-debug-symbols
   ac_add_options --disable-debug-js-modules

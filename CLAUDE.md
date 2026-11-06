@@ -234,6 +234,18 @@ rules in koi-chrome.css and koi-panels.css carry one.
   `marionette.port` in the profile's user.js). Its display hands a recorder
   only the frames that changed, a few a second during motion, so motion is
   judged from clips on this Mac; the VM's job is stills and computed styles.
+- **`npm run release` makes the DMG people download** (scripts/release.sh,
+  whose header names what it needs): a `KOI_RELEASE` build in its own
+  objdir, `engine/objdir-release` (~10 minutes; the dev build is left
+  alone), signed, notarized and stapled at `dist/koi.dmg`. Test it in the VM
+  as a stranger would: mark the DMG as a download (`xattr -w
+  com.apple.quarantine "0083;<hex time>;Safari;<uuid>"`), drag Koi to
+  Applications in its window, and expect only macOS's "downloaded from the
+  Internet" prompt. Then Google's test page,
+  `testsafebrowsing.appspot.com/s/phishing.html`, must say "Deceptive site
+  ahead" (the lists arrive about a minute after first launch;
+  `about:url-classifier` shows each provider's last update). A new profile
+  runs as `*.default-release`, not `*.default`: a test user.js goes there.
 - `npm start` pipes through `scripts/koi-log.mjs`: red/yellow = chrome JS
   errors/warnings, magenta = Koi's own files, gray = page JS and macOS noise.
 
@@ -296,6 +308,9 @@ and adding a `buildOptions` key, both harmless). Clear
    on the M5 Pro).
 3. Look at everything: the chrome, the empty state, the board, Settings, a
    private window. The dry run below cannot see rendering.
+4. `npm run release` once and install it in the VM: the release options
+   (157 dropped `--enable-wasm-simd`) and Safe Browsing (misc.yaml) only
+   show there.
 
 To know the damage before downloading: fetch each patched file from
 `https://hg.mozilla.org/releases/mozilla-release/raw-file/FIREFOX_<v>_RELEASE/<path>`
@@ -952,7 +967,7 @@ multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
 `.python-version` pin. Release builds read the Google Safe Browsing key
 from `~/.koi-keys/safebrowsing.dat` (configs/macos/mozconfig), never the
-repo; without it phishing and malware protection is silently off. Before a
+repo; scripts/release.sh refuses to run without it. Before a
 release: the macOS updater's signing team id, and checking the Claude Code
 icon in the agents panel (agents/claude-code.png, Claude's app icon) against
 Anthropic's brand guidelines.
