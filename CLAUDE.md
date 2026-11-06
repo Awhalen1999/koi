@@ -237,7 +237,12 @@ rules in koi-chrome.css and koi-panels.css carry one.
 - **`npm run release` makes the DMG people download** (scripts/release.sh,
   whose header names what it needs): a `KOI_RELEASE` build in its own
   objdir, `engine/objdir-release` (~10 minutes; the dev build is left
-  alone), signed, notarized and stapled at `dist/koi.dmg`. Test it in the VM
+  alone), signed, notarized and stapled at `dist/koi.dmg`, and the update
+  file installed copies take, `dist/koi.mar`, signed with the update key
+  (Replacing a Mozilla asset outright) and checked against it, and
+  `dist/update.xml`, which goes into the `koi-updates` repo once the
+  release is published: Cloudflare serves it at `update.koi.surf`, where
+  installed copies look. Test it in the VM
   as a stranger would: mark the DMG as a download (`xattr -w
   com.apple.quarantine "0083;<hex time>;Safari;<uuid>"`), drag Koi to
   Applications in its window, and expect only macOS's "downloaded from the
@@ -511,7 +516,7 @@ then `npm run import`.
 Some Firefox brand glyphs live in Mozilla's theme dirs, out of branding's
 reach. Surfer's `copyManual` handles them: any non-`.patch` file under
 `src/<mozilla path>` replaces Mozilla's file with a symlink to Koi's and is
-listed in `engine/.gitignore`. Zero patches. Koi replaces nine:
+listed in `engine/.gitignore`. Zero patches. Koi replaces eleven:
 
 - `src/browser/themes/shared/sidebar/firefox.svg` — the monochrome "this
   browser" glyph (About Koi nav item, Settings headers). Bare mark,
@@ -531,6 +536,15 @@ listed in `engine/.gitignore`. Zero patches. Koi replaces nine:
   card's text height), which rules out the tile: the bare mark at 40% on a
   transparent square, centred, `context-fill` (40%, not 50%, because a
   one-line card crops the top ~30%). Seen on the default-browser card only.
+- `src/toolkit/mozapps/update/updater/release_{primary,secondary}.der` —
+  the public half of Koi's update signing key, in both of the release
+  channel's slots, as Zen does: the updater applies only updates signed
+  with it. The private half is `~/.koi-keys/mar/private_key.pem`, the only
+  file a release needs (scripts/release.sh wraps it in a throwaway
+  certificate for signmar), never the repo, backed up in Alex's password
+  manager; losing it means no installed Koi can update again. A build embeds it in the generated
+  `primaryCert.h`/`secondaryCert.h`, which `mach build <dir>` does not
+  regenerate; a full incremental build does.
 
 A replaced file is tracked, so it shows as ` T ` (typechange) in
 `git -C engine status` — expected. It is a silent override: if Mozilla
@@ -577,7 +591,7 @@ the sandbox pref (Workflow).
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 34 rows, all
+After `npm run import`, `git -C engine status --short` shows 36 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -589,7 +603,7 @@ attributable. Check the list, not the number:
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
 | `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 17 patches |
-| ` T ` × 9 | the replaced assets above |
+| ` T ` × 11 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
 ---
