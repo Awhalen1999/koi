@@ -4,7 +4,7 @@
 
 # Firefox's AI features, on by default in 157: the chatbot (context menu,
 # selection shortcuts, sidebar), link previews, the local ML engine and
-# Settings' AI controls. Zen's prefs/firefox/ai.yaml, taken whole.
+# Settings' AI controls.
 
 - name: browser.ml.chat.enabled
   value: false

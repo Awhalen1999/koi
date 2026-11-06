@@ -13,9 +13,8 @@
   /* Leaves as a quick fade, visibility holding it shown until the fade ends
    * (a visibility transition reads visible all the way). Not display: Gecko
    * never starts a transition to display none (allow-discrete or not), so
-   * the board vanished before its fade; a hidden board is unfocusable and
-   * takes no clicks, as a display none one was. The cards stay through the
-   * leave, so the fade has them. */
+   * the board would vanish before its fade. Hidden, it is unfocusable and
+   * takes no clicks. The cards stay through the leave, so the fade has them. */
   transition:
     opacity var(--koi-leave),
     visibility var(--koi-leave);
@@ -37,8 +36,6 @@
   transition: opacity var(--koi-arrive);
 }
 
-/* A responsive grid of cards at least 240px wide, scrolling when the window
- * is short. */
 .koi-board-grid {
   width: 100%;
   display: grid;
@@ -163,7 +160,6 @@
   background-image: url("chrome://global/skin/icons/close.svg");
 }
 
-/* Hidden unless the tab plays or is muted; muted swaps the glyph. */
 .koi-card-audio {
   display: none;
   /* 4px to the ×, trimmed from the header's 8px gap; a hidden badge leaves

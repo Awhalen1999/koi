@@ -107,7 +107,7 @@
   // width is measured here rather than by a ResizeObserver: the strip's
   // arrowscrollbox decides it is overflowing in a ResizeObserver of its own
   // and applies the answer a frame later, dropping a second size change in
-  // between, which left the strip overflowing with no "+" and no scrolling.
+  // between, which leaves the strip overflowing with no "+" and no scrolling.
   const paint = group => {
     const pile = pileOf(group);
     pile.textContent = "";
@@ -232,8 +232,8 @@
       }
     });
     // A closed folder keeps its selected tab on show (Firefox's rule), so
-    // closing one around it looked like nothing happened. Koi moves on to
-    // the nearest tab outside, when there is one.
+    // closing one around it would seem to do nothing. Select the nearest
+    // tab outside instead, when there is one.
     strip.addEventListener("TabGroupCollapse", event => {
       const group = event.target;
       const tab = gBrowser.selectedTab;

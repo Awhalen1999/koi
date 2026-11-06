@@ -8,7 +8,7 @@
  * the tree, prettier refuses symlinks), so src/koi/ is copied to
  * engine/koi-lint/, linted there and removed. The copy's name has no dot:
  * Firefox's .prettierignore ignores `*.*` and re-includes file types, so a
- * dotted directory was silently skipped. mach's eslint and stylelint run
+ * dotted directory is silently skipped. mach's eslint and stylelint run
  * prettier themselves.
  *
  * Usage: npm run lint            check

@@ -346,7 +346,7 @@
       // the site shortcut overrides. ⇧⌘E is free in Firefox and macOS, and a
       // letter on purpose: on macOS Firefox maps ⌘{ and ⌘} to tab switching
       // by charCode (ShortcutUtils.getSystemActionForEvent), and ⇧⌘ with
-      // punctuation varies by keyboard layout (⇧⌘\ was taken as previous-tab).
+      // punctuation varies by keyboard layout (⇧⌘\ can read as previous-tab).
       const key = document.createXULElement("key");
       key.id = "key_koiBoard";
       key.setAttribute("key", "E");

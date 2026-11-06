@@ -69,7 +69,7 @@ panel[type="arrow"]:not(#feature-callout) {
 
 /* A panel appears in place, where popup.css slides it in from 70px off:
  * it is opened many times an hour. Same specificity as popup.css, later in
- * the cascade. Nothing waits on the transition it still declares: panel.js
+ * the cascade. Nothing waits on the transition popup.css declares: panel.js
  * clears [animating] on popupshown, not on transitionend, which is what
  * reduced motion relies on. */
 panel[type="arrow"] {
@@ -124,8 +124,7 @@ panel[type="arrow"] .panel-header {
 /* Bookmark menus (toolbar folders, the » overflow, the Bookmarks button)
  * need drag and drop, so Firefox draws them itself ([nonnative],
  * browserPlacesViews.js) in its panel grey (panelUI-shared.css). They take
- * the solid, as every panel does. Zen gives them the native menu appearance
- * instead (macOS 26's clear glass). Same selectors as Firefox's, so this
+ * the solid, as every panel does. Same selectors as Firefox's, so this
  * later sheet wins. */
 .toolbar-menupopup {
   &,
@@ -195,7 +194,7 @@ panel[type="arrow"] .panel-header {
 }
 
 /* The app menu's zoom buttons fill their discs through context-stroke
- * (panelUI-shared.css), which drops the fill's alpha, so LIFT came out
+ * (panelUI-shared.css), which drops the fill's alpha, so LIFT comes out
  * white. The same film, mixed opaque. */
 #appMenu-zoom-controls > :is(#appMenu-zoomReduce-button2, #appMenu-zoomEnlarge-button2) {
   & > .toolbarbutton-icon {
@@ -209,8 +208,8 @@ panel[type="arrow"] .panel-header {
 
 /* Firefox branding in the account area: the app menu's gradient "zap"
  * separator (panelUI-shared.css) becomes a plain rule, and the account
- * panel's sign-in promo loses its fox (kit-signed-out.svg), as in Zen, and
- * its violet card for the SHELL film. */
+ * panel's sign-in promo loses its fox (kit-signed-out.svg) and its violet
+ * card for the SHELL film. */
 toolbarseparator.proton-zap {
   --panel-separator-zap-gradient: none;
 }

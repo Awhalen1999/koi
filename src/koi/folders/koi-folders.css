@@ -107,7 +107,7 @@ tab-group > .tab-group-label-container,
 }
 
 /* Closing a folder is instant. Firefox shrinks its tabs over the width
- * transition, and the tray tore as they went: the clip margins drop at once
+ * transition, which would tear the tray: the clip margins drop at once
  * (tabs.css), opening seams between the pieces, and the chip's end rounds
  * while the tabs are still there. Opening, the slots grow out of the chip
  * on ARRIVE and the titles fade in on FADE, as a tab opens. The pieces'

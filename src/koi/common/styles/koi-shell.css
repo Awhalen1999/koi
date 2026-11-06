@@ -77,8 +77,8 @@ body {
  * new tab and cold tab switch. It replaces Firefox's --tabpanel-background-color
  * (#f9f9fb, or a purple gradient in private windows). It inherits the chrome's
  * color-scheme, so it keys off the content scheme to match the page, as
- * Firefox does. Opaque, unlike Zen's: Zen also patches out that opacity rule,
- * Koi keeps it, so transparency would show the desktop through loading tabs. */
+ * Firefox does. Opaque because Koi keeps that opacity rule: a transparent
+ * ground would show the desktop through loading tabs. */
 #tabbrowser-tabpanels .browserSidebarContainer .browserContainer {
   background: var(--koi-solid-light);
 

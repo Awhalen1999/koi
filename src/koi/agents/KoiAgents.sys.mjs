@@ -30,8 +30,7 @@
  *     without asking for DENY_MS: an agent may retry at once. A prompt that
  *     ends unanswered (its window closed) refuses only that connection.
  *   - Connected is any session on the servers. It ends when the agent quits,
- *     when the connector drops it after 30 idle minutes (it reconnects on its
- *     next call), or on Disconnect.
+ *     the connector drops it (30 idle minutes) or the user disconnects.
  *   - Steps: what the agent does, in words, and the moment it acts
  *     (KoiAgentSteps.sys.mjs).
  *   - Tabs: the agent works in a folder of its own, in the background, and

@@ -34,7 +34,7 @@
   /* Sizes ------------------------------------------------------------------
    * One ladder of heights. PILL is the control: tabs, the address field,
    * toolbar buttons, chips, panel buttons; 28 is tuned by eye (24 is too
-   * short, Firefox's 36 too tall; Helium uses 28). PILL-SMALL is a button
+   * short, Firefox's 36 too tall). PILL-SMALL is a button
    * inside a row and the bookmarks row's pills. BOX is a glyph's own box:
    * a tab's ×, the audio badge, a keycap, a label. ROW is a panel row, 48
    * with a second line. TILEs carry an icon on a fill: 32 in a row, 40 in a
@@ -122,9 +122,8 @@
    * one. */
   --koi-private: rgb(122, 92, 255);
 
-  /* An agent at work (src/koi/agents/): macOS's blue, the colour agent
-   * browsers use for it. The ink is its tint, readable on the dark address
-   * field. Its status dot: macOS's green for a live connection, yellow
+  /* An agent at work (src/koi/agents/): macOS's blue. The ink is its tint,
+   * readable on the dark address field. Its status dot: macOS's green for a live connection, yellow
    * while waiting for one. */
   --koi-agent: #0a84ff;
   --koi-agent-ink: #6cb6ff;
@@ -180,8 +179,8 @@
    * over the page (panels, the address dropdown, findbar, status label,
    * bookmark menus, board cards). Opaque because nothing behind it can be
    * blurred and page text ghosts through anything less: a panel takes it at
-   * 98%, which only softens it over a bright page (95% let the text read
-   * through). The depth of Zen's solids (#1c1c1c); edged by --koi-hair, so a
+   * 98%, which only softens it over a bright page (95% lets the text read
+   * through). macOS's dark secondary background, edged by --koi-hair so a
    * surface over a dark page still reads. Light pages get --koi-solid-light.
    *
    * On the solid, films step from LIFT: a hovered row and a control at rest

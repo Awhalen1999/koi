@@ -2,11 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The two-row chrome. Row one acts on the window:
- * traffic lights, the centred address pill, tools. Row two acts on the page:
- * back, forward, reload, the board button, tabs, +. Firefox already ships
- * both rows (tabs above nav), so the layout is a flex `order` swap with no
- * DOM moves.
+/* The two-row chrome. Row one acts on the window: traffic lights, the
+ * centred address pill, tools. Row two acts on the page: back, forward,
+ * reload, the board button, tabs, +. Firefox ships both rows (tabs above
+ * nav), so the layout is a flex `order` swap with no DOM moves.
  *
  * Style through Firefox's variables (--tab-*, --urlbar-*, --toolbarbutton-*),
  * not its DOM structure, which changes between releases. The tab and urlbar
@@ -47,14 +46,14 @@
   --tab-inline-padding: var(--koi-inset);
   --tab-icon-end-margin: var(--koi-space-8);
   /* The × and the audio button share one box (tabs.css): 20px leaves 4px of
-   * air in the 28px pill, and the ×'s 4px padding leaves a 12px glyph. Since
-   * 157 Firefox reads these two; --tab-close-button-padding only feeds them
-   * at :root, so setting it on the button does nothing. */
+   * air in the 28px pill, and the ×'s 4px padding leaves a 12px glyph.
+   * Since 157 Firefox reads these two; --tab-close-button-padding only feeds
+   * them at :root, so setting it on the button does nothing. */
   --tab-content-button-size: var(--koi-box);
   --tab-content-button-padding: calc((var(--koi-box) - var(--koi-icon-12)) / 2);
   /* Firefox draws a separator before the strip when a toolbarbutton precedes
    * it (tabs.css ::before), as back/forward/reload do. Every drawing reads
-   * this variable; element-scoped rules could not reach the strip's DOM. */
+   * this variable; element-scoped rules cannot reach the strip's DOM. */
   --tabstrip-inner-border: none;
 
   /* The system accent (koi-theme.css) replaces Firefox's macOS blue
@@ -65,7 +64,7 @@
   --color-accent-primary-hover: color-mix(in srgb, black 10%, var(--koi-accent));
   --color-accent-primary-active: color-mix(in srgb, black 20%, var(--koi-accent));
   /* Attention glyphs (the starred star, download progress, the translations
-   * chip) take their button's ink, as in Zen: the shape carries the state. */
+   * chip) take their button's ink: the shape carries the state. */
   --toolbarbutton-icon-fill-attention: currentColor;
 }
 
@@ -92,9 +91,9 @@
 
 /* An unfocused window fades its whole titlebar, the macOS behaviour
  * (browser-shared.css). Firefox fades only .browser-titlebar, which in Koi is
- * the tab row, and fades every button again (osx/browser.css), so row two
- * dimmed twice and row one not at all. Here the rows fade once, together, and
- * buttons keep their active-window opacity. */
+ * the tab row, and fades every button again (osx/browser.css), which would
+ * dim row two twice and row one not at all. The rows fade once, together,
+ * and buttons keep their active-window opacity. */
 #navigator-toolbox > :is(#nav-bar, #TabsToolbar, #PersonalToolbar) {
   transition: opacity var(--koi-fade);
 
@@ -200,8 +199,7 @@
 /* stylelint-enable stylelint-plugin-mozilla/no-has-selector */
 
 /* Vertical tabs are locked off (chrome-ui.yaml), but right-clicking the strip
- * or a spring still offers the toggle (ToolbarContextMenu.sys.mjs). Zen hides
- * the same three. */
+ * or a spring still offers the toggle (ToolbarContextMenu.sys.mjs). */
 #toolbar-context-toggle-vertical-tabs,
 #toolbar-context-customize-sidebar,
 #sidebarRevampSeparator {
@@ -483,7 +481,7 @@
   }
 
   /* A result's "…" menu holds Remove from History, the only way to drop a
-   * page from suggestions, so it stays (as in Zen). It is a panel-list drawn
+   * page from suggestions, so it stays. It is a panel-list drawn
    * inside the dropdown, so it takes the solid; its tokens are in a
    * shadow root this document outranks. "Learn more" (Mozilla's support
    * site) goes; keyboard navigation skips hidden items (panel-list.mjs). */
@@ -570,8 +568,8 @@
    * title is never seen squeezed into a half-open tab. Firefox hides the
    * tab and its pieces outright while it is not [fadein] (tabs.css); shown
    * again here, the fade covers them (the throbber stays hidden: a spinner
-   * has nothing to fade), and the closing tab takes no clicks, as the
-   * hidden one took none. */
+   * has nothing to fade), and the closing tab takes no clicks, as a hidden
+   * one would not. */
   & .tab-content {
     transition: opacity var(--koi-fade);
   }
@@ -605,16 +603,16 @@
 
   /* No load burst (the ring Firefox pulses from the favicon when a page
    * loads, tabs.css). Hidden, not cancelled: tab.js clears [bursting] on
-   * animationend, so `animation: none` left a blue disc stuck behind every
+   * animationend, so `animation: none` leaves a blue disc stuck behind every
    * favicon. The keyframes never animate visibility, so this holds. */
   & .tab-loading-burst[bursting]::before {
     visibility: hidden;
   }
 
   /* Firefox gives about:newtab and about:home tabs the branding raster
-   * (Tabbrowser.sys.mjs FAVICON_DEFAULTS); Koi shows the empty state's mark. Gecko
-   * cannot `content:`-replace an image, so the raster's content box is
-   * squeezed to nothing and the mark is the background. */
+   * (Tabbrowser.sys.mjs FAVICON_DEFAULTS); Koi shows the empty state's
+   * mark. Gecko cannot `content:`-replace an image, so the raster's content
+   * box is squeezed to nothing and the mark is the background. */
   & .tab-icon-image[src="chrome://branding/content/icon32.png"] {
     box-sizing: border-box;
     padding-inline-start: var(--koi-icon-16);
@@ -628,10 +626,10 @@
 
   & .tab-close-button {
     /* 4px off the trailing edge, matching the vertical air (Firefox's -5px
-     * pull left it uneven). The glyph is close.svg, from the same 16px family
-     * as the + and toolbar glyphs, drawn at 12px: Firefox's close-12.svg read
-     * at two-thirds the size of the + beside it. A fixed icon box keeps
-     * rounding from pushing the × off-centre. */
+     * pull leaves it uneven). The glyph is close.svg, from the same 16px
+     * family as the + and toolbar glyphs, drawn at 12px: Firefox's
+     * close-12.svg reads at two-thirds the size of the + beside it. A fixed
+     * icon box keeps rounding from pushing the × off-centre. */
     list-style-image: url("chrome://global/skin/icons/close.svg");
     margin-inline-end: calc(var(--koi-space-4) - var(--tab-inline-padding));
     color: var(--koi-fg-2);

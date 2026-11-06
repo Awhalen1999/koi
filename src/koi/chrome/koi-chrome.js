@@ -36,9 +36,9 @@
       // non-removable widget from any area its markup does not place it in
       // (to the end of nav-bar). It reads the live attribute, so the flip
       // must land before this window's toolbars are built. Since 157 Firefox
-      // builds them in its own window DOMContentLoaded listener
-      // (browser-main.js), added before this one, hence the capture phase: a
-      // window capture listener runs before any bubble listener.
+      // builds them in its own window DOMContentLoaded listener (browser-main.js),
+      // added before this one, hence the capture phase: a window capture
+      // listener runs before any bubble listener.
       const fixed = ["back-button", "forward-button"];
       for (const id of fixed) {
         document.getElementById(id)?.setAttribute("removable", "true");

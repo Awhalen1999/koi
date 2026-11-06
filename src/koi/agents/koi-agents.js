@@ -10,15 +10,13 @@
  *   - Its own button in row one, after ⚒, on every page: shown with
  *     Developer Mode on (☰, KoiDevMode.enabled) and whenever Allow agents is
  *     on. It is a setting, so the button has no pressed state.
- *   - The agents panel (the panel kit, koi-agents.css): the agent's tile
- *     with its status dot and what it is doing, the actions for that state
- *     (Show Folder and Disconnect, or Try Again), the Allow agents switch,
- *     sharing this tab, then Claude Code added in one click (its own `claude
- *     mcp add`) and Copy for any other agent.
+ *   - The agents panel (the panel kit, koi-agents.css): the agent's status
+ *     and the actions for it, the Allow agents switch, sharing this tab, then
+ *     Claude Code added in one click (its own `claude mcp add`) and Copy for
+ *     any other agent.
  *   - Koi's prompt before a connection (gKoiAgents.ask, called by the
- *     module), a permission alert under the agent's tile joined to Koi's
- *     icon: Allow or Don't Allow. An Allow holds until Koi quits, the agent
- *     is disconnected or Allow agents goes off (KoiAgents.sys.mjs). It
+ *     module): Allow or Don't Allow. An Allow holds until Koi quits, the
+ *     agent is disconnected or Allow agents goes off (KoiAgents.sys.mjs). It
  *     stays up until answered or UNANSWERED_MS; with Koi in the background,
  *     a macOS notification says it is waiting.
  *   - "Agent" at the end of the address field on the agent's tabs while one
@@ -543,10 +541,10 @@
     // it, which refuses that one connection without holding off the next.
 
     const ALERT = "koi-agents-prompt";
-    // The connector gives up on a session not accepted within 45 s, and an
-    // Allow after that made a session it never used, which kept the agent
-    // out until Disconnect. Ended unanswered just before, the agent's next
-    // call asks again.
+    // The connector gives up on a session not accepted within 45 s; an Allow
+    // after that makes a session it never uses, which keeps the agent out
+    // until Disconnect. Ended unanswered just before, the agent's next call
+    // asks again.
     const UNANSWERED_MS = 40 * 1000;
     // The alerts service is made the first time Koi has something to say:
     // making it registers Koi with Notification Center, which is when macOS
@@ -660,10 +658,10 @@
     };
 
     // Awake tabs. A background tab is hidden to its page: Firefox pauses its
-    // animation frames and throttles its timers, which froze scrolling and
-    // transitions in the agent's tabs and kept state out of its screenshots.
+    // animation frames and throttles its timers, which freezes scrolling and
+    // transitions in the agent's tabs and keeps state out of its screenshots.
     // While an agent is connected its tabs are made active the way the tab
-    // on screen is (docShellIsActive; BrowsingContext.isActive alone left
+    // on screen is (docShellIsActive; BrowsingContext.isActive alone leaves
     // frames paused, since a tab that renders no layers gets no refresh
     // ticks). That costs a rendered layer per agent tab, only while an agent
     // is connected. The tab switcher turns a tab off when the user leaves

@@ -5,7 +5,7 @@
 /**
  * Postinstall: edits two files in node_modules that have no config hook, which
  * a plain `npm install` would otherwise silently revert.
- *   1. surfer's branding generator hardcodes zen-browser.app URLs into
+ *   1. surfer's branding generator hardcodes another browser's URLs into
  *      branding.nsi and pref/firefox-branding.js.
  *   2. async-icns calls fs.promises.rmdir(..., {recursive}), removed in Node 24.
  * Each edit is an exact from/to pair: already applied is skipped, and a file
@@ -20,9 +20,9 @@ const ISSUES = 'https://github.com/Awhalen1999/koi/issues'
 const targets = [
   {
     file: 'node_modules/@zen-browser/surfer/dist/commands/patches/branding-patch.js',
-    why: "surfer's hardcoded Zen URLs",
-    // The edits know only the URLs surfer had when they were written, so the
-    // pass also fails if any zen-browser.app URL survives it.
+    why: "surfer's hardcoded branding URLs",
+    // The edits list only known URLs, so the pass also fails if any URL
+    // matching `forbid` survives it.
     forbid: /zen-browser\.app/,
     edits: [
       // Emptied, not pointed at Koi pages: nothing opens on first run.

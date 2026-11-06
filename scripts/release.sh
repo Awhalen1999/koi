@@ -3,11 +3,10 @@
 # new install, signed with the Developer ID, notarized and stapled, and
 # dist/koi.mar for installed copies to update from, signed with Koi's update
 # key, and dist/update.xml, the file update.koi.surf serves for it
-# (koi-updates). Zen's macOS release workflow, run on this Mac. Needs the Developer ID
-# certificate in the login keychain, the notarytool profile `koi` (xcrun
-# notarytool store-credentials), xz, and in ~/.koi-keys the update key and
-# safebrowsing.dat, without which the build silently ships with phishing and
-# malware protection off.
+# (koi-updates). Needs the Developer ID certificate in the login keychain, the
+# notarytool profile `koi` (xcrun notarytool store-credentials), xz, and in
+# ~/.koi-keys the update key and safebrowsing.dat, without which the build
+# silently ships with phishing and malware protection off.
 #
 # production-without-restricted leaves out the entitlements Apple has to grant
 # first (passkeys through Touch ID, and the app identifier a provisioning
@@ -38,14 +37,14 @@ trap 'rm -rf "$TMP"' EXIT
 ./mach python -m mozbuild.action.unpack_dmg "objdir-release/dist/koi-$VERSION.en-US.mac.dmg" "$TMP/dmg"
 ./mach macos-sign -c release -e production-without-restricted -s "$IDENTITY" -a "$TMP/dmg/Koi.app"
 
-# The app gets its own ticket, unlike Zen's, so it opens offline once it has
-# left the DMG (Apple's syspolicy_check calls a missing one fatal).
+# The app gets its own ticket, so it opens offline once it has left the DMG
+# (Apple's syspolicy_check calls a missing one fatal).
 ditto -c -k --keepParent "$TMP/dmg/Koi.app" "$TMP/koi.zip"
 xcrun notarytool submit "$TMP/koi.zip" --keychain-profile koi --wait
 xcrun stapler staple "$TMP/dmg/Koi.app"
 
 # `codesign --strict` fails on the app inside: hdiutil's HFS image gives every
-# file an empty Finder record. Gatekeeper accepts it, and Zen ships the same.
+# file an empty Finder record. Gatekeeper accepts it.
 mkdir -p "$(dirname "$DMG")"
 ./mach python -m mozbuild.action.make_dmg --volume-name Koi \
   --background browser/branding/release/background.png \
@@ -57,10 +56,9 @@ xcrun notarytool submit "$DMG" --keychain-profile koi --wait
 xcrun stapler staple "$DMG"
 spctl -a -t open --context context:primary-signature -v "$DMG"
 
-# The update file is the same signed app, stamped as Zen's mar_sign.sh does:
-# signmar reads the key from an NSS database, which takes it with a
-# certificate, so a throwaway one wraps it. Then it is checked against the
-# certificate Koi's updater embeds.
+# The update file is the same signed app in a MAR. signmar reads the key from
+# an NSS database, which takes it with a certificate, so a throwaway one wraps
+# it. Then it is checked against the certificate Koi's updater embeds.
 MAR=objdir-release/dist/host/bin/mar MOZ_PRODUCT_VERSION="$VERSION" MAR_CHANNEL_ID=release \
   ./tools/update-packaging/make_full_update.sh -q "$TMP/koi.mar" "$TMP/dmg/Koi.app"
 BIN=objdir-release/dist/bin
@@ -72,8 +70,7 @@ openssl pkcs12 -export -inkey "$KEY" -in "$TMP/cert.pem" -name koi -passout pass
 "$BIN/signmar" -d "$TMP/nss" -n koi -s "$TMP/koi.mar" "$UPDATE"
 "$BIN/signmar" -D toolkit/mozapps/update/updater/release_primary.der -v "$UPDATE"
 
-# Zen's update.xml format; the update file is attached to the GitHub release
-# tagged v$VERSION.
+# The update file is attached to the GitHub release tagged v$VERSION.
 INI="$TMP/dmg/Koi.app/Contents/Resources"
 cat > "$MANIFEST" <<EOF
 <?xml version="1.0"?>

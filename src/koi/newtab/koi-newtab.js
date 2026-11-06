@@ -7,13 +7,12 @@
 /* global gBrowser, openTrustedLinkIn, PrivateBrowsingUtils,
    isBlankPageURL, BrowserUIUtils */
 
-/* The empty state: chrome, not a page, shown
- * over the page card while the selected tab shows nothing. The wallpaper
- * shows through because this script makes that tab's browser transparent
- * and koi-newtab.css clears the page ground while [koi-empty] is set. Only
- * the empty tab is transparent, as in Zen: the
- * browser.tabs.allow_transparent_browser pref would make every tab so, and a
- * page with no background of its own would lose its white canvas.
+/* The empty state: chrome, not a page, shown over the page card while the
+ * selected tab shows nothing. The wallpaper shows through because this
+ * script makes that tab's browser transparent and koi-newtab.css clears the
+ * page ground while [koi-empty] is set. Only the empty tab is transparent:
+ * the browser.tabs.allow_transparent_browser pref would make every tab so,
+ * and a page with no background of its own would lose its white canvas.
  *
  * Owns [koi-empty] on :root and the #koi-empty-state subtree; the look is
  * koi-newtab.css. */

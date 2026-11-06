@@ -17,7 +17,7 @@
 
 # ASRouter's add-on and feature recommendations. ASRouter starts every launch
 # (BrowserGlue) whatever the new tab page does, so these are off at their own
-# prefs, as in Zen.
+# prefs.
 - name: browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons
   value: false
 
@@ -30,6 +30,6 @@
 
 # Mozilla's Terms of Use modal is skipped only when MOZILLA_OFFICIAL is unset
 # (firefox.js). Release builds set it ($KOI_RELEASE), so this keeps the modal
-# away there too, as in Zen.
+# away there too.
 - name: termsofuse.bypassNotification
   value: true

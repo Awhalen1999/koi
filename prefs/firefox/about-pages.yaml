@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Upsells on Firefox's about: pages, most fetching from Mozilla services.
-# Each pref's reader is noted.
 
 # The Mozilla VPN promo, on about:privatebrowsing and as the VPN card on
 # about:protections (protections/content/vpn-card.mjs).

@@ -5,12 +5,11 @@
 /* The agent's tabs, page side: instant scrolling, and the element an action
  * touches.
  *
- * Instant scrolling in an agent's background tabs. Firefox hands a page's
- * smooth scrolls to the compositor (ScrollContainerFrame.cpp, ScrollToImpl),
- * which only animates the tab on screen, so in a background tab a smooth
- * scroll never moves: a nav link updates the address and the page stays at
- * the top. While a tab is the agent's, Koi makes its smooth scrolls instant,
- * so the page lands where the site meant it to. A user sheet overrides CSS
+ * Firefox hands a page's smooth scrolls to the compositor
+ * (ScrollContainerFrame.cpp, ScrollToImpl), which only animates the tab on
+ * screen, so in a background tab a smooth scroll never moves: a nav link
+ * updates the address and the page stays at the top. While a tab is the
+ * agent's, its smooth scrolls are made instant: a user sheet overrides CSS
  * scroll-behavior (anchor links), and the scroll methods take "smooth" as
  * "instant" (scripted navigation); anything else passes through. Undone when
  * the tab stops being the agent's, or the user is looking at it.

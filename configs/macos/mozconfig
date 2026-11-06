@@ -38,8 +38,12 @@ if test "$KOI_RELEASE"; then
   export MOZILLA_OFFICIAL=1
 
   # Safe Browsing (phishing and malware warnings) needs Koi's own Google key;
-  # without it the protection is silently off. Kept out of the repo, as Zen does.
+  # without it the protection is silently off. Kept out of the repo.
   if test -f "$HOME/.koi-keys/safebrowsing.dat"; then
     ac_add_options --with-google-safebrowsing-api-keyfile="$HOME/.koi-keys/safebrowsing.dat"
   fi
+else
+  # A dev build is offered every release (same channel, update.koi.surf), and
+  # applying one would overwrite the objdir's app, so it has no updater.
+  ac_add_options --disable-updater
 fi

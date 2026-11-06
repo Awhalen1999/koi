@@ -6,17 +6,12 @@
 - name: browser.preferences.moreFromMozilla
   value: false
 
-# Off until Koi has an update server: MOZ_APPUPDATE_HOST is surfer's
-# non-resolving placeholder.
-- name: app.update.auto
-  value: false
-
-# The old-build check reads app.update.checkInstallTime.days, which surfer's
-# branding never defines. The throw in BrowserGlue._onFirstWindowLoaded
-# silently skips everything after it: PageActions (the ⌘D popup), AboutNewTab,
-# TabCrashHandler and more. No update server, so no check.
-- name: app.update.checkInstallTime
-  value: false
+# A build this many days old checks for an update at startup. Surfer's
+# branding never defines it, and without it the old-build check throws in
+# BrowserGlue._onFirstWindowLoaded, silently skipping everything after it:
+# PageActions (the ⌘D popup), AboutNewTab, TabCrashHandler and more.
+- name: app.update.checkInstallTime.days
+  value: 6
 
 # Matches --with-unsigned-addon-scopes=app,system: Mozilla does not sign
 # Koi's builds.
@@ -25,8 +20,8 @@
 
 # Google's v5 API refuses Koi's key two lists (goog-badbinurl-proto and
 # goog-downloadwhite-proto, the download checks; not in its public docs,
-# though Firefox's and Zen's keys get them), and one refused list fails the
-# whole request, which left phishing and malware protection empty. Without
+# though Firefox's key gets them), and one refused list fails the whole
+# request, leaving phishing and malware protection empty. Without
 # them here, v4 (google4) fetches those two, which it does serve Koi's key.
 # If Google retires v4, or grants Koi's key the two lists, drop this pref.
 - name: browser.safebrowsing.provider.google5.lists

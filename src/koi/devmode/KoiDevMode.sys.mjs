@@ -5,8 +5,8 @@
 /* Developer mode, the app-wide half (koi-devmode.js is each window's).
  *
  * A tab is in dev mode while koi.devmode.enabled is on (☰ ▸ Developer Mode),
- * while it shows a local page (localhost, as in Arc), or while it has a
- * switch set. All of it is Firefox's own machinery:
+ * while it shows a local page (localhost), or while it has a switch set.
+ * All of it is Firefox's own machinery:
  *   - Full URLs: browser.urlbar.trimURLs is turned off on the default branch,
  *     so a value the user set still wins and nothing is written to the
  *     profile. It follows the switch only (a pref is global); local pages

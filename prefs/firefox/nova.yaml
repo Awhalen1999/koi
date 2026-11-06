@@ -4,9 +4,9 @@
 
 # Nova, Firefox's visual refresh, default since 157 (new icons, a purple
 # in-content accent, new urlbar geometry, a gradient ring on the selected tab,
-# density and theme controls). Koi's chrome was built against the Proton paths
-# Mozilla still ships, so Nova is off and locked, as in Zen. koi-chrome.css's
-# Nova overrides stay for when Proton is removed; re-review the chrome then.
+# density and theme controls). Koi's chrome targets the Proton paths Mozilla
+# still ships, so Nova is off and locked. koi-chrome.css's Nova overrides stay
+# for when Proton is removed; re-review the chrome then.
 - name: browser.nova.enabled
   value: false
   locked: true

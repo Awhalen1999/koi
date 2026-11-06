@@ -1,5 +1,5 @@
 diff --git a/widget/cocoa/nsCocoaWindow.mm b/widget/cocoa/nsCocoaWindow.mm
-index e467ce48f523859aaff26023633d4d2d3978818f..8fa0d6fa962e666d2dea29b283a2f652c617a5ff 100644
+index e467ce48f523859aaff26023633d4d2d3978818f..e4469f446113ddf368543cd13a252f46f9486d1d 100644
 --- a/widget/cocoa/nsCocoaWindow.mm
 +++ b/widget/cocoa/nsCocoaWindow.mm
 @@ -84,6 +84,7 @@
@@ -10,7 +10,7 @@ index e467ce48f523859aaff26023633d4d2d3978818f..8fa0d6fa962e666d2dea29b283a2f652
  #include "mozilla/StaticPrefs_ui.h"
  #include "mozilla/StaticPrefs_widget.h"
  #include "mozilla/WritingModes.h"
-@@ -1332,6 +1333,134 @@ - (NSRect)_opaqueRectForWindowMoveWhenInTitlebar {
+@@ -1332,6 +1333,133 @@ - (NSRect)_opaqueRectForWindowMoveWhenInTitlebar {
  }
  @end
  
@@ -29,8 +29,7 @@ index e467ce48f523859aaff26023633d4d2d3978818f..8fa0d6fa962e666d2dea29b283a2f652
 +static constexpr nsLiteralCString kKoiWindowMaterialPref =
 +    "koi.widget.macos.window-material"_ns;
 +
-+// The material decides the blur, so this mapping is most of the look. Values
-+// match Zen's numbering, which keeps their notes applicable to us.
++// The material decides the blur, so this mapping is most of the look.
 +static NSVisualEffectMaterial KoiWindowMaterial() {
 +  switch (StaticPrefs::koi_widget_macos_window_material()) {
 +    case 1:
@@ -145,7 +144,7 @@ index e467ce48f523859aaff26023633d4d2d3978818f..8fa0d6fa962e666d2dea29b283a2f652
  void nsCocoaWindow::UpdateWindowDraggingRegion(
      const LayoutDeviceIntRegion& aRegion) {
    // mChildView returns YES from mouseDownCanMoveWindow, so we need to put
-@@ -4938,6 +5067,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
+@@ -4938,6 +5066,10 @@ - (BOOL)wantsBestResolutionOpenGLSurface {
  nsCocoaWindow::~nsCocoaWindow() {
    NS_OBJC_BEGIN_TRY_IGNORE_BLOCK;
  

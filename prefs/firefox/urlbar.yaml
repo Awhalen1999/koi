@@ -5,7 +5,7 @@
 # What the address bar suggests: only what comes from the user (history,
 # bookmarks, open tabs, recent searches, top sites) and the search engine's
 # suggestions as you type. Mozilla's commercial layer and network nudges are
-# off, as in Zen.
+# off.
 
 # Firefox Suggest, Mozilla's sponsored and partner suggestions (shopping ads,
 # Wikipedia, add-ons, weather). Locked: at startup Suggest rewrites its own

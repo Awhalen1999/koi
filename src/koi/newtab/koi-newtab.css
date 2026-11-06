@@ -2,10 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* The empty state. koi-newtab.js builds
- * #koi-empty-state and sets [koi-empty] on :root while the selected tab is
- * blank; every rule here keys on that attribute. The card is the RAISED film
- * over the window's vibrancy (koi-theme.css). */
+/* The empty state. koi-newtab.js builds #koi-empty-state and sets
+ * [koi-empty] on :root while the selected tab is blank; every rule here keys
+ * on that attribute. The card is the RAISED film over the window's vibrancy
+ * (koi-theme.css). */
 
 /* While the card shows, the page ground and the page card's frame are
  * cleared so the wallpaper shows; the tab's browser is already transparent
@@ -116,7 +116,6 @@
     box-shadow: var(--koi-shadow-low);
   }
 
-  /* Keyboard focus: the accent ring, outside the tile. */
   &:focus-visible {
     outline: var(--focus-outline);
     outline-offset: var(--focus-outline-offset);

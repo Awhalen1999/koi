@@ -33,7 +33,7 @@ main {
   padding: var(--koi-space-32);
 }
 
-/* The ghost on its disc: a tile and a half, the ghost half of it. */
+/* The ghost on its disc: two small tiles across, the ghost half of it. */
 .mark {
   display: grid;
   place-items: center;

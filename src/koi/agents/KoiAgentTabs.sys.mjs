@@ -92,7 +92,7 @@ export const KoiAgentTabs = {
         gBrowser
           .addTabGroup([tab], { label: "Agent", color: "blue" })
           .setAttribute(ATTR, "");
-        // Firefox announced the folder before it was the agent's.
+        // Firefox announces the folder before it is the agent's.
         Services.obs.notifyObservers(null, "koi-agents");
       }
     } else if (this.is(tab)) {

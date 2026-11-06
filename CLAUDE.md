@@ -3,16 +3,15 @@
 A fast, minimal browser built on Firefox (Gecko), macOS only.
 
 ## Positioning
-Helium's restraint, Zen's polish. Calm by default. Nothing pops up,
+Restrained and polished. Calm by default. Nothing pops up,
 nothing asks for attention, nothing needs learning on first launch.
 Chrome has no colour of its own — it borrows the wallpaper. No themes.
 All controls in two 36px rows at the top; the rest belongs to the page.
 
 ## Stack
 - Firefox 157 stable, forked via `@zen-browser/surfer` 1.14.7
-- Reference implementation: github.com/zen-browser/desktop (MPL, safe to study)
 - Surfer has no current docs (docs.gluon.dev covers a stale ancestor). Read
-  its source in `node_modules/@zen-browser/surfer/dist/`, and the Zen repo.
+  its source in `node_modules/@zen-browser/surfer/dist/`.
 
 ## How the code documents itself
 Every file under `src/koi/` opens with what it owns and why; comments carry
@@ -26,8 +25,8 @@ history of attempts.
 
 ## Repo layout
 
-Koi's own code is never a patch. Zen's `src/` is ~250 small patches against
-Mozilla paths plus ~500 whole files under `src/zen/`; Koi mirrors the split.
+Koi's own code is never a patch: Firefox is changed by a few small patches
+against Mozilla paths, and everything Koi adds is whole files under `src/koi/`.
 
 | Path | Contents |
 |---|---|
@@ -48,8 +47,7 @@ is dead: its target no longer exists (`sidebar/firefox.svg` replaced it).
 
 ### The four-hop bridge
 
-How `src/koi/` reaches the build while touching Firefox in two places
-(Zen's mechanism):
+How `src/koi/` reaches the build while touching Firefox in two places:
 
 1. `src/browser/base/jar-mn.patch` → `#include content/koi-assets.jar.inc.mn` (one line)
 2. `src/browser/base/content/koi-assets.jar.inc.mn` → `#include`s each feature dir's `jar.inc.mn`
@@ -68,8 +66,8 @@ way (below). If it conflicts on a Firefox update, delete both files.
 
 - **Shared JS** will be an `.mjs` under `src/koi/common/modules/`, shipped by
   the common `jar.inc.mn` and loaded with
-  `ChromeUtils.importESModule("chrome://browser/content/koi-common/….mjs")`,
-  as Zen does: no moz.build, no patch. Until then every script is an IIFE.
+  `ChromeUtils.importESModule("chrome://browser/content/koi-common/….mjs")`:
+  no moz.build, no patch. Until then every script is an IIFE.
   `el()` and the XHTML constant are in koi-newtab.js and koi-board.js, with
   a variant that also sets text in koi-agents.js: three six-line copies
   still cost less than the indirection. The trigger is a helper worth
@@ -105,12 +103,11 @@ Never `%include` Koi CSS into Firefox's `browser/themes/*/browser.css`
 
 ## Chrome CSS — rules learned the hard way
 
-- **Write nested selectors with an explicit `&`** (`& > #nav-bar { }`), as
-  Zen does.
+- **Write nested selectors with an explicit `&`** (`& > #nav-bar { }`).
 - **`tabpanels` is a grid; padding on it does not inset its children.**
   xul.css gives `tabpanels`/`deck`/`stack` `display: grid` and pins children
-  to `grid-area: 1 / 1`. Inset with margin on the grid item (Zen's
-  `#zen-tabbox-wrapper` exists for this).
+  to `grid-area: 1 / 1`. Inset with margin on the grid item, or on a wrapper
+  made to be one.
 - **Scope `browser[type="content"]` rules** under `.browserSidebarContainer`.
   Bare, it also matches the sidebar, the AI window, picture-in-picture and
   devtools.
@@ -174,8 +171,8 @@ rules in koi-chrome.css and koi-panels.css carry one.
   through CGEvent (`activate` the instance, check `front`, then `down`,
   `drag`, `up`); a merge wants the dragged tab over 20–80% of the target
   for the 240ms grouping delay, a closed chip the same over its label.
-- When following Zen, take the whole thing: their C++, CSS *and* pref
-  defaults. Each omission has cost a debugging cycle.
+- When porting a technique from another Firefox fork, take the whole thing:
+  its C++, CSS *and* pref defaults. Each omission has cost a debugging cycle.
 - To read chrome state without touching the running Koi, start a second
   instance on a throwaway profile: `koi --marionette
   --remote-allow-system-access --no-remote --profile <dir>` (set
@@ -242,15 +239,26 @@ rules in koi-chrome.css and koi-panels.css carry one.
   (Replacing a Mozilla asset outright) and checked against it, and
   `dist/update.xml`, which goes into the `koi-updates` repo once the
   release is published: Cloudflare serves it at `update.koi.surf`, where
-  installed copies look. Test it in the VM
+  installed copies look. Only release builds have the updater
+  (configs/macos/mozconfig): a dev build would be offered every release, and
+  applying one overwrites the objdir's app. Test it in the VM
   as a stranger would: mark the DMG as a download (`xattr -w
-  com.apple.quarantine "0083;<hex time>;Safari;<uuid>"`), drag Koi to
+  com.apple.quarantine "0083;<hex time>;Koi;<uuid>"`), drag Koi to
   Applications in its window, and expect only macOS's "downloaded from the
   Internet" prompt. Then Google's test page,
   `testsafebrowsing.appspot.com/s/phishing.html`, must say "Deceptive site
   ahead" (the lists arrive about a minute after first launch;
   `about:url-classifier` shows each provider's last update). A new profile
   runs as `*.default-release`, not `*.default`: a test user.js goes there.
+  To test an update without the public server, point the installed copy at
+  one in the VM: Firefox reads macOS policies from the app's defaults domain
+  (157 has no update-URL pref), so `defaults write surf.koi.browser
+  EnterprisePoliciesEnabled -bool true` and `AppUpdateURL
+  http://127.0.0.1:8000/update.xml`, serve the newer build's `koi.mar` and an
+  `update.xml` pointed at it with `python3 -m http.server`, and open About
+  Koi. Building the newer one means bumping `displayVersion` and putting it
+  back. A file not signed with the update key fails as `failed: 19`
+  (CERT_VERIFY_ERROR) in `~/Library/Caches/Koi/updates/…/last-update.log`.
 - `npm start` pipes through `scripts/koi-log.mjs`: red/yellow = chrome JS
   errors/warnings, magenta = Koi's own files, gray = page JS and macOS noise.
 
@@ -324,7 +332,8 @@ into a scratch git repo and `git apply --check` each patch, then `git grep
 (git grep's ERE has no `\b`). The grep catches renames, not new defaults or
 moved DOM: 157 also turned on split view, the trust panel and tab hover
 previews, moved notification bars into the toolbox and re-derived the tab
-button tokens. After a bump, diff Zen's `prefs/` against Koi's again, and
+button tokens. After a bump, read the new version's default prefs
+(`firefox.js`, `all.js`) for features to switch off in `prefs/`, and
 connect an agent once: Agent Connect leans on Mozilla internals that
 KoiAgents.sys.mjs's header names.
 
@@ -358,7 +367,7 @@ The objdir is `obj-aarch64-apple-darwin` because `configs/macos` passes
   dir. (`MOZ_USER_DIR` is not a mozconfig env var; it stays `Mozilla`.)
 - `MOZ_APP_DISPLAYNAME`, the menu-bar name, comes from `brandShortName` via
   the generated `browser/branding/release/configure.sh`.
-- `MOZ_APP_ID` stays Firefox's GUID, as in Zen, so AMO extensions install.
+- `MOZ_APP_ID` stays Firefox's GUID, so AMO extensions install.
 - `MOZILLA_UAVERSION` (157.0) comes from `config/milestone.txt`, separate
   from `MOZ_APP_VERSION`.
 
@@ -395,7 +404,7 @@ Delete `obj-*/tmp/profile-default` (or the real profile) if that happens.
 - Mozilla's Terms of Use modal is skipped only when `MOZILLA_OFFICIAL` is
   unset (firefox.js). `$KOI_RELEASE` sets it, so
   `termsofuse.bypassNotification` (onboarding.yaml) keeps release builds
-  clean, as in Zen.
+  clean.
 - Heavy release flags stay behind `$KOI_RELEASE` so local builds stay fast.
 
 ---
@@ -407,8 +416,7 @@ Delete `obj-*/tmp/profile-default` (or the real profile) if that happens.
 koi.js` to `firefox.js`; no patch. It runs after `surfer import` because it
 refuses a pref with no reader in the tree, and a `koi.*` pref may be read
 only by patched code (`koi.theme.disable-lightweight` is). Format and rules:
-`prefs/README.md`. Node rather than Zen's Rust `ffprefs`, because `scripts/`
-already needs Node.
+`prefs/README.md`. Written in Node because `scripts/` already needs it.
 
 C++-mirrored prefs also need StaticPrefs plumbing (below).
 
@@ -421,7 +429,7 @@ compositor has no desktop pixels, so `backdrop-filter` in the chrome blurs
 only Koi's own content. Browser windows are backed by an `NSVisualEffectView`
 in `BehindWindow` blending mode (`src/widget/cocoa/nsCocoaWindow-mm.patch`),
 the idiom Firefox uses for menus and tooltips
-(`-[BaseWindow setEffectViewWrapperForStyle:]`) and Zen for browser windows.
+(`-[BaseWindow setEffectViewWrapperForStyle:]`).
 
 **It takes two halves.** Gecko paints over the effect view unless
 koi-shell.css makes `body`, `#tabbrowser-tabpanels`, `#navigator-toolbox`
@@ -430,7 +438,7 @@ window.
 
 - The material chooses the blur; no CSS blur value ports. Default material 1 (HUD window); 7
   (`UnderWindowBackground`) is nearly invisible and looks like a broken
-  patch. Numbering matches Zen's.
+  patch.
 - `koi.widget.macos.window-vibrancy` (bool) and
   `koi.widget.macos.window-material` (uint32) update live
   (`Preferences::RegisterCallback`), so materials compare in about:config
@@ -496,14 +504,29 @@ Derived, never hand-edit: `default{N}.png`, `firefox.icns` (async-icns from
 `locales/en-US/brand.*`, the `--theme-bg` substitution into
 `content/aboutDialog.css` + `stubinstaller/*.css`.
 
-Still Mozilla's, deliberately: `background.png`, `dsstore`, `disk.icns`
-(DMG; no release to package yet), `document.icns` (file-type icon),
-`document_pdf.svg`, and `Assets.car`.
+Still Mozilla's, deliberately: `document.icns` (file-type icon),
+`document_pdf.svg`, `Assets.car`, and `disk.icns`, which only `mach
+package`'s intermediate DMG uses (scripts/release.sh gives the volume
+`firefox.icns`).
+
+**The DMG window is `background.png` (1440 × 880 at 144 dpi; the icons
+sit at 209,190 and 472,190 pt) and `dsstore`.** Finder finds the
+background through an alias in `dsstore` to `.background/background.png`
+on a volume named `Koi` (by file number, then by path), so `--volume-name
+Koi` is load-bearing; Mozilla's points at a volume named Firefox, which
+left Koi's window white. It was written with Mozilla's settings by the
+`ds_store` and `mac_alias` Python libraries (dmgbuild's), against a DMG
+make_dmg built around the real app, and deliberately has no `pBBk`
+bookmark: one names the exact volume it was made on, Finder trusts it over
+the alias, and the window goes white. New art at the same size needs only
+`background.png`; moving the icons or resizing the window means writing a
+new `dsstore`. Finder's own AppleScript route needs an Automation prompt,
+which ignores synthetic clicks.
 
 **`Assets.car` must stay unused.** It is the macOS 26 asset-catalog icon
 copied from `unofficial` (the blue globe), and macOS 26 prefers it over
 `firefox.icns` whenever Info.plist names it. `Info-plist-in.patch` drops
-`CFBundleIconName`, as Zen's `no_liquid_glass_icon.patch` does. A Koi
+`CFBundleIconName`. A Koi
 `Assets.car` (built from an Icon Composer file) is the route to a native
 Liquid Glass icon. A Dock icon still wrong after a rebuild is LaunchServices'
 cache: `touch` the bundle, `lsregister -f` it, relaunch.
@@ -538,7 +561,7 @@ listed in `engine/.gitignore`. Zero patches. Koi replaces eleven:
   one-line card crops the top ~30%). Seen on the default-browser card only.
 - `src/toolkit/mozapps/update/updater/release_{primary,secondary}.der` —
   the public half of Koi's update signing key, in both of the release
-  channel's slots, as Zen does: the updater applies only updates signed
+  channel's slots: the updater applies only updates signed
   with it. The private half is `~/.koi-keys/mar/private_key.pem`, the only
   file a release needs (scripts/release.sh wraps it in a throwaway
   certificate for signmar), never the repo, backed up in Alex's password
@@ -558,7 +581,7 @@ the sandbox pref (Workflow).
 
 - **Two files in `node_modules` are patched by `scripts/patch-surfer.js`
   (postinstall)**, or `npm install` silently reverts them: surfer's
-  `branding-patch.js` (hardcoded zen-browser.app URLs) and
+  `branding-patch.js` (the URLs of surfer's original project, hardcoded) and
   `async-icns/icns.js` (`rmdir(…, {recursive})`, removed in Node ≥ 24).
 - `.surfer/patchCount` records the patch count at last import; if it
   disagrees with `src/`, `surfer build` emits a blocking warning.
@@ -567,9 +590,17 @@ the sandbox pref (Workflow).
 - `surfer build` regenerates `engine/mozconfig` from `configs/common` +
   `configs/<os>` + an optional untracked root `./mozconfig` + surfer's block.
   Never edit `engine/mozconfig`.
-- `MOZ_APPUPDATE_HOST` defaults to `localhost:7648`, deliberately
-  non-resolving. Set surfer.json `updateHostname` only with a real update
-  server; until then `app.update.auto` stays off.
+- **The update host is build/moz-build.patch**, `update.koi.surf` (the
+  koi-updates repo). Surfer's `updateHostname` only writes
+  `export MOZ_APPUPDATE_HOST` into the mozconfig, which 157's configure no
+  longer reads, so builds fell back to `aus5.mozilla.org`; it is left unset.
+  Surfer rewrites application.ini's update URL to
+  `https://<host>/updates/browser/%BUILD_TARGET%/%CHANNEL%/update.xml`.
+- The macOS updater's admin-rights helper only trusts code signed by the
+  Apple team that configure names; update-programs-configure.patch swaps
+  Mozilla's (43AQ936H96) for Koi's (TA2LQ3B5QN).
+  Firefox's `--enable-mac-elevated-updates-with-generic-certs` would instead
+  trust any Developer ID.
 - `surfer import` applies each patch as `git apply -R` (errors swallowed)
   then `git apply`. On "patch does not apply", diff the engine file against
   its patch before suspecting the baseline: editing `engine/` without
@@ -583,15 +614,15 @@ the sandbox pref (Workflow).
 - `getCurrentBrandName()` reads `config.brands[brand].brandShortName`
   unguarded: a set brand missing from surfer.json throws; an unset brand
   silently returns `Nightly`.
-- Zen's surfer.json has keys 1.14.7 never reads
+- Example surfer.json files online use keys 1.14.7 never reads
   (`buildOptions.generateBranding`). Grep the installed surfer before
-  copying config from Zen.
+  copying config.
 
 ### Expected clean state
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 36 rows, all
+After `npm run import`, `git -C engine status --short` shows 38 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -602,7 +633,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 17 patches |
+| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `build/moz.build`, `build/moz.configure/update-programs.configure`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 19 patches |
 | ` T ` × 11 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -645,7 +676,7 @@ named.
   tab's notification bars); a child with no order sorts above the lights.
 - **Customize mode is locked out.** koi-chrome.css hides every entry point;
   koi-chrome.js disables the command.
-- **Nova is off and locked, as in Zen** (nova.yaml). Koi's chrome targets the
+- **Nova is off and locked** (nova.yaml). Koi's chrome targets the
   Proton paths Mozilla still ships. koi-chrome.css's Nova overrides (the tab
   ring, `sidebar-button`, the dropdown's view half) stay for when Proton is
   removed; re-review the chrome under Nova then (~130 icons, notification
@@ -656,13 +687,13 @@ named.
   open, its results extend it as one surface. A palette shipped in
   `ceefef2`, was removed, and was decided against again: in 157 only the
   results view is a popover (UrlbarInputBase.mjs), so centring the input
-  means moving it over the page card or Zen's ~700-line patch. If it
+  means moving it over the page card or a ~700-line patch. If it
   returns: new destinations only, click and ⌘L stay in place, ⌘T keeps the
   empty card, patch-free or not at all (`gURLBar.view.autoOpen({event})`
   opens rows without input; `browser.urlbar.openintab` makes commits open
   tabs).
 - **Developer mode** (src/koi/devmode/; KoiDevMode.sys.mjs's header has the
-  mechanics). Off by default; local pages are always in it, as in Arc. Two
+  mechanics). Off by default; local pages are always in it. Two
   buttons, both disabled off web pages: Developer Tools fires
   `key_toggleToolbox` (every panel is a tab inside; per-panel and screenshot
   buttons were cut), and ⚒ holds the rest. Everything reuses Firefox's
@@ -698,7 +729,7 @@ named.
   rarely used ones, and
   Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's 0.1.0
   (it disables version-gated tools). **The agent works in a folder of its
-  own** (KoiAgentTabs.sys.mjs), as Claude in Chrome does: a tab group marked
+  own** (KoiAgentTabs.sys.mjs): a tab group marked
   `koi-agent`, one per window, made at the end of the strip and moved like
   any folder, in the agent's blue with the tile glyph and a live dot while
   connected. The agent lists only its tabs (the ones it opens, their
@@ -791,8 +822,7 @@ named.
   and keeps its cards through the leave so the fade has something
   to fade. Reduced motion zeroes every timing. Weighed and held back as the
   easiest thing to overdo: the board opening from the page (the current
-  tab's card shrinking from the page card into its tile, as Safari's tab
-  overview does); if it comes, it is a FLIP of the card Koi already draws.
+  tab's card shrinking from the page card into its tile); if it comes, it is a FLIP of the card Koi already draws.
 - **Menus are native; panels are Koi's** (decided 2026-10-12 in the design
   pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
   panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
@@ -827,8 +857,8 @@ named.
   the page still loads in the privileged about process, where
   `RPMIsWindowPrivate()` lets it say "This isn't a private window" when
   opened elsewhere.
-- **No spaces for the MVP**: one window is one set of tabs. A Zen-model
-  build (named tab sets, hidden with `hideTab`) was finished and taken out;
+- **No spaces for the MVP**: one window is one set of tabs. A build of
+  named tab sets (hidden with `hideTab`) was finished and taken out;
   it is in git history up to `b6165a0`.
 - **Folders are Firefox's tab groups** (src/koi/folders/; koi-folders.css's
   header has the DOM and the drawing, its "While a drag is on" section the
@@ -918,23 +948,21 @@ named.
   preferences-js.patch drops group ids from `CONFIG_PANES`, so they are never
   built and search cannot find them: Firefox Home (Koi's new windows and tabs
   are the empty state), the vertical-tabs layout, Mozilla's help and feedback,
-  the themes group and Appearance's related links. Hiding by CSS, Zen's way,
-  leaves search matching them: a pane heading over nothing. The nav's help
+  the themes group and Appearance's related links. Hiding them by CSS would
+  leave search matching them: a pane heading over nothing. The nav's help
   button is `hidden` in preferences-xhtml.patch. "Firefox Relay" stays: it
   names Mozilla's service.
-- **Zen is the reference for what to switch off.** Its `prefs/` and
-  `src/zen/common/styles/` were audited against 157 and Koi follows it:
-  split view and vertical tabs locked off, the trust panel off, the
-  "Firefox Suggest" label, trending searches, the auto-opening downloads
-  panel, CFR, UITour, profiles and every AI feature. Unlike Zen, Koi keeps
-  Firefox's tab hover previews, on trial.
+- **What is switched off** (`prefs/firefox/`): split view and vertical tabs
+  locked off, the trust panel off, the "Firefox Suggest" label, trending
+  searches, the auto-opening downloads panel, CFR, UITour, profiles and every
+  AI feature. Firefox's tab hover previews stay, on trial.
 - **The address bar suggests only the user's own things**
   (firefox/urlbar.yaml): history, bookmarks, open tabs, recent searches, top
   sites and the engine's plain suggestions. Firefox Suggest is locked
-  off, as in Zen; top sites come from the standalone list without Mozilla's
+  off; top sites come from the standalone list without Mozilla's
   default sites or partner search shortcuts; no headings, trending or rich
-  suggestions. Unlike Zen, Koi keeps the engine's suggestions as you type.
-- **Themes are off, Zen's way** (koi/theme.yaml): a theme over vibrancy
+  suggestions. The engine's suggestions as you type stay.
+- **Themes are off** (koi/theme.yaml): a theme over vibrancy
   half-applies, so the mechanism is off, not just the UI. Three small
   patches, one pref, an about:config escape hatch. **The chrome is always
   dark**, in macOS Light too: its ink is white (koi-theme.css has no light
@@ -954,12 +982,16 @@ named.
 **Not yet done:** Agent Connect's pick-and-copy (phase 3), the field-as-progress-bar
 tint, re-pointing View › Show All Tabs at the board, a bookmarks surface with
 folders (a flat grid shipped and was withdrawn), the ⌘B/sidebar decision. No fox shows by default; the urlbar's "Firefox View" quick action
-(typed) still has one, as in Zen. Help ▸ Get Help, Share Ideas and Feedback
-and Switching to a New Device still lead to Mozilla's Firefox pages, as in
-Zen, until Koi has its own. Strings naming Firefox literally ("Firefox
+(typed) still has one. Help ▸ Get Help, Share Ideas and Feedback and
+Switching to a New Device still lead to Mozilla's Firefox pages until Koi
+has its own. Strings naming Firefox literally ("Firefox
 Labs") go into koi.ftl as they are found.
 
 **Known issues, found and not yet fixed:**
+
+- **Firefox's "Open previous tabs?" bar shows after a restart** (seen in
+  the packaged build, 2026-11-06): it tells the user to restore the session
+  from the History menu. Nothing should pop up; find the pref that drives it.
 
 - **The address bar's engine button is hidden** (koi-chrome.css) because its
   menu, a panel-list, ignored real mouse clicks while native popovers were
@@ -970,19 +1002,19 @@ Labs") go into koi.ftl as they are found.
 - **Nimbus rollouts are on** (`nimbus.rollouts.enabled`, firefox.js), and
   they ignore the telemetry and studies switches, so Mozilla can still change
   Firefox-targeted features in Koi remotely; a rollout's Nimbus variable even
-  outranks a locked fallback pref. Zen leaves them on too. Turning them off is
+  outranks a locked fallback pref. Turning them off is
   one pref, but it also stops fixes Mozilla ships as rollouts; decide before
   a release.
 - **`.gitignore` is GitHub's stock Node template**, ~140 lines for tools Koi
   does not use; only the Firefox and surfer entries at the end matter.
 
-**Deferred outright** (Zen has it, Koi does not need it yet): crowdin and
-multi-locale, GitHub release workflows, MAR signing, PGO, flatpak,
+**Deferred outright** (common in Firefox forks, not needed yet): crowdin and
+multi-locale, GitHub release workflows, PGO, flatpak,
 `configs/dumps/`, `src/external-patches/`, the marionette harness, a
 `.python-version` pin. Release builds read the Google Safe Browsing key
 from `~/.koi-keys/safebrowsing.dat` (configs/macos/mozconfig), never the
 repo; scripts/release.sh refuses to run without it. Before a
-release: the macOS updater's signing team id, and checking the Claude Code
+release: checking the Claude Code
 icon in the agents panel (agents/claude-code.png, Claude's app icon) against
 Anthropic's brand guidelines.
 
@@ -992,8 +1024,8 @@ Anthropic's brand guidelines.
   throw in `BrowserGlue._onFirstWindowLoaded`**: it silently skips the whole
   `browser-first-window-ready` category (PageActions and the ⌘D popup,
   AboutNewTab, TabCrashHandler). A missing branding pref
-  (`app.update.checkInstallTime.days`) did it once; misc.yaml's
-  `app.update.checkInstallTime: false` fixed it.
+  (`app.update.checkInstallTime.days`) did it once; misc.yaml now
+  defines it.
 - **Benign:** `TelemetryUtils.sys.mjs` throws `TypeError: date is undefined`
   when EventPing assembles a ping from a TelemetrySession that never
   initialised. Reporting is compiled out so nothing can be sent, and a

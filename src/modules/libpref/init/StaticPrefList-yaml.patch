@@ -1,8 +1,8 @@
 diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
-index 7b82957f4ebad1a814dda2207bbf99f64068d2be..cd72ea623257c3e0b0e56aa9744a5f3406729bd2 100644
+index b4ea2261c2c9d13f21bbbc0b229acda433321ec2..fe0e2cfd69a7b95e5eef2b787cec2af27c71d5ac 100644
 --- a/modules/libpref/init/StaticPrefList.yaml
 +++ b/modules/libpref/init/StaticPrefList.yaml
-@@ -10246,6 +10246,31 @@
+@@ -10338,6 +10338,30 @@
  #endif
    mirror: always
  
@@ -19,8 +19,7 @@ index 7b82957f4ebad1a814dda2207bbf99f64068d2be..cd72ea623257c3e0b0e56aa9744a5f34
 +  mirror: always
 +
 +# Which NSVisualEffectMaterial backs the window. The material decides the blur,
-+# so this is not a cosmetic tweak; it is most of the look. Numbering matches
-+# Zen's, so their notes transfer. Mapping lives in KoiWindowMaterial() in
++# so it is most of the look. Mapping in KoiWindowMaterial(),
 +# widget/cocoa/nsCocoaWindow.mm:
 +#   1 HUD window (default)   5 tooltip
 +#   2 full screen UI         6 header view
