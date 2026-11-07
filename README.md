@@ -15,7 +15,7 @@ Download the latest release from [koi.surf](https://koi.surf) or [here](https://
 
 ## Firefox version
 
-[`Release`](https://github.com/Awhalen1999/koi/releases/latest) Is currently built using Firefox version `157.0`
+[`Release`](https://github.com/Awhalen1999/koi/releases/latest) is currently built using Firefox version `157.0`
 
 <img src=".github/assets/screenshot.png" alt="Koi with a new tab open">
 
