@@ -1,42 +1,39 @@
+<div align="center">
+  <img src=".github/assets/app-icon.png" width="180" height="180" alt="Koi icon">
+
 # Koi
 
-A fast, minimal browser built on Firefox (Gecko). macOS only.
+</div>
 
-Calm by default. Nothing pops up, nothing asks for attention, nothing needs
-learning on first launch. All controls in two rows at the top; the rest
-belongs to the page.
+Koi takes the best parts of every browser and fixes the bad parts. The window is frosted glass, calm and right at home on macOS. It's built on Firefox, so your passwords, bookmarks and extensions carry over when you sign in. No telemetry, nothing to learn. Free for macOS.
+
+<img src=".github/assets/screenshot.jpg" alt="Koi with a new tab open">
+
+[![download](https://img.shields.io/github/v/release/Awhalen1999/koi?label=download&color=brightgreen)](https://github.com/Awhalen1999/koi/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/Awhalen1999/koi/total?color=brightgreen)](https://github.com/Awhalen1999/koi/releases)
+![platform](https://img.shields.io/badge/platform-macOS-blue)
+![requirements](https://img.shields.io/badge/requirements-Apple%20silicon-fa4e49)
+[![website](https://img.shields.io/badge/website-koi.surf-4a90d9)](https://koi.surf)
+[![license](https://img.shields.io/github/license/Awhalen1999/koi?color=orange)](LICENSE)
+
+## Install
+
+Download the latest release from [koi.surf](https://koi.surf) or [here](https://github.com/Awhalen1999/koi/releases/latest), open the DMG, and move Koi into your `Applications` folder. Koi updates itself.
 
 ## Building
 
-Requires Xcode command line tools, Node 26, Python 3, and GNU tar
-(`brew install gnu-tar`).
+Requires Xcode command line tools, Node 26, Python 3, and GNU tar (`brew install gnu-tar`).
 
 ```sh
 npm install
-npm run download          # fetches Firefox (surfer.json's version) into engine/
-npx surfer set brand release   # machine-local, once per clone
-npm run bootstrap         # Mozilla build toolchain
-npm run import            # apply patches and branding, generate prefs
+npm run download             # fetches Firefox into engine/
+npx surfer set brand release # once per clone
+npm run bootstrap            # Mozilla's build toolchain
+npm run import               # applies patches and branding, generates prefs
 npm run build
 npm start
 ```
 
-Set `KOI_RELEASE=1` for an optimised release build; without it you get a faster
-dev build.
+## License
 
-## Layout
-
-| Path | |
-|---|---|
-| `src/koi/` | Koi's own UI — whole files, no patches |
-| `src/<firefox-path>/*.patch` | minimal diffs into Firefox source |
-| `configs/` | mozconfigs and branding inputs |
-| `prefs/` | default preferences as YAML |
-| `scripts/` | prefs generator, dependency patcher, lint runner, log filter |
-| `engine/` | Firefox source, gitignored, its own git repo |
-
-`CLAUDE.md` has the details: the build traps, the decisions, and how to
-work on the tree.
-
-Built with [surfer](https://github.com/zen-browser/surfer). Firefox is
-Mozilla's; see LICENSE.
+Koi is available under the [Mozilla Public License 2.0](LICENSE). It's built on Firefox, Mozilla's work, with [surfer](https://github.com/zen-browser/surfer).
