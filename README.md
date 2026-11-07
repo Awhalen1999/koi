@@ -2,7 +2,7 @@
 
 ### `Koi Browser`
 
-[![download](https://img.shields.io/github/v/release/Awhalen1999/koi?label=download&color=brightgreen)](https://github.com/Awhalen1999/koi/releases/latest)
+[![download](https://img.shields.io/github/v/release/Awhalen1999/koi?label=download&color=brightgreen)](https://download.koi.surf)
 [![downloads](https://img.shields.io/github/downloads/Awhalen1999/koi/total?color=brightgreen)](https://github.com/Awhalen1999/koi/releases)
 [![website](https://img.shields.io/badge/website-koi.surf-4a90d9)](https://koi.surf)
 ![platform](https://img.shields.io/badge/platform-macOS-blue)
@@ -11,7 +11,7 @@
 
 ## Install
 
-Download the latest release from [koi.surf](https://koi.surf) or [here](https://github.com/Awhalen1999/koi/releases/latest), open the DMG, and move Koi into your `Applications` folder. Koi updates itself.
+Download the latest release from [koi.surf](https://koi.surf) or [here](https://download.koi.surf), open the DMG, and move Koi into your `Applications` folder. Koi updates itself.
 
 ## Firefox version
 
