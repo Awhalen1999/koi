@@ -13,21 +13,11 @@
 
 Download the latest release from [koi.surf](https://koi.surf) or [here](https://github.com/Awhalen1999/koi/releases/latest), open the DMG, and move Koi into your `Applications` folder. Koi updates itself.
 
-<img src=".github/assets/screenshot.jpg" alt="Koi with a new tab open">
+## Firefox version
 
-## Building
+- [`Release`](https://github.com/Awhalen1999/koi/releases/latest) - Is currently built using Firefox version `157.0`
 
-Requires Xcode command line tools, Node 26, Python 3, and GNU tar (`brew install gnu-tar`).
-
-```sh
-npm install
-npm run download             # fetches Firefox into engine/
-npx surfer set brand release # once per clone
-npm run bootstrap            # Mozilla's build toolchain
-npm run import               # applies patches and branding, generates prefs
-npm run build
-npm start
-```
+<img src=".github/assets/screenshot.png" alt="Koi with a new tab open">
 
 ## License
 
