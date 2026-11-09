@@ -9,16 +9,14 @@
  * shows only where Gecko paints nothing, so these surfaces go transparent.
  * Either half alone looks like an ordinary opaque window. */
 
-/* The window's SHELL film, with a hairline outline and a 1px top bevel; AppKit
- * rounds the corners. !important because browser-shared.css's
+/* The window's SHELL film, with a hairline outline; AppKit rounds the
+ * corners. !important because browser-shared.css's
  * `body:-moz-window-inactive` outranks a bare `body`, and without it the
  * chrome turns opaque when the window loses focus. Firefox's will-change hint
  * is pointless for a fixed colour. */
 body {
   background-color: var(--koi-glass-shell) !important;
-  box-shadow:
-    inset 0 1px 0 var(--koi-glass-shell),
-    inset 0 0 0 0.5px var(--koi-hair);
+  box-shadow: inset 0 0 0 0.5px var(--koi-hair);
   will-change: auto;
 }
 
@@ -51,7 +49,8 @@ body {
 }
 
 /* The page card ---------------------------------------------------------------
- * Rounded and inset by the gutter so the wallpaper frames it. A margin on the
+ * Rounded and inset by the gutter so the wallpaper frames it, except above:
+ * the selected tab runs into its top edge (koi-chrome.css). A margin on the
  * grid item, because padding on the tabpanels grid does not inset its
  * children. Dropped in fullscreen (no wallpaper to frame) and in chromeless
  * windows, which browser-init.js marks popup-window, chromeless-window or
@@ -60,13 +59,16 @@ body {
 :root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([popup-window]):not([chromeless-window]):not([web-extension-popup-window])
   #tabbrowser-tabpanels
   .browserSidebarContainer {
-  margin: var(--koi-gutter);
+  margin: 0 var(--koi-gutter) var(--koi-gutter);
   /* clip, not hidden: the corners must cut the page content. */
   overflow: clip;
   border-radius: var(--koi-radius-page);
   box-shadow:
     var(--koi-shadow-high),
     0 0 0 0.5px var(--koi-page-ring);
+  /* The shadow stops at the top edge: the panels paint after the toolbox,
+   * so it would fall across the tab that joins the card. */
+  clip-path: inset(0 -100vmax -100vmax);
 }
 
 /* The page ground, behind a page that has not painted yet or paints no
@@ -87,8 +89,8 @@ body {
   }
 }
 
-/* The tab panels are transparent, so every browser but the empty tab's
- * (koi-newtab.js) keeps the ground behind it. [transparent] is matched by
+/* The tab panels are transparent, so every browser keeps the ground behind
+ * it, unless Firefox makes one transparent. [transparent] is matched by
  * presence: Firefox toggles it with toggleAttribute. Scoped to tab content (a
  * bare browser[type=content] also matches the sidebar, picture-in-picture and
  * devtools), and outside the fullscreen guard because the panels are

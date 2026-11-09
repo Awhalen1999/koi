@@ -219,7 +219,7 @@ toolbarseparator.proton-zap {
 }
 
 #PanelUI-fxa-menu-sign-in-promo {
-  --promo-background-color-vibrant: var(--koi-glass-shell);
+  --promo-background-color-vibrant: var(--koi-fill-lift);
   --promo-message-text-color-vibrant: currentColor;
 }
 

@@ -4,18 +4,12 @@
 
 /* The empty state. koi-newtab.js builds #koi-empty-state and sets
  * [koi-empty] on :root while the selected tab is blank; every rule here keys
- * on that attribute. The card is the RAISED film over the window's vibrancy
- * (koi-theme.css). */
+ * on that attribute. The card is the solid, the address field's surface,
+ * and the selected tab wears it too. */
 
-/* While the card shows, the page ground and the page card's frame are
- * cleared so the wallpaper shows; the tab's browser is already transparent
- * (koi-newtab.js). */
-:root[koi-empty] #tabbrowser-tabpanels .browserSidebarContainer {
-  box-shadow: none;
-
-  & .browserContainer {
-    background: transparent;
-  }
+:root[koi-empty] .tabbrowser-tab[visuallyselected] {
+  --tab-background-color-selected: var(--koi-solid);
+  --koi-tab-ink: var(--koi-solid-light);
 }
 
 #koi-empty-state {
@@ -26,14 +20,11 @@
   /* It covers the whole page card, so clicks pass through to chrome in the
    * same space (the findbar); the pins opt back in. */
   pointer-events: none;
-  /* The page card's geometry: inset by the gutter, rounded, ringed. */
+  /* The page card's geometry, over it. */
   position: absolute;
-  inset: var(--koi-gutter);
+  inset: 0 var(--koi-gutter) var(--koi-gutter);
   border-radius: var(--koi-radius-page);
-  background: var(--koi-glass-raised);
-  box-shadow:
-    var(--koi-shadow-high),
-    inset 0 0 0 0.5px var(--koi-hair);
+  background: var(--koi-solid);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -51,8 +42,7 @@
   gap: var(--koi-space-8);
   margin-top: var(--koi-space-32);
   font-size: var(--koi-text-13);
-  color: var(--koi-fg);
-  text-shadow: var(--koi-shadow-text);
+  color: var(--koi-fg-2);
 }
 
 .koi-empty-key {
@@ -61,11 +51,10 @@
   align-items: center;
   padding: 0 var(--koi-space-8);
   border-radius: var(--koi-radius-favicon);
-  background: var(--koi-glass-well);
+  background: var(--koi-fill-lift);
   font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
   color: var(--koi-fg);
-  text-shadow: none;
 }
 
 .koi-empty-pins {
@@ -99,14 +88,14 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--koi-radius-page);
-  background: var(--koi-glass-well);
+  background: var(--koi-fill-lift);
   box-shadow: var(--koi-shadow-low);
   transition:
     background var(--koi-fade),
     box-shadow var(--koi-fade);
 
   &:hover {
-    background: var(--koi-glass-hover);
+    background: var(--koi-fill-hover);
     box-shadow: var(--koi-shadow-high);
     transition: none;
   }
@@ -169,7 +158,6 @@
   font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
   color: var(--koi-fg-2);
-  text-shadow: var(--koi-shadow-text);
   opacity: 0;
   transition: opacity var(--koi-fade);
 

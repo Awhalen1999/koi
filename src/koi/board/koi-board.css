@@ -20,7 +20,7 @@
     visibility var(--koi-leave);
   /* The page card's own geometry, floated over it. */
   position: absolute;
-  inset: var(--koi-gutter);
+  inset: 0 var(--koi-gutter) var(--koi-gutter);
   border-radius: var(--koi-radius-page);
   overflow: clip;
   background: var(--koi-scrim-board);

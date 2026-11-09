@@ -2,8 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Chrome layout that CSS cannot do alone: CustomizableUI placements, and
- * keeping the address pill centred on the window.
+/* Chrome layout that CSS cannot do alone: CustomizableUI placements,
+ * keeping the address pill centred on the window, and reading the colour
+ * the selected tab wears off its page.
  *
  * Placements persist in the profile, so they are enforced in every window:
  * back, forward and reload lead the tab row, and + follows the tabs. The
@@ -13,7 +14,7 @@
 
 /* Browser-window global (koi/ is outside eslint.config.mjs's browser-window
  * paths). */
-/* global RTL_UI, gURLBar, delayedStartupPromise */
+/* global RTL_UI, gURLBar, gBrowser, isBlankPageURL, delayedStartupPromise */
 
 (() => {
   addEventListener(
@@ -143,7 +144,7 @@
     { once: true }
   );
 
-  // Two manners, once the window is up.
+  // Three manners, once the window is up.
   addEventListener(
     "DOMContentLoaded",
     () => {
@@ -175,6 +176,86 @@
             once: true,
           });
         });
+
+        // The selected tab wears its page's colour (koi-chrome.css, The
+        // selected tab): the average of the page's top edge under the tab,
+        // where the two join, read from a one-pixel snapshot. A blank page,
+        // or one that paints nothing there, leaves the tab on the page
+        // ground. Read whenever the tab or the page under it may have
+        // changed, and again as the page settles.
+        // ponytail: a page that repaints its top edge later than that keeps
+        // the old colour until the next read; a paint listener in the page
+        // if it shows.
+        const wear = async tab => {
+          const browser = tab.linkedBrowser;
+          const page = browser.browsingContext?.currentWindowGlobal;
+          const over = tab.getBoundingClientRect();
+          const under = browser.getBoundingClientRect();
+          const left = Math.max(over.left - under.left, 0);
+          const width = Math.round(
+            Math.min(over.right - under.left, under.width) - left
+          );
+          let rgb = null;
+          if (page && width > 0 && !isBlankPageURL(browser.currentURI.spec)) {
+            try {
+              const strip = await page.drawSnapshot(
+                new DOMRect(left, 0, width, 1),
+                1,
+                "transparent"
+              );
+              const context = new OffscreenCanvas(width, 1).getContext("2d");
+              context.drawImage(strip, 0, 0);
+              strip.close();
+              const { data } = context.getImageData(0, 0, width, 1);
+              const sum = [0, 0, 0];
+              let painted = 0;
+              for (let i = 0; i < data.length; i += 4) {
+                if (data[i + 3] == 255) {
+                  painted++;
+                  sum[0] += data[i];
+                  sum[1] += data[i + 1];
+                  sum[2] += data[i + 2];
+                }
+              }
+              rgb = painted && sum.map(part => Math.round(part / painted));
+            } catch {
+              // The page went away mid-read; the next read has the new one.
+              return;
+            }
+          }
+          if (!rgb) {
+            tab.style.removeProperty("--koi-tab-color");
+            tab.style.removeProperty("--koi-tab-ink");
+            return;
+          }
+          // Perceived brightness (Rec. 601) picks the ink.
+          const light = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] > 150;
+          tab.style.setProperty("--koi-tab-color", `rgb(${rgb})`);
+          tab.style.setProperty(
+            "--koi-tab-ink",
+            light ? "var(--koi-solid)" : "var(--koi-solid-light)"
+          );
+        };
+        let reads = [];
+        const settle = () => {
+          reads.forEach(clearTimeout);
+          reads = [0, 300, 1000, 3000].map(ms =>
+            setTimeout(() => wear(gBrowser.selectedTab), ms)
+          );
+        };
+        for (const moved of ["TabSelect", "TabMove", "TabOpen", "TabClose"]) {
+          gBrowser.tabContainer.addEventListener(moved, settle);
+        }
+        addEventListener("resize", settle);
+        gBrowser.addProgressListener({
+          onLocationChange: settle,
+          onStateChange(progress, request, flags) {
+            if (flags & Ci.nsIWebProgressListener.STATE_STOP) {
+              settle();
+            }
+          },
+        });
+        settle();
 
         // The tab menu loses what needs sync or containers, and the
         // housekeeping items. Firefox resets some of these on every open, in

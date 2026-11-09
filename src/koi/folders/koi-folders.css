@@ -45,12 +45,9 @@
    * thickness everywhere (.tab-group-line, the label containers' ::after). */
   --tab-group-line-thickness: 0px;
 
-  /* The tray: 2px around the pills, so its corners stay concentric with
-   * theirs (8 + 2), filled with the folder's colour as a TINT over the SHELL
-   * film, so it still reads on a wallpaper of its own colour; a drop target
-   * turns the strength up to TINT-STRONG. */
-  --koi-folder-pad: 2px;
-  --koi-folder-radius: calc(var(--koi-radius-pill) + var(--koi-folder-pad));
+  /* The tray: the tabs' own height and corners, filled with the folder's
+   * colour as a TINT over the REST film, so it still reads on a wallpaper
+   * of its own colour; a drop target turns the strength up to TINT-STRONG. */
   --koi-folder-tint-strength: var(--koi-tint);
   /* A folder's name in the chip, before it ellipsises. */
   --koi-folder-name: 120px;
@@ -63,17 +60,19 @@
 tab-group,
 tab-group > .tab-group-label-container,
 #tabbrowser-tabs:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup]) .tabbrowser-tab:is([dragtarget], [dragover-groupTarget]) {
-  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-folder-tint-strength), var(--koi-glass-shell));
+  --koi-folder-tint: color-mix(in srgb, var(--tab-group-color) var(--koi-folder-tint-strength), var(--koi-glass-rest));
 }
 
 /* The tabs' pieces, a folder's and the two a drag colours: the stack carries
- * the tint and, in a shadow on each side, reaches the tab's edge; the pill
- * keeps its 28px inside the 32px tray. */
+ * the tint at the pill's height and, in a shadow on each side, reaches the
+ * tab's edge. The stack takes the tab's block margin, so the pill inside
+ * has none; the selected tab's still runs down to the page card
+ * (koi-chrome.css, The selected tab). */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tabbrowser-tab > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"]:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup])
   .tabbrowser-tab:is([dragtarget], [dragover-groupTarget])
   > .tab-stack {
-  margin-block: var(--koi-folder-pad);
+  margin-block: var(--tab-margin-block);
   background-color: var(--koi-folder-tint);
   box-shadow:
     var(--tab-overflow-clip-margin) 0 var(--koi-folder-tint),
@@ -83,27 +82,47 @@ tab-group > .tab-group-label-container,
     box-shadow var(--koi-settle);
 
   & > .tab-background {
-    margin-block: var(--koi-folder-pad);
+    margin-block: 0 var(--koi-folder-foot, 0);
   }
 }
 
-/* The last piece rounds the tray's end and holds the next pill 4px off (its
- * 2px clip margin plus these 2): the last tab open; closed, the selected
- * tab when it is alone, else "+N"; with nothing selected inside, the chip.
- * The chip's slot does the same at the start. */
+/* In the tray a tab at rest has no fill of its own: the tray is its fill. */
+tab-group > .tabbrowser-tab {
+  --tab-background-color: transparent;
+}
+
+#tabbrowser-tabs[orient="horizontal"]:not([movingtab]) tab-group > .tabbrowser-tab[visuallyselected] {
+  --koi-folder-foot: calc(-1 * var(--tab-margin-block));
+}
+
+/* The last piece rounds the tray's end: the last tab open; closed, the
+ * selected tab when it is alone, else "+N"; with nothing selected inside,
+ * the chip. The chip's slot does the same at the start. */
 #tabbrowser-tabs[orient="horizontal"] tab-group:not([collapsed]) > .tabbrowser-tab:last-of-type > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"] tab-group[collapsed]:not([hasmultipletabs]) > .tabbrowser-tab[visuallyselected] > .tab-stack,
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-overflow-count-container,
 #tabbrowser-tabs[orient="horizontal"] tab-group[collapsed]:not([hasactivetab]) > .tab-group-label-container {
-  border-start-end-radius: var(--koi-folder-radius);
-  border-end-end-radius: var(--koi-folder-radius);
+  border-start-end-radius: var(--tab-border-radius);
+  border-end-end-radius: var(--tab-border-radius);
 }
 
-#tabbrowser-tabs[orient="horizontal"] tab-group:not([collapsed]) > .tabbrowser-tab:last-of-type,
-#tabbrowser-tabs[orient="horizontal"] tab-group[collapsed]:not([hasmultipletabs]) > .tabbrowser-tab[visuallyselected],
+/* An end tab's piece stops at its pill's edge, so the tray is no wider than
+ * its tabs: only the leading hairline joins it to the piece before. Not
+ * during a drag, when the pieces are tiles with no hairlines. */
+#tabbrowser-tabs[orient="horizontal"]:not([movingtab]) tab-group:not([collapsed]) > .tabbrowser-tab:last-of-type > .tab-stack,
+#tabbrowser-tabs[orient="horizontal"]:not([movingtab]) tab-group[collapsed]:not([hasmultipletabs]) > .tabbrowser-tab[visuallyselected] > .tab-stack {
+  box-shadow: calc(-1 * var(--tab-overflow-clip-margin)) 0 var(--koi-folder-tint);
+
+  &:-moz-locale-dir(rtl) {
+    box-shadow: var(--tab-overflow-clip-margin) 0 var(--koi-folder-tint);
+  }
+}
+
+/* A tab keeps the next pill 4px off with its own 2px clip margin; "+N" and
+ * the chip have none, so they take it as a margin. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-overflow-count-container,
 #tabbrowser-tabs[orient="horizontal"] tab-group[collapsed]:not([hasactivetab]) > .tab-group-label-container {
-  margin-inline-end: var(--koi-folder-pad);
+  margin-inline-end: var(--tab-overflow-clip-margin);
 }
 
 /* Closing a folder is instant. Firefox shrinks its tabs over the width
@@ -121,19 +140,19 @@ tab-group > .tab-group-label-container,
   }
 }
 
-/* The chip's slot opens the tray. Firefox spaces it 3px either side for its
- * underline; here the tray's own padding, and the gap to the first pill is
- * that pill's 2px clip margin plus 2. */
+/* The chip's slot opens the tray, 4px from the pill before it (that pill's
+ * 2px clip margin plus this margin). Firefox pads it 3px either side for
+ * its underline; here none. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-label-container {
   /* The chip never shrinks: a full strip narrows the tabs, not the names. */
   flex: none;
-  height: calc(var(--koi-pill-height) + 2 * var(--koi-folder-pad));
-  margin-block: var(--koi-folder-pad);
-  margin-inline-start: var(--koi-folder-pad);
-  padding-inline: var(--koi-folder-pad);
+  height: var(--tab-min-height);
+  margin-block: var(--tab-margin-block);
+  margin-inline-start: var(--tab-overflow-clip-margin);
+  padding-inline: 0;
   background-color: var(--koi-folder-tint);
-  border-start-start-radius: var(--koi-folder-radius);
-  border-end-start-radius: var(--koi-folder-radius);
+  border-start-start-radius: var(--tab-border-radius);
+  border-end-start-radius: var(--tab-border-radius);
   justify-content: center;
   transition: background-color var(--koi-fade);
 }
@@ -160,21 +179,16 @@ tab-group > .tab-group-label-container,
  * out of the row and slides the others with transforms; a tile moves whole
  * with its tab, where a joined tray would part or overlap at its seams. On
  * the drop the corners square at once and the hairlines grow back over
- * SETTLE, so the tiles close up into one tray. A tile keeps its pill 2px
- * in from its sides, as the hairlines did, or a selected tab's fill meets
- * its edge. The second selector is the pieces rule's, so the held tab's and
- * a target's tiles outrank their pieces. */
+ * SETTLE, so the tiles close up into one tray. The second selector is the
+ * pieces rule's, so the held tab's and a target's tiles outrank their
+ * pieces. */
 #tabbrowser-tabs[orient="horizontal"][movingtab]
   :is(tab-group > .tabbrowser-tab > .tab-stack, tab-group > .tab-group-label-container, tab-group > .tab-group-overflow-count-container),
 #tabbrowser-tabs[orient="horizontal"]:is([movingtab-addToGroup], [movingtab-group]):not([movingtab-ungroup])
   .tabbrowser-tab:is([dragtarget], [dragover-groupTarget])
   > .tab-stack {
-  border-radius: var(--koi-folder-radius);
+  border-radius: var(--tab-border-radius);
   box-shadow: none;
-
-  & > .tab-background {
-    margin-inline: var(--koi-folder-pad);
-  }
 }
 
 /* The held tab is its pill alone, at full width: carried, over a plain tab,
@@ -182,10 +196,6 @@ tab-group > .tab-group-label-container,
  * folder's colour, there being no one target to mark. */
 #tabbrowser-tabs[orient="horizontal"][movingtab]:is([movingtab-ungroup], [movingtab-group]) .tabbrowser-tab[dragtarget] > .tab-stack {
   background-color: transparent;
-
-  & > .tab-background {
-    margin-inline: 0;
-  }
 }
 
 #tabbrowser-tabs[orient="horizontal"][movingtab-group] .tab-background {
@@ -227,7 +237,7 @@ tab-group > .tab-group-label-container,
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-label-container > .tab-group-label-hover-highlight {
   display: grid;
   align-items: center;
-  height: var(--koi-pill-height);
+  height: var(--tab-min-height);
   padding: 0;
   border-radius: var(--koi-radius-pill);
   background-color: transparent;
@@ -255,14 +265,14 @@ tab-group > .tab-group-label-container,
 
 #tabbrowser-tabs[orient="horizontal"] tab-group .tab-group-label {
   box-sizing: border-box;
-  height: var(--koi-pill-height);
+  height: var(--tab-min-height);
   min-height: 0;
   min-width: 0;
   /* The tab's inset and icon gap, then up to 120px of name. */
   max-width: calc(2 * var(--tab-inline-padding) + var(--koi-icon-14) + var(--tab-icon-end-margin) + var(--koi-folder-name));
   margin: 0;
   padding-inline: var(--tab-inline-padding);
-  line-height: var(--koi-pill-height);
+  line-height: var(--tab-min-height);
   text-align: start;
   font-size: var(--koi-text-12);
   font-weight: 500;
@@ -345,8 +355,8 @@ tab-group > .tab-group-label-container,
   flex: none;
   flex-direction: row;
   align-items: center;
-  height: calc(var(--koi-pill-height) + 2 * var(--koi-folder-pad));
-  margin-block: var(--koi-folder-pad);
+  height: var(--tab-min-height);
+  margin-block: var(--tab-margin-block);
   padding: 0 var(--koi-space-8) 0 calc(var(--koi-space-8) - var(--tab-overflow-clip-margin));
   background-color: var(--koi-folder-tint);
   transition: background-color var(--koi-fade);
@@ -354,7 +364,7 @@ tab-group > .tab-group-label-container,
   & > .tab-group-overflow-count {
     margin: 0;
     padding: 0;
-    line-height: var(--koi-pill-height);
+    line-height: var(--tab-min-height);
   }
 }
 

@@ -32,13 +32,11 @@
   --koi-inset: 10px;
 
   /* Sizes ------------------------------------------------------------------
-   * One ladder of heights. PILL is the control: tabs, the address field,
-   * toolbar buttons, chips, panel buttons; 28 is tuned by eye (24 is too
-   * short, Firefox's 36 too tall). PILL-SMALL is a button
-   * inside a row and the bookmarks row's pills. BOX is a glyph's own box:
-   * a tab's ×, the audio badge, a keycap, a label. ROW is a panel row, 48
-   * with a second line. TILEs carry an icon on a fill: 32 in a row, 40 in a
-   * panel's head, 48 on the empty state. */
+   * One ladder of heights. PILL is the control: toolbar buttons, chips,
+   * panel buttons. PILL-SMALL is a button inside a row and a tab's × and
+   * audio button. BOX is a glyph's own box: a keycap, a label. ROW is a panel row, 48 with a second line, and a tab,
+   * which is Firefox's own size. TILEs carry an icon on a fill: 32 in a
+   * row, 40 in a panel's head, 48 on the empty state. */
   --koi-box: 20px;
   --koi-pill-small: 24px;
   --koi-pill-height: 28px;
@@ -58,12 +56,14 @@
   --koi-icon-20: 20px;
   --koi-icon-24: 24px;
 
-  /* Chrome: two rows, each the pill height plus 4px above and below. The top
-   * row acts on the window, the bottom row on the page. The gutter (the page
-   * card's inset) belongs to the card's margin (koi-shell.css), so no row
-   * pads for a neighbour. */
+  /* Chrome: two rows, each its control plus 4px above and below. The top
+   * row acts on the window: the address field, a PILL. The bottom row is
+   * the tabs, a ROW; the selected tab runs the last 4 down into the page
+   * card (koi-chrome.css), so the card has no gutter above. The gutter is
+   * the one inset: the page card's from the window's sides and foot, and
+   * both rows' from its sides, so their ends line up with the card. */
   --koi-chrome-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-4));
-  --koi-chrome-pad: var(--koi-space-12);
+  --koi-tabs-height: calc(var(--koi-row) + 2 * var(--koi-space-4));
   --koi-gutter: var(--koi-space-4);
 
   /* The address field's ceiling: 60% of the window, held to 640–1200px, so
@@ -163,12 +163,15 @@
    * patch), and page content renders out of process; backdrop-filter has
    * nothing to sample in either place. These films carry the chrome band.
    *
-   * A ladder of white films:
-   *   SHELL  — the window's own film (body, bevel, outline)
-   *   WELL   — a resting pill, and any glyph's hover (focus is the caret's job)
+   * SHELL is the window's own film, a dark coat: it deepens the wallpaper
+   * so white ink and the solid surfaces read against any of it. On it, a
+   * ladder of white films:
+   *   REST   — a tab at rest
+   *   WELL   — any glyph's hover (focus is the caret's job)
    *   HOVER  — a hovered pill, a pressed glyph
-   *   RAISED — the active surface (selected tab or row, empty-state card) */
-  --koi-glass-shell: rgba(255, 255, 255, 0.07);
+   *   RAISED — the active surface (a selected row, the board's focused card) */
+  --koi-glass-shell: rgba(12, 14, 18, 0.16);
+  --koi-glass-rest: rgba(255, 255, 255, 0.1);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
   --koi-glass-hover: rgba(255, 255, 255, 0.22);
   --koi-glass-raised: rgba(255, 255, 255, 0.27);
@@ -189,6 +192,15 @@
    * hairline between groups of rows. */
   --koi-solid: #1c1c1e;
   --koi-solid-light: #fff;
+  /* The page ground and the ink that reads on it: what the selected tab
+   * wears until its page has a colour of its own (koi-chrome.css). */
+  --koi-ground: var(--koi-solid-light);
+  --koi-ground-ink: var(--koi-solid);
+
+  @media (-moz-content-prefers-color-scheme: dark) {
+    --koi-ground: var(--koi-solid);
+    --koi-ground-ink: var(--koi-fg);
+  }
   --koi-solid-panel: color-mix(in srgb, var(--koi-solid) 98%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);
@@ -206,13 +218,12 @@
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
 
   /* Shadows: LOW for small things at rest, HIGH for anything lifted or large
-   * (the page card, the empty-state card, board cards, a hovered pin), TEXT
-   * for ink on the wallpaper. A ring is composed at the use site:
+   * (the page card, board cards, a hovered pin). A ring is composed at the
+   * use site:
    *   box-shadow: var(--koi-shadow-high), 0 0 0 0.5px var(--koi-hair);
    * The window's own shadow is the window server's; no CSS reaches it. */
   --koi-shadow-low: 0 2px 8px rgba(0, 0, 0, 0.18);
   --koi-shadow-high: 0 8px 28px rgba(0, 0, 0, 0.24);
-  --koi-shadow-text: 0 1px 12px rgba(0, 0, 0, 0.28);
 
   /* Motion: felt, not watched. Nothing springs, bounces or slides across
    * the shell, and nothing holds the user up: a change is mostly done

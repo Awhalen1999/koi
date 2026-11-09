@@ -6,7 +6,8 @@ A fast, minimal browser built on Firefox (Gecko), macOS only.
 Restrained and polished. Calm by default. Nothing pops up,
 nothing asks for attention, nothing needs learning on first launch.
 Chrome has no colour of its own — it borrows the wallpaper. No themes.
-All controls in two 36px rows at the top; the rest belongs to the page.
+All controls in two rows at the top, a short address row and the tabs;
+the rest belongs to the page.
 
 ## Stack
 - Firefox 157 stable, forked via `@zen-browser/surfer` 1.14.7
@@ -672,8 +673,31 @@ named.
   DOMContentLoaded listener (koi-chrome.js says why). The address pill is
   centred on the window, so a growing right side (dev mode, pinned
   extensions) shrinks it symmetrically. Toolbox rows are ordered nav-bar 1,
-  tabs 2, bookmarks 3, `#notifications-toolbar` 4 (since 157 it holds every
-  tab's notification bars); a child with no order sorts above the lights.
+  `#notifications-toolbar` 2 (since 157 it holds every tab's notification
+  bars), tabs 3; a child with no order sorts above the lights. The tabs are
+  last because the selected tab joins the page card. There is no bookmarks
+  row: it is hidden and its pref locked to never (bookmarks are the empty
+  tab's pins), which spares the join a second case.
+- **The selected tab is the page's** (2026-11-09; koi-chrome.css, The
+  selected tab). The glass is the window and is always dark: a dark coat on
+  the blur, white ink. The address field, its dropdown and the empty tab are
+  the solid. Tabs are Firefox's own height, soft pills at rest; the selected
+  one runs down into the card with a curve at each foot and wears the page's
+  colour: the average of the page's top edge under the tab, which
+  koi-chrome.js reads from a one-pixel snapshot (`drawSnapshot`, parent
+  side, no actor) when the tab is selected or moved, navigates or stops
+  loading, then again as it settles. The average, not the commonest colour:
+  on a gradient or a photo every pixel differs. It has no ring: on a dark
+  page a hairline reads as a border. A folder's tray is the tabs' own
+  height, so the selected tab is the only thing taller. Tabs, trays and
+  the selected tab's top corners and feet all share the tab's one radius: a
+  rounder selected tab showed the tray's corner behind it. Until a page has
+  painted, the tab is the page ground. A dragged tab is a pill until it
+  lands: Firefox lifts it out of the row. Firefox paints a tab's label from
+  `--tab-text-color*`, not the tab's `color`. The panels paint after the
+  toolbox, so the card's shadow is clipped at its top edge. Weighed and
+  declined: the toolbar inside the card, a glass that follows macOS Light,
+  grain, a tint of the accent, folders as tinted pills (the tray stays).
 - **Customize mode is locked out.** koi-chrome.css hides every entry point;
   koi-chrome.js disables the command.
 - **Nova is off and locked** (nova.yaml). Koi's chrome targets the
@@ -896,10 +920,10 @@ named.
   (11, 12, 13, 15, 24, with leading for the three UI sizes; mono for
   addresses at 12); INK (three whites); the accent, private, agent and
   danger colours and the nine folder colours, with TINT (18%) and
-  TINT-STRONG (30%) as a colour's film; GLASS (shell, well, hover, raised:
-  films on the wallpaper); one SOLID for everything on or over the page,
+  TINT-STRONG (30%) as a colour's film; GLASS (the shell's dark coat, then
+  rest, well, hover, raised: white films on it); one SOLID for everything on or over the page,
   with its own steps (rule, lift, hover, then the glass well); one scrim and
-  four shadows. No size, colour or shadow is written anywhere else, except
+  three shadows. No size, colour or shadow is written anywhere else, except
   where the use site says why (the empty state's letter tiles, about:rights'
   light ink, a page's reading measure). A new surface picks a family; a new
   value goes into koi-theme.css first. Verified 2026-10-29 by capturing every

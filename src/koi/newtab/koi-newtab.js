@@ -8,11 +8,7 @@
    isBlankPageURL, BrowserUIUtils */
 
 /* The empty state: chrome, not a page, shown over the page card while the
- * selected tab shows nothing. The wallpaper shows through because this
- * script makes that tab's browser transparent and koi-newtab.css clears the
- * page ground while [koi-empty] is set. Only the empty tab is transparent:
- * the browser.tabs.allow_transparent_browser pref would make every tab so,
- * and a page with no background of its own would lose its white canvas.
+ * selected tab shows nothing.
  *
  * Owns [koi-empty] on :root and the #koi-empty-state subtree; the look is
  * koi-newtab.css. */
@@ -194,10 +190,6 @@
         const empty = showsNothing(tab);
         const was = document.documentElement.hasAttribute("koi-empty");
         document.documentElement.toggleAttribute("koi-empty", empty);
-        // Read live (XULFrameElement). Tabbrowser resets it on every
-        // navigation, before it calls the progress listener below, so this
-        // runs last.
-        tab.linkedBrowser.toggleAttribute("transparent", empty);
         if (empty && !was) {
           refreshPins();
         }

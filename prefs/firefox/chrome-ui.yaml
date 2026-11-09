@@ -4,9 +4,10 @@
 
 # Chrome and empty-state settings Firefox exposes only as prefs.
 
-# The chrome is two rows; the bookmarks row is opt-in (View ▸ Toolbars).
+# The chrome is two rows; there is no bookmarks row (koi-chrome.css hides it).
 - name: browser.toolbars.bookmarks.visibility
   value: never
+  locked: true
 
 # Tabs narrow together to 100px, then the strip scrolls.
 - name: browser.tabs.tabMinWidth
