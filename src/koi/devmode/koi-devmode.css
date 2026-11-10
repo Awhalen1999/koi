@@ -10,9 +10,3 @@
 :root:not([koi-devmode]) #koi-devtools {
   display: none;
 }
-
-/* ☰ ▸ Developer Mode takes a menu row's geometry. */
-#koi-appmenu-devmode {
-  margin: var(--panel-menuitem-margin);
-  padding: var(--panel-menuitem-padding);
-}

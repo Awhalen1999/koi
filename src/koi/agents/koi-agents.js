@@ -4,12 +4,13 @@
 
 /* Browser-window globals (koi/ is outside eslint.config.mjs's browser-window
  * paths). */
-/* global MozXULElement, delayedStartupPromise, gBrowser, gBrowserInit, FullScreen, PrivateBrowsingUtils, TabContextMenu, BrowsingContext */
+/* global MozXULElement, PanelMultiView, delayedStartupPromise, gBrowser, gBrowserInit, FullScreen, PrivateBrowsingUtils, TabContextMenu, BrowsingContext */
 
 /* Agent Connect, each window's half (KoiAgents.sys.mjs is the app's):
- *   - Its own button in row one, after ⚒, on every page: shown with
- *     Developer Mode on (☰, KoiDevMode.enabled) and whenever Allow agents is
- *     on. It is a setting, so the button has no pressed state.
+ *   - ☰ ▸ Agent Connect, a switch after Developer Mode, off until asked
+ *     for: it shows the button, and stays on while Allow agents is.
+ *   - Its own button in the tab row, before downloads, on every page. It
+ *     opens a setting, so it has no pressed state.
  *   - The agents panel (the panel kit, koi-agents.css): the agent's status
  *     and the actions for it, the Allow agents switch, sharing this tab, then
  *     Claude Code added in one click (its own `claude mcp add`) and Copy for
@@ -33,7 +34,7 @@
  *     and the folder leads the "Add Tab to Folder" list. While an agent is
  *     connected its tabs stay awake, and tabs its pages open stay in the
  *     background.
- * Built after delayed startup, once koi-devmode.js has placed its buttons. */
+ * Built after delayed startup, once koi-devmode.js has placed its switch. */
 
 (() => {
   const XHTML = "http://www.w3.org/1999/xhtml";
@@ -71,9 +72,6 @@
     );
     const { KoiAgentSteps } = ChromeUtils.importESModule(
       "chrome://browser/content/koi-agents/KoiAgentSteps.sys.mjs"
-    );
-    const { KoiDevMode } = ChromeUtils.importESModule(
-      "chrome://browser/content/koi-devmode/KoiDevMode.sys.mjs"
     );
 
     const fragment = MozXULElement.parseXULToFragment(`
@@ -203,6 +201,17 @@
     button.addEventListener("command", () =>
       panel.openPopup(button, "bottomright topright")
     );
+    // ☰ ▸ Agent Connect, after Developer Mode and built the same way.
+    const menuToggle = el("moz-toggle", "koi-appmenu-switch");
+    menuToggle.setAttribute("label", "Agent Connect");
+    menuToggle.setAttribute("inputlayout", "inline-end");
+    menuToggle.addEventListener("toggle", () =>
+      KoiAgents.setShown(menuToggle.pressed).catch(console.error)
+    );
+    PanelMultiView.getViewNode(document, "koi-appmenu-devmode").after(
+      menuToggle
+    );
+
     // An agent works across the window, so its button is in the tab row,
     // before downloads (koi-chrome.css orders the row's end).
     document.getElementById("TabsToolbar-customization-target").append(button);
@@ -734,12 +743,13 @@
     // Rendering. The window follows the module's state; it holds none.
 
     const render = () => {
-      const { enabled, listening, connected, problem } = KoiAgents;
+      const { enabled, shown, listening, connected, problem } = KoiAgents;
       // Turned off under an open prompt: the agent is refused.
       if (!listening) {
         prompt.hidePopup();
       }
-      button.hidden = !KoiDevMode.enabled && !enabled;
+      button.hidden = !shown;
+      menuToggle.toggleAttribute("pressed", shown);
       const onAgentTab = KoiAgentTabs.is(gBrowser.selectedTab);
       label.hidden = !connected || !onAgentTab;
       toggle.toggleAttribute("pressed", enabled);
@@ -766,10 +776,7 @@
     };
 
     const observer = { observe: render };
-    const TOPICS = ["koi-agents", "koi-devmode"];
-    for (const topic of TOPICS) {
-      Services.obs.addObserver(observer, topic);
-    }
+    Services.obs.addObserver(observer, "koi-agents");
     for (const type of [
       "TabSelect",
       "TabOpen",
@@ -784,9 +791,7 @@
     addEventListener(
       "unload",
       () => {
-        for (const topic of TOPICS) {
-          Services.obs.removeObserver(observer, topic);
-        }
+        Services.obs.removeObserver(observer, "koi-agents");
         Services.obs.removeObserver(stepsObserver, "koi-agent-steps");
       },
       { once: true }

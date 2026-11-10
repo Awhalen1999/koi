@@ -56,13 +56,15 @@
   --koi-icon-20: 20px;
   --koi-icon-24: 24px;
 
-  /* Chrome: two rows of one height, a ROW plus 4px above and below. The
-   * top row is the tabs; the selected tab runs the last 4 down into the
-   * toolbar (koi-chrome.css). The toolbar holds the address field and is
-   * the top of the card, so the page has no gutter above. The gutter is the
-   * card's inset from the window's sides and foot. In both rows a control's
-   * box sits 4px inside the card's edges, so the rows' ends line up. */
-  --koi-chrome-height: calc(var(--koi-row) + 2 * var(--koi-space-4));
+  /* Chrome: two rows, each its control plus 4px above and below, in
+   * Firefox's own sizes. The top row is the tabs, a ROW; the selected tab
+   * runs the last 4 down into the toolbar (koi-chrome.css). The toolbar
+   * holds the address field, a TILE-SMALL, and is the top of the card, so
+   * the page has no gutter above. The gutter is the card's inset from the
+   * window's sides and foot. In both rows a control's box sits 4px inside
+   * the card's edges, so the rows' ends line up. */
+  --koi-tabs-height: calc(var(--koi-row) + 2 * var(--koi-space-4));
+  --koi-toolbar-height: calc(var(--koi-tile-small) + 2 * var(--koi-space-4));
   --koi-gutter: var(--koi-space-4);
 
   /* The address field's ceiling: 60% of the window, held to 640–1200px, so

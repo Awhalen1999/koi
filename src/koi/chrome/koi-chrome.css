@@ -16,8 +16,8 @@
  * of specificity.
  *
  * Spacing: each row has a declared height so content cannot inflate it
- * (koi-theme.css, Chrome), and every control is a ROW, 36px, with 4px above
- * and below. Along a row: 4px between neighbours (tabs, buttons, and the
+ * (koi-theme.css, Chrome), and a control has 4px above and below: 36px in
+ * the tab row, 32px in the toolbar, Firefox's own sizes. Along a row: 4px between neighbours (tabs, buttons, and the
  * buttons either side of the tabs), 8px after the traffic lights, and a
  * control's box 4px inside the card's edges at each end of both rows. */
 
@@ -27,7 +27,7 @@
   /* Firefox's own tab height, and its 6px block margin brought to 4px. */
   --tab-min-height: var(--koi-row);
   --tab-margin-block: var(--koi-space-4);
-  --urlbar-height: var(--koi-row);
+  --urlbar-height: var(--koi-tile-small);
   /* The pill is the urlbar's background, with no padding around it. */
   --urlbar-padding-block: 0px;
   /* Zeroed so the input fills its container and the open dropdown lines up
@@ -77,10 +77,11 @@
 }
 
 /* No bookmarks row: bookmarks are the empty tab's pins (koi-newtab.js). The
- * row and its entry in View ▸ Toolbars and the toolbar menus go; the pref
- * is locked to never (chrome-ui.yaml). */
+ * row and its entries in View ▸ Toolbars, the toolbar menus and ☰ ▸
+ * Bookmarks go; the pref is locked to never (chrome-ui.yaml). */
 #PersonalToolbar,
-#toggle_PersonalToolbar {
+#toggle_PersonalToolbar,
+#panelMenu_viewBookmarksToolbar {
   display: none;
 }
 
@@ -95,8 +96,8 @@
 /* The toolbar: the page's row, and the top of its card. ---------------------- */
 
 #navigator-toolbox > #nav-bar {
-  height: var(--koi-chrome-height);
-  min-height: var(--koi-chrome-height);
+  height: var(--koi-toolbar-height);
+  min-height: var(--koi-toolbar-height);
   align-items: center;
   /* A button's box, not its 2px outer padding, sits 4px inside the card. */
   padding-inline: calc(var(--koi-space-4) - var(--toolbarbutton-padding-outer));
@@ -182,18 +183,18 @@
 
 #navigator-toolbox > #TabsToolbar {
   /* A declared height, as on nav-bar, so content cannot inflate the row. */
-  height: var(--koi-chrome-height);
+  height: var(--koi-tabs-height);
   min-height: 0;
   background-color: transparent;
   /* The toolbar's inset, measured from the window: the card's gutter more. */
   padding-inline: calc(var(--koi-gutter) + var(--koi-space-4) - var(--toolbarbutton-padding-outer));
 
-  /* 12px before the lights, which sets them over the back arrow's glyph
-   * (osx/browser.css gives none after them), and 8px from the last one to
-   * the board button's hover box, the lights' own spacing: the margin
-   * discounts the button's outer padding. */
+  /* The lights start over the back arrow's glyph: inset as a glyph is in a
+   * toolbar button, 8px and the button's outer padding. After them
+   * (osx/browser.css gives no space), 8px to the board button's hover box,
+   * the lights' own spacing, less that padding. */
   & .titlebar-buttonbox {
-    margin-inline: var(--koi-space-12) calc(var(--koi-space-8) - var(--toolbarbutton-padding-outer));
+    margin-inline: calc(var(--koi-space-8) + var(--toolbarbutton-padding-outer)) calc(var(--koi-space-8) - var(--toolbarbutton-padding-outer));
   }
 
   /* Firefox's 40px titlebar spacers; the margin above is the inset here. */
@@ -294,17 +295,16 @@
  * White glyphs: the WELL appears on hover; pressed, open and checked sit
  * one rung up. Firefox's own state rules paint all of it
  * from these tokens (toolbarbuttons.css), so an open menu's button stays lit
- * and Koi's buttons need nothing extra. The box is the ROW, a tab's height:
- * a 16px glyph in 36px, set on the toolbox so both rows match (Firefox sizes
- * only the tab row's that way, toolbarbuttons.css); the toolbar swaps the films
- * for the solid's (The toolbar, above). Disabled buttons dim whole,
+ * and Koi's buttons need nothing extra. The box is Firefox's own: a 16px
+ * glyph in 32px, and in the tab row a tab's height, 36px
+ * (toolbarbuttons.css). The toolbar swaps the films for the solid's (The
+ * toolbar, above). Disabled buttons dim whole,
  * Firefox's way (--toolbarbutton-opacity-disabled). */
 
 #navigator-toolbox {
   --toolbarbutton-background-color-hover: var(--koi-glass-well);
   --toolbarbutton-background-color-active: var(--koi-glass-hover);
   --toolbarbutton-border-radius: var(--koi-radius-pill);
-  --toolbarbutton-padding-inner: calc((var(--koi-row) - var(--koi-icon-16)) / 2);
   /* Firefox pins glyph fill to a fixed grey (tokens-platform.css), which the
    * button's colour never reaches; currentColor lets the ink states work. */
   --toolbarbutton-icon-fill: currentColor;

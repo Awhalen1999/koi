@@ -676,8 +676,8 @@ named.
   growing right side (dev mode, pinned extensions) shrinks it symmetrically.
   `#notifications-toolbar` (since 157 it holds every tab's notification
   bars) follows the toolbar, inside the card. One spacing rule runs through
-  both rows (koi-chrome.css's header): each is 44 with 36 controls, 4
-  between neighbours, 8 after the traffic lights, and a control's box 4
+  both rows (koi-chrome.css's header): the tab row is 44 with 36 controls
+  and the toolbar 40 with 32, Firefox's own sizes; 4 between neighbours, 8 after the traffic lights, and a control's box 4
   inside the card's edges, so the rows' ends and glyphs line up. There is no bookmarks row: it
   is hidden and its pref locked to never (bookmarks are the empty tab's
   pins).
@@ -730,9 +730,10 @@ named.
   as its home: three Firefox patches.
 - **Agent Connect** (src/koi/agents/; KoiAgents.sys.mjs's header has the
   mechanics). A coding agent drives Koi's tabs through Mozilla's
-  firefox-devtools-mcp. Its own button in the tab row, on every page, shows
-  with Developer Mode on (⚒ is for web pages only) and whenever Allow agents
-  is on. Allow agents is a setting (`koi.agents.enabled`), never switched off
+  firefox-devtools-mcp. Its own button in the tab row, on every page, is off
+  until ☰ ▸ Agent Connect shows it (`koi.agents.shown`), and stays while
+  Allow agents is on, so a browser that listens always shows it; switching
+  it off turns Allow agents off too. Allow agents is a setting (`koi.agents.enabled`), never switched off
   for the user: while on, Firefox's remote-control servers wait for agents
   from launch, and an agent that disconnects, idles out (the connector drops
   its session after 30 minutes) or is disconnected leaves them waiting.

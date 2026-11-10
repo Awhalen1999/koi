@@ -51,6 +51,7 @@ import {
 } from "chrome://remote/content/shared/webdriver/ConnectionPrompt.sys.mjs";
 
 const ENABLED_PREF = "koi.agents.enabled";
+const SHOWN_PREF = "koi.agents.shown";
 const MARIONETTE_PORT_PREF = "marionette.port";
 const REMOTE_AGENT_PORT = 9222;
 const DENY_MS = 60 * 1000;
@@ -227,6 +228,14 @@ export const KoiAgents = {
     return Services.prefs.getBoolPref(ENABLED_PREF, false);
   },
 
+  /**
+   * Agent Connect's button is in the tab row: switched on from ☰, and held
+   * on while Allow agents is, so a browser that listens always shows it.
+   */
+  get shown() {
+    return this.enabled || Services.prefs.getBoolPref(SHOWN_PREF, false);
+  },
+
   /** True while the servers are up, waiting for an agent or serving one. */
   get listening() {
     return RemoteControlServers.runningDynamically;
@@ -260,6 +269,19 @@ export const KoiAgents = {
     allowed &&= on;
     Services.prefs.setBoolPref(ENABLED_PREF, on);
     return sync();
+  },
+
+  /**
+   * @param {boolean} on Shows or hides the button. Hiding it turns Allow
+   *   agents off too.
+   */
+  setShown(on) {
+    Services.prefs.setBoolPref(SHOWN_PREF, on);
+    if (!on) {
+      return this.setEnabled(false);
+    }
+    notify();
+    return Promise.resolve();
   },
 
   /** Starts or stops the servers to match the setting, as after a problem. */

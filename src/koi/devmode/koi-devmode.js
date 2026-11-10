@@ -42,6 +42,7 @@
     // moved into the document on first open.
     const toggle = document.createElementNS(XHTML, "moz-toggle");
     toggle.id = "koi-appmenu-devmode";
+    toggle.className = "koi-appmenu-switch";
     toggle.setAttribute("label", "Developer Mode");
     // Switch at the row's end, where the menu keeps its other controls.
     toggle.setAttribute("inputlayout", "inline-end");

@@ -223,6 +223,13 @@ toolbarseparator.proton-zap {
   --promo-message-text-color-vibrant: currentColor;
 }
 
+/* Koi's switches in the app menu (Developer Mode, Agent Connect) take a
+ * menu row's geometry. */
+.koi-appmenu-switch {
+  margin: var(--panel-menuitem-margin);
+  padding: var(--panel-menuitem-padding);
+}
+
 /* The app menu's account row. A user who never signed in gets a promo card
  * from Firefox (a heading, a line and a button, panelUI-shared.css) in
  * place of the row; Koi keeps the row in every state and draws it as one
@@ -238,6 +245,9 @@ toolbarseparator.proton-zap {
   display: flex !important;
 
   &:not([fxastatus]) {
+    /* The signed-in row's box (panelUI-shared.css zeroes both there); the
+     * label inside brings the inset. */
+    margin: 0;
     padding: 0;
 
     & > #appMenu-fxa-text {
@@ -248,6 +258,9 @@ toolbarseparator.proton-zap {
       flex: 1;
       align-items: center;
       min-height: var(--koi-row);
+      /* A menu row's inset, in place of Firefox's gap from the text it sits
+       * beside (which Koi hides), so it hovers like the rows under it. */
+      margin: var(--panel-menuitem-margin);
       padding: 0 var(--koi-inset);
       background-color: transparent;
       font-weight: normal;
