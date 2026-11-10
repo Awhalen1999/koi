@@ -4,13 +4,7 @@
 
 /* The empty state. koi-newtab.js builds #koi-empty-state and sets
  * [koi-empty] on :root while the selected tab is blank; every rule here keys
- * on that attribute. The card is the solid, the address field's surface,
- * and the selected tab wears it too. */
-
-:root[koi-empty] .tabbrowser-tab[visuallyselected] {
-  --tab-background-color-selected: var(--koi-solid);
-  --koi-tab-ink: var(--koi-solid-light);
-}
+ * on that attribute. The card is the solid, like the toolbar above it. */
 
 #koi-empty-state {
   display: none;
@@ -23,7 +17,7 @@
   /* The page card's geometry, over it. */
   position: absolute;
   inset: 0 var(--koi-gutter) var(--koi-gutter);
-  border-radius: var(--koi-radius-page);
+  border-radius: var(--koi-radius-card);
   background: var(--koi-solid);
   display: flex;
   flex-direction: column;

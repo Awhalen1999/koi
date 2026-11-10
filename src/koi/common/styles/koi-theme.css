@@ -56,14 +56,13 @@
   --koi-icon-20: 20px;
   --koi-icon-24: 24px;
 
-  /* Chrome: two rows, each its control plus 4px above and below. The top
-   * row acts on the window: the address field, a PILL. The bottom row is
-   * the tabs, a ROW; the selected tab runs the last 4 down into the page
-   * card (koi-chrome.css), so the card has no gutter above. The gutter is
-   * the one inset: the page card's from the window's sides and foot, and
-   * both rows' from its sides, so their ends line up with the card. */
-  --koi-chrome-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-4));
-  --koi-tabs-height: calc(var(--koi-row) + 2 * var(--koi-space-4));
+  /* Chrome: two rows of one height, a ROW plus 4px above and below. The
+   * top row is the tabs; the selected tab runs the last 4 down into the
+   * toolbar (koi-chrome.css). The toolbar holds the address field and is
+   * the top of the card, so the page has no gutter above. The gutter is the
+   * card's inset from the window's sides and foot. In both rows a control's
+   * box sits 4px inside the card's edges, so the rows' ends line up. */
+  --koi-chrome-height: calc(var(--koi-row) + 2 * var(--koi-space-4));
   --koi-gutter: var(--koi-space-4);
 
   /* The address field's ceiling: 60% of the window, held to 640–1200px, so
@@ -85,6 +84,9 @@
   --koi-radius-tile: 10px;
   --koi-radius-page: 12px;
   --koi-radius-panel: 16px;
+  /* The page, and what floats over it at its size: square above, where the
+   * toolbar is the card's top (koi-shell.css). */
+  --koi-radius-card: 0 0 var(--koi-radius-page) var(--koi-radius-page);
 
   /* Type ------------------------------------------------------------------
    * The chrome's `font: menu` is already SF; the sans stack is for Koi's own
@@ -192,15 +194,9 @@
    * hairline between groups of rows. */
   --koi-solid: #1c1c1e;
   --koi-solid-light: #fff;
-  /* The page ground and the ink that reads on it: what the selected tab
-   * wears until its page has a colour of its own (koi-chrome.css). */
-  --koi-ground: var(--koi-solid-light);
-  --koi-ground-ink: var(--koi-solid);
-
-  @media (-moz-content-prefers-color-scheme: dark) {
-    --koi-ground: var(--koi-solid);
-    --koi-ground-ink: var(--koi-fg);
-  }
+  /* LIFT mixed opaque, for a surface on the solid that also leaves it: the
+   * address field, whose results hang over the page. */
+  --koi-solid-lift: color-mix(in srgb, #fff 9%, var(--koi-solid));
   --koi-solid-panel: color-mix(in srgb, var(--koi-solid) 98%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);

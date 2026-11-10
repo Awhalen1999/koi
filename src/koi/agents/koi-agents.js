@@ -203,7 +203,9 @@
     button.addEventListener("command", () =>
       panel.openPopup(button, "bottomright topright")
     );
-    document.getElementById("unified-extensions-button").before(button);
+    // An agent works across the window, so its button is in the tab row,
+    // before downloads (koi-chrome.css orders the row's end).
+    document.getElementById("TabsToolbar-customization-target").append(button);
 
     // The panel ------------------------------------------------------------
 

@@ -2,21 +2,25 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Chrome layout that CSS cannot do alone: CustomizableUI placements,
- * keeping the address pill centred on the window, and reading the colour
- * the selected tab wears off its page.
+/* Chrome layout that CSS cannot do alone: CustomizableUI placements, the
+ * menu button's row, and keeping the address pill centred on the window.
  *
  * Placements persist in the profile, so they are enforced in every window:
- * back, forward and reload lead the tab row, and + follows the tabs. The
- * moves are global and checked first, so later windows change nothing.
- * Customize mode is locked out (koi-chrome.css hides its entry points, this
- * disables the command), so the layout changes only with a Koi build. */
+ * back, forward and reload lead the toolbar, + follows the tabs and
+ * downloads ends the tab row. The moves are global and checked first, so
+ * later windows change nothing. Customize mode is locked out (koi-chrome.css
+ * hides its entry points, this disables the command), so the layout changes
+ * only with a Koi build. */
 
 /* Browser-window global (koi/ is outside eslint.config.mjs's browser-window
  * paths). */
-/* global RTL_UI, gURLBar, gBrowser, isBlankPageURL, delayedStartupPromise */
+/* global RTL_UI, gURLBar, delayedStartupPromise */
 
 (() => {
+  // Bubble phase, after Firefox's own listener has built the toolbars
+  // (browser-main.js). By then a profile from Koi 0.1.0, which kept back and
+  // forward in the tab row, has them in the toolbar again: CustomizableUI
+  // returns a non-removable widget to the toolbar its markup places it in.
   addEventListener(
     "DOMContentLoaded",
     () => {
@@ -33,29 +37,31 @@
         .getElementById("cmd_CustomizeToolbars")
         ?.setAttribute("disabled", "true");
 
-      // Back and forward ship removable="false", and CustomizableUI evicts a
-      // non-removable widget from any area its markup does not place it in
-      // (to the end of nav-bar). It reads the live attribute, so the flip
-      // must land before this window's toolbars are built. Since 157 Firefox
-      // builds them in its own window DOMContentLoaded listener (browser-main.js),
-      // added before this one, hence the capture phase: a window capture
-      // listener runs before any bubble listener.
-      const fixed = ["back-button", "forward-button"];
-      for (const id of fixed) {
-        document.getElementById(id)?.setAttribute("removable", "true");
-      }
-
       ["back-button", "forward-button", "stop-reload-button"].forEach(
         (id, position) => {
           const placement = CustomizableUI.getPlacementOfWidget(id);
           if (
-            placement?.area !== "TabsToolbar" ||
+            placement?.area !== "nav-bar" ||
             placement.position !== position
           ) {
-            CustomizableUI.addWidgetToArea(id, "TabsToolbar", position);
+            CustomizableUI.addWidgetToArea(id, "nav-bar", position);
           }
         }
       );
+
+      // Downloads belong to the window, so the button ends the tab row.
+      if (
+        CustomizableUI.getPlacementOfWidget("downloads-button")?.area !==
+        "TabsToolbar"
+      ) {
+        CustomizableUI.addWidgetToArea("downloads-button", "TabsToolbar");
+      }
+
+      // So does the menu. It is markup in nav-bar, not a widget, so its
+      // container moves whole, to after the row's widgets.
+      document
+        .getElementById("TabsToolbar-customization-target")
+        .after(document.getElementById("PanelUI-button"));
 
       // The + sits inside the strip only while new-tab-button is the
       // placement right after tabbrowser-tabs (tabs.js
@@ -74,38 +80,15 @@
           tabs.position + 1
         );
       }
-
-      // Once seated, the flip is reversed: eviction only applies outside the
-      // area, and non-removable disables "Remove from Toolbar" for them
-      // (ToolbarContextMenu.sys.mjs).
-      const pin = () => {
-        for (const id of fixed) {
-          document.getElementById(id)?.setAttribute("removable", "false");
-        }
-      };
-      if (document.getElementById("back-button")?.closest("#TabsToolbar")) {
-        pin(); // Already built, and seated by the move above.
-      } else {
-        const listener = {
-          onAreaNodeRegistered(area, node) {
-            if (area === "TabsToolbar" && node.ownerGlobal === window) {
-              CustomizableUI.removeListener(listener);
-              pin();
-            }
-          },
-        };
-        CustomizableUI.addListener(listener);
-      }
     },
-    { once: true, capture: true }
+    { once: true }
   );
 
   // Centres the address pill on the window, not between the clusters: the
   // narrower side's spring starts as wide as the difference
   // (--koi-nav-lead / --koi-nav-trail, applied in koi-chrome.css) and the
   // springs split the rest. Out of room, the springs shrink first and the
-  // pill keeps Firefox's floor (--urlbar-container-min-width). Bubble phase,
-  // after Firefox's own listener has built the springs.
+  // pill keeps Firefox's floor (--urlbar-container-min-width).
   addEventListener(
     "DOMContentLoaded",
     () => {
@@ -144,7 +127,7 @@
     { once: true }
   );
 
-  // Three manners, once the window is up.
+  // Two manners, once the window is up.
   addEventListener(
     "DOMContentLoaded",
     () => {
@@ -176,86 +159,6 @@
             once: true,
           });
         });
-
-        // The selected tab wears its page's colour (koi-chrome.css, The
-        // selected tab): the average of the page's top edge under the tab,
-        // where the two join, read from a one-pixel snapshot. A blank page,
-        // or one that paints nothing there, leaves the tab on the page
-        // ground. Read whenever the tab or the page under it may have
-        // changed, and again as the page settles.
-        // ponytail: a page that repaints its top edge later than that keeps
-        // the old colour until the next read; a paint listener in the page
-        // if it shows.
-        const wear = async tab => {
-          const browser = tab.linkedBrowser;
-          const page = browser.browsingContext?.currentWindowGlobal;
-          const over = tab.getBoundingClientRect();
-          const under = browser.getBoundingClientRect();
-          const left = Math.max(over.left - under.left, 0);
-          const width = Math.round(
-            Math.min(over.right - under.left, under.width) - left
-          );
-          let rgb = null;
-          if (page && width > 0 && !isBlankPageURL(browser.currentURI.spec)) {
-            try {
-              const strip = await page.drawSnapshot(
-                new DOMRect(left, 0, width, 1),
-                1,
-                "transparent"
-              );
-              const context = new OffscreenCanvas(width, 1).getContext("2d");
-              context.drawImage(strip, 0, 0);
-              strip.close();
-              const { data } = context.getImageData(0, 0, width, 1);
-              const sum = [0, 0, 0];
-              let painted = 0;
-              for (let i = 0; i < data.length; i += 4) {
-                if (data[i + 3] == 255) {
-                  painted++;
-                  sum[0] += data[i];
-                  sum[1] += data[i + 1];
-                  sum[2] += data[i + 2];
-                }
-              }
-              rgb = painted && sum.map(part => Math.round(part / painted));
-            } catch {
-              // The page went away mid-read; the next read has the new one.
-              return;
-            }
-          }
-          if (!rgb) {
-            tab.style.removeProperty("--koi-tab-color");
-            tab.style.removeProperty("--koi-tab-ink");
-            return;
-          }
-          // Perceived brightness (Rec. 601) picks the ink.
-          const light = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] > 150;
-          tab.style.setProperty("--koi-tab-color", `rgb(${rgb})`);
-          tab.style.setProperty(
-            "--koi-tab-ink",
-            light ? "var(--koi-solid)" : "var(--koi-solid-light)"
-          );
-        };
-        let reads = [];
-        const settle = () => {
-          reads.forEach(clearTimeout);
-          reads = [0, 300, 1000, 3000].map(ms =>
-            setTimeout(() => wear(gBrowser.selectedTab), ms)
-          );
-        };
-        for (const moved of ["TabSelect", "TabMove", "TabOpen", "TabClose"]) {
-          gBrowser.tabContainer.addEventListener(moved, settle);
-        }
-        addEventListener("resize", settle);
-        gBrowser.addProgressListener({
-          onLocationChange: settle,
-          onStateChange(progress, request, flags) {
-            if (flags & Ci.nsIWebProgressListener.STATE_STOP) {
-              settle();
-            }
-          },
-        });
-        settle();
 
         // The tab menu loses what needs sync or containers, and the
         // housekeeping items. Firefox resets some of these on every open, in

@@ -48,27 +48,36 @@ body {
   position: relative;
 }
 
-/* The page card ---------------------------------------------------------------
- * Rounded and inset by the gutter so the wallpaper frames it, except above:
- * the selected tab runs into its top edge (koi-chrome.css). A margin on the
- * grid item, because padding on the tabpanels grid does not inset its
+/* The card --------------------------------------------------------------------
+ * The toolbar, any notification bars and the page under them are one card,
+ * rounded and inset by the gutter so the wallpaper frames it; the selected
+ * tab runs into its top edge (koi-chrome.css). On the page it is a margin on
+ * the grid item, because padding on the tabpanels grid does not inset its
  * children. Dropped in fullscreen (no wallpaper to frame) and in chromeless
  * windows, which browser-init.js marks popup-window, chromeless-window or
  * web-extension-popup-window. `inFullscreen` is set bare or valued, so it is
  * matched bare. */
-:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([popup-window]):not([chromeless-window]):not([web-extension-popup-window])
-  #tabbrowser-tabpanels
-  .browserSidebarContainer {
-  margin: 0 var(--koi-gutter) var(--koi-gutter);
-  /* clip, not hidden: the corners must cut the page content. */
-  overflow: clip;
-  border-radius: var(--koi-radius-page);
-  box-shadow:
-    var(--koi-shadow-high),
-    0 0 0 0.5px var(--koi-page-ring);
-  /* The shadow stops at the top edge: the panels paint after the toolbox,
-   * so it would fall across the tab that joins the card. */
-  clip-path: inset(0 -100vmax -100vmax);
+:root:not([inDOMFullscreen="true"]):not([inFullscreen]):not([popup-window]):not([chromeless-window]):not([web-extension-popup-window]) {
+  & :is(#nav-bar, #notifications-toolbar) {
+    margin-inline: var(--koi-gutter);
+  }
+
+  & #nav-bar {
+    border-radius: var(--koi-radius-page) var(--koi-radius-page) 0 0;
+  }
+
+  & #tabbrowser-tabpanels .browserSidebarContainer {
+    margin: 0 var(--koi-gutter) var(--koi-gutter);
+    /* clip, not hidden: the corners must cut the page content. */
+    overflow: clip;
+    border-radius: var(--koi-radius-card);
+    box-shadow:
+      var(--koi-shadow-high),
+      0 0 0 0.5px var(--koi-page-ring);
+    /* The shadow stops at the top edge: the panels paint after the toolbox,
+     * so it would fall across the toolbar. */
+    clip-path: inset(0 -100vmax -100vmax);
+  }
 }
 
 /* The page ground, behind a page that has not painted yet or paints no
