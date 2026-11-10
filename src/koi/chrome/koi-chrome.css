@@ -17,9 +17,9 @@
  *
  * Spacing: each row has a declared height so content cannot inflate it
  * (koi-theme.css, Chrome), and every control is a ROW, 36px, with 4px above
- * and below. Along a row: 4px between neighbours (tabs, buttons), 8px where
- * a group ends (after the traffic lights, at both ends of the tab strip),
- * and a control's box 4px inside the card's edges at each end of both rows. */
+ * and below. Along a row: 4px between neighbours (tabs, buttons, and the
+ * buttons either side of the tabs), 8px after the traffic lights, and a
+ * control's box 4px inside the card's edges at each end of both rows. */
 
 /* The rows ------------------------------------------------------------------ */
 
@@ -204,8 +204,8 @@
 
 /* Firefox puts a separator before the strip when a button precedes it
  * (tabs.css ::before). --tabstrip-inner-border takes its line; its box, 4px
- * wide, goes here, so the strip's own padding is the only space at its
- * start (The strip's ends, below). Three ids, to outrank Firefox's selector:
+ * wide, goes here, so the board button is 4px from the first tab, like
+ * every gap in the row. Three ids, to outrank Firefox's selector:
  * nested, it takes its list's highest specificity, two ids. */
 #navigator-toolbox #TabsToolbar #tabbrowser-tabs[orient="horizontal"]::before {
   display: none;
@@ -591,7 +591,7 @@
 /* The join: the fill runs the row's last 4px down to the toolbar, square at
  * the foot, and a curve on each side, the tab's own radius, turns it into
  * the toolbar's top edge. The curves sit outside the tab, past its 2px clip
- * margin, in the gap to its neighbour (The strip's ends, below). Not while a tab
+ * margin, over the gap and the neighbour's edge (The strip's ends, below). Not while a tab
  * is dragged: Firefox lifts it out of the row, so it is a pill until it lands. */
 #tabbrowser-tabs[orient="horizontal"]:not([movingtab]) .tabbrowser-tab[visuallyselected] {
   overflow-clip-margin: var(--tab-border-radius);
@@ -660,30 +660,32 @@
 }
 
 /* The strip's ends -----------------------------------------------------------
- * 4px of padding inside the scroll area, at each end. With a tab's 2px clip
- * margin and a button's 2px outer padding, the board button before the tabs
- * and the + after them sit 8px away, the lights' spacing. It is also the
- * room an end tab's curve is drawn in: the scroll area clips at its padding
- * edge, and without it the first and last tab lose a foot. (The curve's
- * outer 2px fall past the padding; there it is a quarter of a pixel tall.)
- * The scroll padding keeps that room when a full strip scrolls a tab into
- * view (arrowscrollbox.js, scrollIntoView), which otherwise stops at the
- * tab's own edge.
+ * The board button before the tabs and the + after them are 4px away, like
+ * a tab's neighbour: a tab's 2px clip margin and a button's 2px outer
+ * padding, with nothing added. An end tab's curve is wider than that and,
+ * as between two tabs, runs under its neighbour, but the scroll area clips
+ * at its padding edge, where the first and last tab sit. So the area is
+ * 4px larger at each end and nothing moves: padding inside it, cancelled by
+ * the same margin on the scroll box, which carries the fade mask and would
+ * clip there too. (The curve's outer 2px fall past the padding; there it is
+ * a quarter of a pixel tall.) The scroll padding keeps that room when a
+ * full strip scrolls a tab into view (arrowscrollbox.js, scrollIntoView),
+ * which otherwise stops at the tab's own edge.
  *
  * The + is #tabs-newtab-button inside the strip until it overflows, then
- * #new-tab-button beside it, past the padding. Inside, it follows the last
- * tab directly, ahead of the padding, so it brings the 4px itself.
+ * #new-tab-button beside it. Both are dressed as toolbar buttons and take
+ * this spacing with no rule of their own.
  *
  * ponytail: pinned tabs scroll in their own area (#pinned-tabs-container),
  * unpadded, so a selected first pin has no leading curve. Pad it too if pins
  * come into use. */
-#tabbrowser-arrowscrollbox[orient="horizontal"]::part(scrollbox) {
-  padding-inline: var(--koi-space-4);
-  scroll-padding-inline: var(--koi-space-4);
-}
+#tabbrowser-arrowscrollbox[orient="horizontal"] {
+  margin-inline: calc(-1 * var(--koi-space-4));
 
-#tabs-newtab-button {
-  margin-inline-start: var(--koi-space-4);
+  &::part(scrollbox) {
+    padding-inline: var(--koi-space-4);
+    scroll-padding-inline: var(--koi-space-4);
+  }
 }
 
 /* Overflow --------------------------------------------------------------------

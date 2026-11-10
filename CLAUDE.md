@@ -677,9 +677,8 @@ named.
   `#notifications-toolbar` (since 157 it holds every tab's notification
   bars) follows the toolbar, inside the card. One spacing rule runs through
   both rows (koi-chrome.css's header): each is 44 with 36 controls, 4
-  between neighbours, 8 where a group ends (after the traffic lights, at
-  both ends of the tab strip), and a control's box 4 inside the card's
-  edges, so the rows' ends and glyphs line up. There is no bookmarks row: it
+  between neighbours, 8 after the traffic lights, and a control's box 4
+  inside the card's edges, so the rows' ends and glyphs line up. There is no bookmarks row: it
   is hidden and its pref locked to never (bookmarks are the empty tab's
   pins).
 - **The toolbar is the top of the card, and the selected tab is the
