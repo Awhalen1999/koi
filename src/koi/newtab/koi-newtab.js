@@ -44,8 +44,7 @@
         return node;
       };
 
-      // The card: mark, the ⌘L line, pins, and a label showing the hovered
-      // pin's host.
+      // The card: mark, the ⌘L line and the pins.
       const card = el("div");
       card.id = "koi-empty-state";
 
@@ -70,28 +69,18 @@
         }
       };
 
-      // A stable colour per site: the www-less host hashed into the tile
-      // palette (koi-newtab.css).
-      const tileOf = uri => {
-        let hash = 0;
-        for (const ch of hostOf(uri)) {
-          hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
-        }
-        return "koi-tile-" + (hash % 6);
-      };
-
       const pins = el("div", "koi-empty-pins");
-      const pinLabel = el("div", "koi-empty-pin-label");
 
-      card.append(mark, line, pins, pinLabel);
+      card.append(mark, line, pins);
       tabbox.append(card);
 
       // Pins are the bookmarks toolbar folder's direct children (where the
       // star saves), capped; the rest is ⌘L's. fetch({ parentGuid }) is one
       // query over direct children (Bookmarks.sys.mjs), where
       // promiseBookmarksTree would walk every subfolder on every new tab.
-      // Refetched on every reveal. A site with no favicon in Places gets a
-      // letter tile.
+      // Refetched on every reveal. A pin is a chip: the favicon and the
+      // bookmark's name, or the host for one saved without a name. page-icon:
+      // serves Firefox's globe for a site with no favicon in Places.
       let revealGeneration = 0;
       async function refreshPins() {
         const generation = ++revealGeneration;
@@ -112,59 +101,42 @@
           // Places not ready (first run): an empty row is fine.
         }
 
-        const icons = await Promise.all(
-          items.map(item =>
-            PlacesUtils.favicons
-              .getFaviconForPage(Services.io.newURI(item.uri))
-              .catch(() => null)
-          )
-        );
         if (generation !== revealGeneration) {
-          // A newer reveal is already rebuilding the row.
+          // A newer reveal is already rebuilding the rows.
           return;
         }
 
-        pins.replaceChildren();
-        pinLabel.textContent = "";
-        items.forEach((item, i) => {
-          const pin = el("button", "koi-empty-pin");
-          pin.setAttribute("aria-label", item.title || item.uri);
-          if (icons[i]) {
+        pins.replaceChildren(
+          ...items.map(item => {
+            const pin = el("button", "koi-empty-pin");
+            const name = item.title?.trim() || hostOf(item.uri);
+            // The name may be cut short; the tooltip has it whole, and the
+            // address.
+            pin.setAttribute("tooltiptext", `${name}\n${item.uri}`);
             const icon = el("img", "koi-empty-pin-icon");
             icon.src = "page-icon:" + item.uri;
             icon.alt = "";
-            pin.append(icon);
-          } else {
-            // No favicon: the site's initial on its hashed colour.
-            const name = (item.title || "").trim() || hostOf(item.uri);
-            pin.classList.add(tileOf(item.uri));
-            const letter = el("span", "koi-empty-pin-letter");
-            letter.textContent = name ? name[0].toUpperCase() : "•";
-            pin.append(letter);
-          }
-          pin.addEventListener("click", event => {
-            openTrustedLinkIn(
-              item.uri,
-              event.metaKey || event.ctrlKey ? "tab" : "current"
-            );
-          });
-          // The label follows the hovered or focused pin; leaving clears it
-          // only if it is still this pin's.
-          const host = hostOf(item.uri);
-          const show = () => {
-            pinLabel.textContent = host;
-          };
-          const clear = () => {
-            if (pinLabel.textContent === host) {
-              pinLabel.textContent = "";
-            }
-          };
-          pin.addEventListener("mouseenter", show);
-          pin.addEventListener("focus", show);
-          pin.addEventListener("mouseleave", clear);
-          pin.addEventListener("blur", clear);
-          pins.append(pin);
-        });
+            const label = el("span", "koi-empty-pin-name");
+            label.textContent = name;
+            pin.append(icon, label);
+            pin.addEventListener("click", event => {
+              openTrustedLinkIn(
+                item.uri,
+                event.metaKey || event.ctrlKey ? "tab" : "current"
+              );
+            });
+            return pin;
+          })
+        );
+        // Now that they are laid out: which names are cut short, for the
+        // fade (koi-newtab.css). A chip's width does not follow the window,
+        // so once is enough.
+        for (const label of pins.querySelectorAll(".koi-empty-pin-name")) {
+          label.toggleAttribute(
+            "textoverflow",
+            label.scrollWidth > label.clientWidth
+          );
+        }
       }
 
       // Not tab.isEmpty, which also requires no session history, so a tab

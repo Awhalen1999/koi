@@ -4,8 +4,8 @@
 
 /* Koi's design system: the tokens every Koi stylesheet is written in. No
  * size, colour or shadow is written anywhere else, except where a comment
- * at the use site says why (the empty state's letter tiles, about:rights'
- * light ink, a page's own measure). All are --koi-* because Firefox defines
+ * at the use site says why (about:rights' light ink, a page's own
+ * measure). All are --koi-* because Firefox defines
  * hundreds of custom properties on the same :root. A token nothing uses is
  * deleted. Koi's chrome sheets load after Firefox's (koi-assets.inc.xhtml),
  * so they win specificity ties without !important; the about: pages link

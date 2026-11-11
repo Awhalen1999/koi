@@ -27,10 +27,12 @@
 
 /* The mark at a ROW's height; its width follows the drawing. */
 .koi-empty-mark {
+  flex: none;
   height: var(--koi-row);
 }
 
 .koi-empty-line {
+  flex: none;
   display: flex;
   align-items: center;
   gap: var(--koi-space-8);
@@ -52,106 +54,84 @@
   color: var(--koi-fg);
 }
 
+/* The pins: each a chip in a tab's shape and measures (a ROW, the tab's
+ * inset, icon gap and widest), wrapping in centred rows no wider than four
+ * of the widest. With more than the card can hold, the pins scroll; the mark
+ * and the line stay. */
 .koi-empty-pins {
+  pointer-events: auto;
   display: flex;
-  /* Eight tiles a row, centred; koi-newtab.js caps pins at 24 (three rows). */
   flex-wrap: wrap;
   justify-content: center;
-  max-width: calc(8 * var(--koi-tile-large) + 7 * var(--koi-space-12));
-  align-items: center;
-  gap: var(--koi-space-12);
+  gap: var(--koi-space-8);
+  max-width: calc(4 * var(--koi-tab-max) + 3 * var(--koi-space-8));
+  min-height: 0;
   margin-top: var(--koi-space-32);
+  overflow-y: auto;
 
-  /* No bookmarks: no row and no margins. */
+  /* No bookmarks: no rows and no margin. */
   &:empty {
     display: none;
-
-    & + .koi-empty-pin-label {
-      display: none;
-    }
   }
 }
 
+/* A control at rest on the solid: LIFT, then HOVER, then the WELL pressed. */
 .koi-empty-pin {
-  pointer-events: auto;
   appearance: none;
-  border: none;
-  width: var(--koi-tile-large);
-  height: var(--koi-tile-large);
+  box-sizing: border-box;
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: var(--koi-radius-page);
+  gap: var(--koi-space-8);
+  height: var(--koi-row);
+  max-width: var(--koi-tab-max);
+  padding-inline: var(--koi-inset);
+  border: none;
+  border-radius: var(--koi-radius-pill);
   background: var(--koi-fill-lift);
-  box-shadow: var(--koi-shadow-low);
+  color: var(--koi-fg);
+  font: inherit;
+  font-size: var(--koi-text-13);
 
   &:hover {
     background: var(--koi-fill-hover);
-    box-shadow: var(--koi-shadow-high);
   }
 
-  /* Pressed, the shadow returns to rest; a letter tile keeps its colour. */
   &:hover:active {
-    box-shadow: var(--koi-shadow-low);
+    background: var(--koi-glass-well);
   }
 
   &:focus-visible {
     outline: var(--focus-outline);
-    outline-offset: var(--focus-outline-offset);
+    outline-offset: var(--focus-outline-inset);
   }
 }
 
+/* The site's favicon, or Firefox's globe for a site without one (page-icon:
+ * serves either), which is drawn in the chrome's ink. */
 .koi-empty-pin-icon {
-  width: var(--koi-icon-24);
-  height: var(--koi-icon-24);
+  flex: none;
+  width: var(--koi-icon-16);
+  height: var(--koi-icon-16);
   border-radius: var(--koi-radius-favicon);
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
 }
 
-/* A pin with no favicon in Places: the site's initial on one of six
- * colours, hashed from the host. After the hover rule at equal
- * specificity, so the colour holds under the pointer. */
-.koi-empty-pin-letter {
-  font-size: var(--koi-text-15);
-  font-weight: 600;
-  color: var(--koi-fg);
-}
+/* The bookmark's name. One too long for its chip fades out as a tab's title
+ * does: over the tab's own length, ending at the chip's inset. Styles cannot
+ * tell which names overflow, so koi-newtab.js marks them [textoverflow], as
+ * Firefox marks a tab's label. */
+.koi-empty-pin-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 
-.koi-empty-pin.koi-tile-0 {
-  background: #5558d6;
-}
+  &[textoverflow] {
+    mask-image: linear-gradient(to left, transparent, black var(--koi-space-16));
 
-.koi-empty-pin.koi-tile-1 {
-  background: #8b5cf6;
-}
-
-.koi-empty-pin.koi-tile-2 {
-  background: #4c82e8;
-}
-
-.koi-empty-pin.koi-tile-3 {
-  background: #e0674a;
-}
-
-.koi-empty-pin.koi-tile-4 {
-  background: #3a3f4a;
-}
-
-.koi-empty-pin.koi-tile-5 {
-  background: #46a0ac;
-}
-
-.koi-empty-pin-label {
-  height: var(--koi-space-16);
-  margin-top: var(--koi-space-12);
-  display: flex;
-  align-items: center;
-  font-size: var(--koi-text-11);
-  color: var(--koi-fg-2);
-  opacity: 0;
-  transition: opacity var(--koi-fade);
-
-  &:not(:empty) {
-    opacity: 1;
+    &:-moz-locale-dir(rtl) {
+      mask-image: linear-gradient(to right, transparent, black var(--koi-space-16));
+    }
   }
 }

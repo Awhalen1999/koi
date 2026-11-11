@@ -944,8 +944,8 @@ named.
   rest, well, hover, raised: white films on it); one SOLID for everything on or over the page,
   with its own steps (rule, lift, hover, then the glass well); one scrim and
   three shadows. No size, colour or shadow is written anywhere else, except
-  where the use site says why (the empty state's letter tiles, about:rights'
-  light ink, a page's reading measure). A new surface picks a family; a new
+  where the use site says why (about:rights' light ink, a page's reading
+  measure). A new surface picks a family; a new
   value goes into koi-theme.css first. Verified 2026-10-29 by capturing every
   surface before and after (scratchpad/ds). Two traps found: a Firefox
   rule that paints a glyph's fill through context-stroke (the app menu's
@@ -1021,7 +1021,11 @@ named.
 - **The startup page is the empty state**: `browser.startup.homepage` is
   about:newtab, the + tab's page, so the first tab gets the mark like every
   other, and session restore is on request (History ▸ Restore Previous
-  Session).
+  Session). Its pins are chips (2026-11-11;
+  koi-newtab.css): the favicon and the bookmark's name in a tab's shape,
+  wrapping in centred rows, up to 24. Icon-only tiles left the names to a
+  hover; a site with no favicon gets Firefox's globe, where letter tiles on
+  six colours were.
 
 **Not yet done:** Agent Connect's pick-and-copy (phase 3), the field-as-progress-bar
 tint, re-pointing View › Show All Tabs at the board, a bookmarks surface with
