@@ -81,7 +81,8 @@ kbd {
   border-radius: var(--koi-radius-favicon);
   background: var(--koi-glass-well);
   color: var(--koi-fg);
-  font-family: var(--koi-font-mono);
+  /* A kbd is mono by default; Koi has none. */
+  font-family: inherit;
   font-size: var(--koi-text-11);
 }
 

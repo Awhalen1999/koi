@@ -683,10 +683,11 @@ named.
   pins).
 - **The toolbar is the top of the card, and the selected tab is the
   toolbar's** (2026-11-09; koi-shell.css, The card; koi-chrome.css, The
-  selected tab). The glass is the window and is always dark: a dark coat on
-  the blur, white ink. The toolbar, the selected tab and the empty tab are
+  selected tab). The glass is the window and is always dark: a grey film at
+  half strength on the blur, white ink, resting tab names at the second ink. The toolbar, the selected tab and the empty tab are
   the solid; the address field is the solid's LIFT, mixed opaque for its
-  dropdown. Tabs are Firefox's own height, soft pills at rest; the selected
+  dropdown. Tabs are Firefox's own height, with no fill at rest and a pill under the
+  pointer (2026-11-11; a resting fill was taken out); the selected
   one runs down into the toolbar with a curve at each foot, so the join is
   Koi's surface on both sides. A tab that wore the page's colour and joined
   the page itself was built and taken out the same day: a flat colour shows
@@ -827,15 +828,17 @@ named.
   2026-10-30 and 31). Only the chrome moves, and nothing springs, bounces or
   slides across it: a change is mostly done before it is noticed and ends
   where no one is looking. One curve, quick then soft, in four lengths: FADE
-  (150ms) for a state letting go (a hover fill, the old tab's fill), ARRIVE
-  (200ms) for a surface coming in (the board crossfades with its cards
+  (150ms) for something changing in place that the pointer did not ask for
+  (a tab's content as its slot opens, a tray's tint during a drag), ARRIVE
+  (130ms) for a surface coming in (the board crossfades with its cards
   settling from 98%, a tab's slot grows, a folder's tabs grow out of its
   chip), LEAVE (120ms) for one going (the board shrinking back as it fades,
   a tab's slot closing), SETTLE (150ms) for a shape giving way (a folder's
   tray parting into tiles for a drag). A state answering the pointer or the
-  keyboard is instant, as on macOS: every hover, a button whose panel is
-  open and the selected tab's fill turn their transition off, so a fade is
-  only ever the letting go. A tab's content fades in as its slot opens and
+  keyboard is instant both ways, as on macOS: a hover, a press, a button
+  whose panel is open and the selected tab's fill have no transition,
+  arriving or letting go (2026-11-11; letting go used to fade, which read
+  as slower). A tab's content fades in as its slot opens and
   out as it closes, so a title is never seen squeezed; that means showing
   what Firefox hides while a tab is not [fadein], at tabs.css's specificity,
   with pointer events off. A folder closes at once (Firefox shrinks its tabs
@@ -921,10 +924,10 @@ named.
   pill's glyph gap); one ladder of heights (BOX 20, PILL-SMALL 24, PILL 28,
   TILE-SMALL 32, ROW 36, TILE 40, 48); icons 10–24; radii by the box's
   height (4 to a BOX, 6, 8 for a PILL or ROW, 10, 12, 16 for a panel); type
-  (11, 12, 13, 15, 24, with leading for the three UI sizes; mono for
-  addresses at 12); INK (three whites); the accent, private, agent and
+  (11, 12, 13, 15, 24, with leading for the three UI sizes; the system font
+  throughout, with no mono: tabs and the address are 13); INK (three whites); the accent, private, agent and
   danger colours and the nine folder colours, with TINT (18%) and
-  TINT-STRONG (30%) as a colour's film; GLASS (the shell's dark coat, then
+  TINT-STRONG (30%) as a colour's film; GLASS (the shell's grey film, then
   rest, well, hover, raised: white films on it); one SOLID for everything on or over the page,
   with its own steps (rule, lift, hover, then the glass well); one scrim and
   three shadows. No size, colour or shadow is written anywhere else, except

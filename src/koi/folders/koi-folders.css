@@ -86,11 +86,6 @@ tab-group > .tab-group-label-container,
   }
 }
 
-/* In the tray a tab at rest has no fill of its own: the tray is its fill. */
-tab-group > .tabbrowser-tab {
-  --tab-background-color: transparent;
-}
-
 #tabbrowser-tabs[orient="horizontal"]:not([movingtab]) tab-group > .tabbrowser-tab[visuallyselected] {
   --koi-folder-foot: calc(-1 * var(--tab-margin-block));
 }
@@ -242,9 +237,7 @@ tab-group > .tabbrowser-tab {
   border-radius: var(--koi-radius-pill);
   background-color: transparent;
   box-shadow: none;
-  transition:
-    background-color var(--koi-fade),
-    opacity var(--koi-fade);
+  transition: opacity var(--koi-fade);
 
   & > * {
     grid-area: 1 / 1;
@@ -255,11 +248,9 @@ tab-group > .tabbrowser-tab {
 #tabbrowser-tabs[orient="horizontal"] tab-group[previewpanelactive] > .tab-group-label-container > .tab-group-label-hover-highlight {
   background-color: var(--koi-glass-hover);
   box-shadow: none;
-  transition: none;
 
   & > .tab-group-label {
     color: var(--koi-fg);
-    transition: none;
   }
 }
 
@@ -274,13 +265,12 @@ tab-group > .tabbrowser-tab {
   padding-inline: var(--tab-inline-padding);
   line-height: var(--tab-min-height);
   text-align: start;
-  font-size: var(--koi-text-12);
+  font-size: var(--koi-text-13);
   font-weight: 500;
   color: var(--koi-fg-2);
   background-color: transparent;
   outline: none;
   border-radius: var(--koi-radius-pill);
-  transition: color var(--koi-fade);
 
   /* The folder's icon, in its colour, before the name: the plain folder
    * until one is picked (--koi-folder-glyph, koi-folders.js). */

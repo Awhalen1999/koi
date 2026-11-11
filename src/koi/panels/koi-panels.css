@@ -109,7 +109,6 @@ panel[type="arrow"] .panel-header {
 
   & .tab-preview-uri {
     color: var(--koi-fg-3);
-    font-family: var(--koi-font-mono);
     font-size: var(--koi-text-12);
   }
 
@@ -183,7 +182,6 @@ panel[type="arrow"] .panel-header {
   color: var(--koi-fg);
   color-scheme: dark;
   box-shadow: inset 0 0 0 0.5px var(--koi-hair);
-  font-family: var(--koi-font-mono);
   font-size: var(--koi-text-12);
 }
 
@@ -311,10 +309,9 @@ toolbarseparator.proton-zap {
   color: var(--koi-danger);
 }
 
-/* Site information: the header is the host alone (koi.ftl), in the address
- * field's type; "Connection not secure" takes the danger ink its icon has. */
+/* Site information: the header is the host alone (koi.ftl), at the address
+ * field's size; "Connection not secure" takes the danger ink its icon has. */
 #identity-popup-mainView-panel-header-span {
-  font-family: var(--koi-font-mono);
   font-size: var(--koi-text-13);
 }
 

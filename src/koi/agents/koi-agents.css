@@ -20,8 +20,8 @@
   }
 }
 
-/* The address field's type is mono; the label is a control, in the system
- * font. */
+/* The label is a control inside the address field: a badge, at the
+ * secondary size. */
 #koi-agents-label {
   appearance: none;
   display: flex;
@@ -34,10 +34,8 @@
   border-radius: var(--koi-radius-favicon);
   background-color: color-mix(in srgb, var(--koi-agent) var(--koi-tint), transparent);
   color: var(--koi-agent-ink);
-  font: menu;
   font-size: var(--koi-text-12);
   font-weight: 500;
-  transition: background-color var(--koi-fade);
 
   &::before {
     content: "";
@@ -50,7 +48,6 @@
 
   &:hover {
     background-color: color-mix(in srgb, var(--koi-agent) var(--koi-tint-strong), transparent);
-    transition: none;
   }
 
   &[hidden] {
@@ -309,11 +306,9 @@
   color: var(--button-text-color);
   font: inherit;
   font-weight: 500;
-  transition: background-color var(--koi-fade);
 
   &:hover {
     background-color: var(--button-background-color-hover);
-    transition: none;
   }
 
   &:hover:active {

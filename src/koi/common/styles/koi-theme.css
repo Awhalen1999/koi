@@ -92,13 +92,12 @@
 
   /* Type ------------------------------------------------------------------
    * The chrome's `font: menu` is already SF; the sans stack is for Koi's own
-   * pages, which get no UI font. One mono stack, for addresses and hosts.
-   * Sizes: 11 for a caption, a count or a keycap; 12 for the chrome's
-   * labels (tabs, bookmarks, secondary text in a row); 13 for a row's
-   * text; 15 for a panel's title; 24 for a page's. Leading pairs with the
+   * pages, which get no UI font. There is no mono: an address is set like
+   * any other text. Sizes: 11 for a caption, a count or a keycap; 12 for
+   * secondary text in a row; 13 for the chrome's labels (tabs, the
+   * address) and a row's text; 15 for a panel's title; 24 for a page's. Leading pairs with the
    * three UI sizes where a block wraps or stacks. */
   --koi-font-sans: -apple-system, system-ui, sans-serif;
-  --koi-font-mono: ui-monospace, "SF Mono", monospace;
 
   --koi-text-11: 11px;
   --koi-text-12: 12px;
@@ -167,14 +166,17 @@
    * patch), and page content renders out of process; backdrop-filter has
    * nothing to sample in either place. These films carry the chrome band.
    *
-   * SHELL is the window's own film, a dark coat: it deepens the wallpaper
-   * so white ink and the solid surfaces read against any of it. On it, a
-   * ladder of white films:
-   *   REST   — a tab at rest
+   * SHELL is the window's own film: a grey at half strength, so the
+   * wallpaper tints the window but never decides it. The grey is lighter
+   * than the solid, which keeps the glass above the card on a dark
+   * wallpaper (a thin dark coat let it fall to the card's own black, and the
+   * toolbar and selected tab vanished), and it holds a bright wallpaper
+   * down for the white ink. On it, a ladder of white films:
+   *   REST   — the base of a folder's tray
    *   WELL   — any glyph's hover (focus is the caret's job)
    *   HOVER  — a hovered pill, a pressed glyph
    *   RAISED — the active surface (a selected row, the board's focused card) */
-  --koi-glass-shell: rgba(12, 14, 18, 0.16);
+  --koi-glass-shell: rgba(72, 74, 80, 0.5);
   --koi-glass-rest: rgba(255, 255, 255, 0.1);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
   --koi-glass-hover: rgba(255, 255, 255, 0.22);
@@ -227,10 +229,12 @@
    * the shell, and nothing holds the user up: a change is mostly done
    * before it is noticed and ends where no one is looking (the shell's
    * curve is quick then soft; the lengths set the weight). A state
-   * answering the pointer or the keyboard is instant, as on macOS: the use
-   * sites turn their transition off under :hover. Four timings:
-   *   FADE    a state letting go once the pointer or the selection has
-   *           moved on (a hover fill, the old tab's fill)
+   * answering the pointer or the keyboard is instant both ways, as on
+   * macOS: a hover, a press and a selection have no transition, arriving
+   * or letting go. Four timings:
+   *   FADE    something changing in place that the pointer did not ask for
+   *           (a tab's content as its slot opens, the strip's edge mask, a
+   *           tray's tint during a drag)
    *   ARRIVE  a surface coming in (the board, a tab's slot, a folder's tabs)
    *   LEAVE   a surface going: shorter, so nothing is waited for
    *   SETTLE  a shape giving way (a folder's tray parting into tiles for a
@@ -238,7 +242,7 @@
    * Only the chrome moves. Panels and the address dropdown appear in place:
    * each is opened many times an hour. */
   --koi-fade: 150ms linear;
-  --koi-arrive: 200ms cubic-bezier(0.2, 0, 0, 1);
+  --koi-arrive: 130ms cubic-bezier(0.2, 0, 0, 1);
   --koi-leave: 120ms cubic-bezier(0.2, 0, 0, 1);
   --koi-settle: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
   /* A status leaving: slower than it arrived, so a glance still catches it

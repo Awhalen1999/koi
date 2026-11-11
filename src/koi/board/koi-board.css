@@ -70,13 +70,11 @@
   box-shadow:
     var(--koi-shadow-high),
     0 0 0 0.5px var(--koi-hair);
-  transition: box-shadow var(--koi-fade);
 
   &:hover {
     box-shadow:
       var(--koi-shadow-high),
       0 0 0 1px var(--koi-fg-3);
-    transition: none;
   }
 
   &.koi-card-current {
@@ -104,7 +102,7 @@
   gap: var(--koi-space-8);
   padding-inline: var(--koi-inset) var(--koi-space-4);
   color: var(--koi-fg);
-  font-size: var(--koi-text-12);
+  font-size: var(--koi-text-13);
 }
 
 .koi-card-icon {
@@ -136,14 +134,10 @@
   background: center / var(--koi-icon-12) no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
-  transition:
-    background-color var(--koi-fade),
-    fill var(--koi-fade);
 
   &:hover {
     fill: var(--koi-fg);
     background-color: var(--koi-glass-well);
-    transition: none;
   }
 
   &:hover:active {

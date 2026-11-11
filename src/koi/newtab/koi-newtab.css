@@ -46,7 +46,8 @@
   padding: 0 var(--koi-space-8);
   border-radius: var(--koi-radius-favicon);
   background: var(--koi-fill-lift);
-  font-family: var(--koi-font-mono);
+  /* A kbd is mono by default; Koi has none. */
+  font-family: inherit;
   font-size: var(--koi-text-11);
   color: var(--koi-fg);
 }
@@ -84,14 +85,10 @@
   border-radius: var(--koi-radius-page);
   background: var(--koi-fill-lift);
   box-shadow: var(--koi-shadow-low);
-  transition:
-    background var(--koi-fade),
-    box-shadow var(--koi-fade);
 
   &:hover {
     background: var(--koi-fill-hover);
     box-shadow: var(--koi-shadow-high);
-    transition: none;
   }
 
   /* Pressed, the shadow returns to rest; a letter tile keeps its colour. */
@@ -149,7 +146,6 @@
   margin-top: var(--koi-space-12);
   display: flex;
   align-items: center;
-  font-family: var(--koi-font-mono);
   font-size: var(--koi-text-11);
   color: var(--koi-fg-2);
   opacity: 0;

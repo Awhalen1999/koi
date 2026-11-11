@@ -38,12 +38,13 @@
    * zeroed here, not on #urlbar, for both halves to agree. */
   --urlbar-background-overhang-open: 0px;
 
-  /* Tab pills (tab.tokens.css): REST, then HOVER under the pointer. The
-   * selected tab's fill is set on the tab (The selected tab, below). */
+  /* Tab pills (tab.tokens.css): no fill at rest (Firefox's default), HOVER
+   * under the pointer, with the name at the second ink until then, so the
+   * selected tab's is the one full-white name in the row. The selected
+   * tab's fill is set on the tab (The selected tab, below). */
   --tab-border-radius: var(--koi-radius-pill);
-  --tab-background-color: var(--koi-glass-rest);
   --tab-background-color-hover: var(--koi-glass-hover);
-  --tab-text-color: var(--koi-fg);
+  --tab-text-color: var(--koi-fg-2);
   --tab-text-color-hover: var(--koi-fg);
   --tab-box-shadow-selected: none;
   /* Nova paints a gradient ring in the selected tab's border (tabs.css); the
@@ -311,16 +312,6 @@
 
   & .toolbarbutton-1 {
     color: var(--koi-fg);
-
-    & > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
-      transition: background-color var(--koi-fade);
-    }
-
-    /* Answering the pointer, or opening a panel, is instant; letting go
-     * fades (koi-theme.css, Motion). */
-    &:is(:hover, [open]) > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
-      transition: none;
-    }
   }
 }
 
@@ -359,6 +350,9 @@
   --urlbar-box-background-color-active: var(--koi-glass-well);
   margin-inline: 0;
   color: var(--koi-fg);
+  /* One size for what is typed and the results under it, which inherit it
+   * (Firefox's 1.25em of the chrome's 11px root comes to 13.75). */
+  font-size: var(--koi-text-13);
 
   & > .urlbar-background {
     box-shadow: inset 0 0 0 0.5px var(--koi-hair);
@@ -387,8 +381,6 @@
   }
 
   & .urlbar-input {
-    font-family: var(--koi-font-mono);
-    font-size: var(--koi-text-12);
     color: var(--koi-fg);
 
     &::placeholder {
@@ -427,7 +419,7 @@
     display: none;
   }
 
-  /* The rows: a result's address in the field's mono at the third ink
+  /* The rows: a result's address at the third ink and the secondary size
    * (Firefox colours it as a link, through --link-color, and sizes it
    * 0.85em), with no dash between title and address; a folder's chip is
    * the folder's TINT under its own ink, not Firefox's solid fill; an action
@@ -443,7 +435,6 @@
   }
 
   & .urlbarView-url {
-    font-family: var(--koi-font-mono);
     font-size: var(--koi-text-12);
   }
 
@@ -476,22 +467,12 @@
 
 .tabbrowser-tab {
   color: var(--koi-fg);
-  font-size: var(--koi-text-12);
+  font-size: var(--koi-text-13);
   /* A tab's slot grows in on ARRIVE and closes on LEAVE (Firefox: 100ms
    * both ways), and a long title fades out over 16px rather than Firefox's
    * 1em. */
   --tab-width-transition: min-width var(--koi-arrive), max-width var(--koi-arrive);
   --tab-label-mask-size: var(--koi-space-16);
-
-  /* The fill answers at once and lets go over FADE (tab.tokens.css paints
-   * the fills). */
-  & .tab-background {
-    transition: background-color var(--koi-fade);
-  }
-
-  &:is(:hover, [selected]) .tab-background {
-    transition: none;
-  }
 
   /* The content fades in as the slot opens and out as it closes, so a
    * title is never seen squeezed into a half-open tab. Firefox hides the
@@ -650,12 +631,10 @@
 
   &::part(button) {
     fill: var(--koi-fg-2);
-    transition: fill var(--koi-fade);
   }
 
   &:hover::part(button) {
     fill: var(--koi-fg);
-    transition: none;
   }
 }
 
