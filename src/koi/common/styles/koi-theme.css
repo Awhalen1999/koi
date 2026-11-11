@@ -201,12 +201,18 @@
    * (a lighter fill, and for a row a small shadow); HOVER, a hovered control
    * or a pressed row; then the glass WELL for a pressed control. RULE is the
    * hairline between groups of rows. */
-  --koi-solid: #1c1c1e;
+  --koi-solid: #121212;
   --koi-solid-light: #fff;
   /* LIFT mixed opaque, for a surface on the solid that also leaves it: the
    * address field, whose results hang over the page. */
   --koi-solid-lift: color-mix(in srgb, #fff 9%, var(--koi-solid));
   --koi-solid-panel: color-mix(in srgb, var(--koi-solid) 98%, transparent);
+  /* BAR: the solid where the blurred wallpaper is behind it (the toolbar,
+   * its notification bars and the selected tab), thinned so a little of the
+   * glass comes through and the window reads as one piece. Only there:
+   * over a page nothing is blurred. Its pieces must never overlap, or the
+   * overlap shows twice as dark. */
+  --koi-solid-bar: color-mix(in srgb, var(--koi-solid) 85%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);
   --koi-fill-hover: rgba(255, 255, 255, 0.14);

@@ -507,7 +507,7 @@ Derived, never hand-edit: `default{N}.png`, `firefox.icns` (async-icns from
 `content/aboutDialog.css` + `stubinstaller/*.css`.
 
 Still Mozilla's, deliberately: `document.icns` (file-type icon),
-`document_pdf.svg`, `Assets.car`, and `disk.icns`, which only `mach
+`document_pdf.svg`, and `disk.icns`, which only `mach
 package`'s intermediate DMG uses (scripts/release.sh gives the volume
 `firefox.icns`).
 
@@ -537,13 +537,34 @@ and `" "`). Test by building a DMG with release.sh's make_dmg line around
 any packaged Koi.app and opening it in the VM. Finder's own AppleScript
 route needs an Automation prompt, which ignores synthetic clicks.
 
-**`Assets.car` must stay unused.** It is the macOS 26 asset-catalog icon
-copied from `unofficial` (the blue globe), and macOS 26 prefers it over
-`firefox.icns` whenever Info.plist names it. `Info-plist-in.patch` drops
-`CFBundleIconName`. A Koi
-`Assets.car` (built from an Icon Composer file) is the route to a native
-Liquid Glass icon. A Dock icon still wrong after a rebuild is LaunchServices'
-cache: `touch` the bundle, `lsregister -f` it, relaunch.
+**The app icon is `scripts/AppIcon.icon`, compiled to `Assets.car`**
+(2026-11-11). macOS 26 shrinks an app without a layered icon onto a plate,
+which is how Koi looked in system menus while it shipped only
+`firefox.icns`. The icon is an Icon Composer document written by hand: a
+light tile (`#f2f0ed`) with the graphite mark for the default appearance, a
+dark one (`#131417`) with the silver mark for Dark, and the silver mark for
+Clear and Tinted (the `tinted` appearance covers both), switched by
+`opacity-specializations` on two layers. Light is the default, so it is
+what most people see. Compile it with `xcrun actool scripts/AppIcon.icon
+--compile <dir> --app-icon AppIcon --platform macosx
+--minimum-deployment-target 10.15 --output-partial-info-plist <file>` and
+copy `<dir>/Assets.car` to `configs/branding/release/`, which import copies
+over the `unofficial` one; Info.plist names it `AppIcon` as Firefox does, so
+there is no patch. `ictool` inside Icon Composer.app renders any appearance
+to a PNG (`--export-image --rendition Default|Dark|ClearLight|…`), with no
+margin. `logo-mac.png`, from which import derives `firefox.icns` for macOS
+15 and earlier, is that render of the light icon scaled to 824 and centred
+on 1024. A Dock icon still wrong after a rebuild is the icon cache: `touch`
+the bundle, `lsregister -f` it, relaunch; in the VM that was not enough, and
+deleting `com.apple.iconservices*` and `com.apple.dock.iconcache` under
+`/private/var/folders` then `killall Dock` was.
+
+**The mark has two finishes, silver on dark and graphite on light**
+(2026-11-11), one recipe: six stops on the same diagonal with the sheen at
+54% (`koi-mark.svg`, `content/about-logo.svg`, the icon's two layers). The
+Settings header is flat `#889098` because that slot is one image for both
+schemes. The brand's one colour is a light blue, `#c3dbe2`, the website's
+ground and the install window's wash; the chrome itself still has none.
 
 After a design change: replace the rasters in `configs/branding/release/`,
 then `npm run import`.
@@ -636,7 +657,7 @@ the sandbox pref (Workflow).
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 38 rows, all
+After `npm run import`, `git -C engine status --short` shows 37 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -647,7 +668,7 @@ attributable. Check the list, not the number:
 | `browser/extensions/moz.build` | surfer download no-op |
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
-| `.stylelintrc.js`, `browser/app/macbuild/Contents/Info.plist.in`, `build/moz.build`, `build/moz.configure/update-programs.configure`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 19 patches |
+| `.stylelintrc.js`, `build/moz.build`, `build/moz.configure/update-programs.configure`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 18 patches |
 | ` T ` × 11 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
@@ -697,8 +718,7 @@ named.
 - **The toolbar is the top of the card, and the selected tab is the
   toolbar's** (2026-11-09; koi-shell.css, The card; koi-chrome.css, The
   selected tab). The glass is the window and is always dark: a grey film at
-  half strength on the blur, white ink, resting tab names at the second ink. The toolbar, the selected tab and the empty tab are
-  the solid; the address field is the solid's LIFT, mixed opaque for its
+  half strength on the blur, white ink, resting tab names at the second ink. The toolbar and the selected tab are the solid's BAR, at 85% so a little of the glass comes through (2026-11-11; the two never overlap, which would show), and so is the empty tab's card, under which the blank page paints nothing (koi-newtab.css); the address field is the solid's LIFT, mixed opaque for its
   dropdown. Tabs are Firefox's own height, with no fill at rest and a pill under the
   pointer (2026-11-11; a resting fill was taken out); the selected
   one runs down into the toolbar with a curve at each foot, so the join is

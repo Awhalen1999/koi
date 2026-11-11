@@ -103,7 +103,7 @@
   align-items: center;
   /* A button's box, not its 2px outer padding, sits 4px inside the card. */
   padding-inline: calc(var(--koi-space-4) - var(--toolbarbutton-padding-outer));
-  background-color: var(--koi-solid);
+  background-color: var(--koi-solid-bar);
   /* Firefox's chrome/content separator (browser-shared.css). */
   border-top-style: none;
   color: var(--koi-fg);
@@ -269,7 +269,7 @@
  * outrank, so no patch is needed. */
 
 #navigator-toolbox > #notifications-toolbar {
-  background-color: var(--koi-solid);
+  background-color: var(--koi-solid-bar);
   color-scheme: dark;
   /* Inset like the toolbar's buttons, with air only below: the toolbar
    * brings its own. */
@@ -571,10 +571,10 @@
 }
 
 /* The selected tab --------------------------------------------------------
- * It is the toolbar's: the solid, like the toolbar it runs into. Never the
+ * It is the toolbar's: the solid's BAR, like the toolbar it runs into. Never the
  * page's colour, which a photo, a gradient or a scroll would break. */
 .tabbrowser-tab:is([selected], [multiselected]) {
-  --tab-background-color-selected: var(--koi-solid);
+  --tab-background-color-selected: var(--koi-solid-bar);
   --tab-text-color-selected: var(--koi-fg);
   --koi-tab-button-hover: var(--koi-fill-hover);
   --koi-tab-button-active: var(--koi-glass-well);

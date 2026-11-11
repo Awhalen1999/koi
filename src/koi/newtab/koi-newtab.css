@@ -4,7 +4,8 @@
 
 /* The empty state. koi-newtab.js builds #koi-empty-state and sets
  * [koi-empty] on :root while the selected tab is blank; every rule here keys
- * on that attribute. The card is the solid, like the toolbar above it. */
+ * on that attribute. The card is the solid's BAR, like the toolbar above
+ * it, so the two are one sheet of the same glass. */
 
 #koi-empty-state {
   display: none;
@@ -18,11 +19,26 @@
   position: absolute;
   inset: 0 var(--koi-gutter) var(--koi-gutter);
   border-radius: var(--koi-radius-card);
-  background: var(--koi-solid);
+  background: var(--koi-solid-bar);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+/* For the glass to come through the card, the blank page under it paints
+ * nothing: its ground goes and its browser is not drawn (koi-shell.css
+ * keeps both opaque for every other tab, where they hide the desktop while
+ * a page loads). Only the selected panel is ever shown, so no tab is named.
+ * The find bar, in the same container, stays. */
+:root[koi-empty] #tabbrowser-tabpanels .browserSidebarContainer {
+  & .browserContainer {
+    background: transparent;
+  }
+
+  & browser[type="content"] {
+    opacity: 0;
+  }
 }
 
 /* The mark at a ROW's height; its width follows the drawing. */
