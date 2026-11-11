@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!-- The install window's picture, configs/branding/release/background.png:
+   - the page at the window's size, 760 by 400 pt, rendered at 2x and tagged
+   - 144 dpi (CLAUDE.md, Branding, has the commands). Finder draws the two
+   - icons and Koi's name; Applications' name is drawn here, because the
+   - link is named with a space (mozpack/dmg.py). -->
+<meta charset="utf-8">
+<style>
+html,body{margin:0}
+body{width:760px;height:400px;position:relative;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+background:radial-gradient(520px 300px at 0% 0%,rgba(172,176,184,.42),transparent 70%),radial-gradient(520px 300px at 100% 0%,rgba(172,176,184,.3),transparent 70%),radial-gradient(700px 300px at 50% 110%,rgba(150,200,232,.42),transparent 70%),#f5f5f4}
+p{position:absolute;left:0;right:0;top:58px;margin:0;text-align:center;font-size:21px;line-height:28px;letter-spacing:-.01em;color:rgba(0,0,0,.5)}
+p b{font-weight:600;color:#000}
+svg{position:absolute;left:347px;top:198px;width:66px;height:28px;fill:none;stroke:#000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+path:nth-child(1){opacity:.28}path:nth-child(2){opacity:.55}
+span{position:absolute;left:446px;width:200px;top:296px;text-align:center;font-size:13px;line-height:16px;color:#000}
+</style>
+<p>Drag <b>Koi</b> to <b>Applications</b></p>
+<span>Applications</span>
+<svg viewBox="0 0 66 28"><path d="M6 4l10 10L6 24"/><path d="M28 4l10 10-10 10"/><path d="M50 4l10 10-10 10"/></svg>

@@ -386,8 +386,9 @@ tab-group > .tab-group-label-container,
       mask: var(--koi-folder-glyph) center / contain no-repeat;
     }
 
+    /* In a panel, so the solid's films: HOVER, and the picked one a rung up. */
     &:hover {
-      background-color: var(--koi-glass-well);
+      background-color: var(--koi-fill-hover);
       color: var(--koi-fg);
     }
 

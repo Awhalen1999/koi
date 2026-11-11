@@ -38,13 +38,14 @@ against Mozilla paths, and everything Koi adds is whole files under `src/koi/`.
 | `configs/{common,macos}/mozconfig` | Build config, templated by surfer (`${binName}`, `${changeset}`) and merged into `engine/mozconfig` at build time. |
 | `configs/branding/release/` | Branding inputs (raster + ico). See Branding. |
 | `prefs/**/*.yaml` | Default prefs, generated into `engine/browser/app/profile/koi.js`. |
-| `scripts/` | Node tooling: prefs generator, surfer postinstall patcher, lint runner, log filter. |
+| `scripts/` | Node tooling: prefs generator, surfer postinstall patcher, lint runner, log filter; the install window's picture source. |
 
 ## Brand sources
 
-`../koi-design/branding/`, outside this repo and unversioned (the only copy):
-the SVG masters for `configs/branding/release/`. `identity-icons-brand.svg`
-is dead: its target no longer exists (`sidebar/firefox.svg` replaced it).
+The files in `configs/branding/release/` are the masters: the folder of
+SVG sources that once sat beside the repo was for an earlier mark and is
+gone (2026-11-11). The install window's picture has its source in
+`scripts/dmg-background.html`.
 
 ### The four-hop bridge
 
@@ -510,19 +511,31 @@ Still Mozilla's, deliberately: `document.icns` (file-type icon),
 package`'s intermediate DMG uses (scripts/release.sh gives the volume
 `firefox.icns`).
 
-**The DMG window is `background.png` (1440 × 880 at 144 dpi; the icons
-sit at 209,190 and 472,190 pt) and `dsstore`.** Finder finds the
-background through an alias in `dsstore` to `.background/background.png`
-on a volume named `Koi` (by file number, then by path), so `--volume-name
-Koi` is load-bearing; Mozilla's points at a volume named Firefox, which
-left Koi's window white. It was written with Mozilla's settings by the
-`ds_store` and `mac_alias` Python libraries (dmgbuild's), against a DMG
-make_dmg built around the real app, and deliberately has no `pBBk`
+**The DMG window is `background.png` (1520 × 800 at 144 dpi, a 760 × 400
+pt picture) and `dsstore`** (2026-11-11): a light ground with a neutral
+silver wash at the top and a light blue one at the foot, "Drag Koi to Applications", three chevrons, and 144px icons centred
+at 214,212 and 546,212 pt in a 760 × 412 window (32 of it the titlebar on
+macOS 26). The picture is `scripts/dmg-background.html` rendered by
+headless Chrome (`--headless=new --hide-scrollbars
+--force-device-scale-factor=2 --window-size=760,400 --screenshot=…`), then
+`sips -s dpiWidth 144 -s dpiHeight 144`. It draws the name under the
+Applications link, which Mozilla names with a space so Finder shows none;
+Finder draws "Koi", in black on this ground in light and dark alike. Finder
+finds the background through an alias in `dsstore` to
+`.background/background.png` on a volume named `Koi` (by file number,
+then by path), so `--volume-name Koi` is load-bearing; Mozilla's points at
+a volume named Firefox, which left Koi's window white. It was written with
+the `ds_store` and `mac_alias` Python libraries (dmgbuild's), against a
+DMG make_dmg built around the real app, and deliberately has no `pBBk`
 bookmark: one names the exact volume it was made on, Finder trusts it over
 the alias, and the window goes white. New art at the same size needs only
-`background.png`; moving the icons or resizing the window means writing a
-new `dsstore`. Finder's own AppleScript route needs an Automation prompt,
-which ignores synthetic clicks.
+`background.png`. Moving the icons or resizing the window is an edit of
+the existing file, which keeps the alias: open it with
+`ds_store.DSStore.open(path, "r+")` and set `bwsp`'s WindowBounds,
+`icvp`'s iconSize and textSize, and the two `Iloc` entries (`Koi.app`
+and `" "`). Test by building a DMG with release.sh's make_dmg line around
+any packaged Koi.app and opening it in the VM. Finder's own AppleScript
+route needs an Automation prompt, which ignores synthetic clicks.
 
 **`Assets.car` must stay unused.** It is the macOS 26 asset-catalog icon
 copied from `unofficial` (the blue globe), and macOS 26 prefers it over
@@ -532,7 +545,7 @@ copied from `unofficial` (the blue globe), and macOS 26 prefers it over
 Liquid Glass icon. A Dock icon still wrong after a rebuild is LaunchServices'
 cache: `touch` the bundle, `lsregister -f` it, relaunch.
 
-After a design change: regenerate rasters from `../koi-design/branding/`,
+After a design change: replace the rasters in `configs/branding/release/`,
 then `npm run import`.
 
 ### Replacing a Mozilla asset outright

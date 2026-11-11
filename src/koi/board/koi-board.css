@@ -56,8 +56,7 @@
 /* A card: a solid header over the thumbnail. Each state has its own
  * mark, so the current card and the keyboard's card are never confused:
  *   hovered — the hairline becomes a quiet 1px ring
- *   current — the selected tab's look from the strip: RAISED header, heavier
- *             title
+ *   current — a RAISED header and the selected tab's heavier title
  *   focused — the accent ring, only here. Opened by key, focus starts on the
  *             current card; opened by mouse, :focus-visible hides the ring
  *             until a key is pressed. */
@@ -94,13 +93,14 @@
 }
 
 .koi-card-header {
-  /* The header matches a tab pill: same height, same button geometry. */
-  height: var(--koi-pill-height);
+  /* The header is a tab: its height, its inset and icon gap, and its
+   * buttons 6px inside the trailing edge, as above and below them. */
+  height: var(--koi-row);
   flex: none;
   display: flex;
   align-items: center;
   gap: var(--koi-space-8);
-  padding-inline: var(--koi-inset) var(--koi-space-4);
+  padding-inline: var(--koi-inset) var(--koi-space-6);
   color: var(--koi-fg);
   font-size: var(--koi-text-13);
 }
@@ -119,29 +119,30 @@
   white-space: nowrap;
 }
 
-/* The × and the audio badge match the tab strip's (koi-chrome.css): a 20px
- * box with a 12px × and 10px badge, WELL on hover, one rung up pressed,
- * the accent ring for keyboard focus. Glyphs are backgrounds because these
- * are HTML buttons, without XUL's image attribute. */
+/* The × and the audio button are the selected tab's (koi-chrome.css): a
+ * PILL-SMALL with a 14px × and a 12px speaker, the solid's HOVER under the
+ * pointer and the WELL pressed, the accent ring for keyboard focus. Glyphs
+ * are backgrounds because these are HTML buttons, without XUL's image
+ * attribute. */
 .koi-card-close,
 .koi-card-audio {
   appearance: none;
   border: none;
   flex: none;
-  width: var(--koi-box);
-  height: var(--koi-box);
-  border-radius: var(--koi-radius-favicon);
-  background: center / var(--koi-icon-12) no-repeat;
+  width: var(--koi-pill-small);
+  height: var(--koi-pill-small);
+  border-radius: var(--koi-radius-small);
+  background: center / var(--koi-icon-14) no-repeat;
   -moz-context-properties: fill;
   fill: var(--koi-fg-2);
 
   &:hover {
     fill: var(--koi-fg);
-    background-color: var(--koi-glass-well);
+    background-color: var(--koi-fill-hover);
   }
 
   &:hover:active {
-    background-color: var(--koi-glass-hover);
+    background-color: var(--koi-glass-well);
   }
 
   &:focus-visible {
@@ -159,7 +160,7 @@
   /* 4px to the ×, trimmed from the header's 8px gap; a hidden badge leaves
    * no gap. */
   margin-inline-end: calc(var(--koi-space-4) - var(--koi-space-8));
-  background-size: var(--koi-icon-10);
+  background-size: var(--koi-icon-12);
   background-image: url("chrome://browser/skin/tabbrowser/tab-audio-playing-small.svg");
 
   &:is(.playing, .muted) {

@@ -79,7 +79,7 @@
     }
   }
 
-  /* 6px, not the tile's 10: it sits in a line of 12px text. */
+  /* 6px, not the tile's 10: it sits in a line of text. */
   &[koi-live] .tab-group-label::after {
     content: "";
     display: inline-block;
@@ -205,7 +205,8 @@
   }
 }
 
-/* The main actions share the panel's width. */
+/* The main actions share the panel's width, 2px inside the rows' edges:
+ * an INSET from the rim, as the footers below. */
 .koi-agents-actions {
   display: grid;
   grid-auto-flow: column;
@@ -524,6 +525,7 @@
 .koi-agent-touch-tag {
   position: absolute;
   bottom: calc(100% + var(--koi-space-8));
+  /* Flush with the ring's outer edge: its 2px offset and 2px line. */
   left: -4px;
   display: flex;
   align-items: center;
@@ -535,7 +537,7 @@
   color: var(--koi-fg);
   font: menu;
   font-size: var(--koi-text-11);
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 
   &::before {

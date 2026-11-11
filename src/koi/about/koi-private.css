@@ -37,15 +37,15 @@ main {
 .mark {
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
+  width: calc(2 * var(--koi-tile-small));
+  height: calc(2 * var(--koi-tile-small));
   margin: 0 auto var(--koi-space-24);
   border-radius: 50%;
   background: var(--koi-private);
 
   & img {
-    width: var(--koi-space-32);
-    height: var(--koi-space-32);
+    width: var(--koi-tile-small);
+    height: var(--koi-tile-small);
   }
 }
 
@@ -79,7 +79,7 @@ kbd {
   height: var(--koi-box);
   padding: 0 var(--koi-space-8);
   border-radius: var(--koi-radius-favicon);
-  background: var(--koi-glass-well);
+  background: var(--koi-fill-lift);
   color: var(--koi-fg);
   /* A kbd is mono by default; Koi has none. */
   font-family: inherit;

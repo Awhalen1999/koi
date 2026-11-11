@@ -17,9 +17,10 @@
  *
  * Spacing: each row has a declared height so content cannot inflate it
  * (koi-theme.css, Chrome), and a control has 4px above and below: 36px in
- * the tab row, 32px in the toolbar, Firefox's own sizes. Along a row: 4px between neighbours (tabs, buttons, and the
- * buttons either side of the tabs), 8px after the traffic lights, and a
- * control's box 4px inside the card's edges at each end of both rows. */
+ * the tab row, 32px in the toolbar, Firefox's own sizes. Along a row: 4px
+ * between neighbours (tabs, buttons, and the buttons either side of the
+ * tabs), 8px after the traffic lights, and a control's box 4px inside the
+ * card's edges at each end of both rows. */
 
 /* The rows ------------------------------------------------------------------ */
 
@@ -48,7 +49,7 @@
   --tab-text-color-hover: var(--koi-fg);
   --tab-box-shadow-selected: none;
   /* Nova paints a gradient ring in the selected tab's border (tabs.css); the
-   * hairline above is Koi's selected mark. */
+   * selected tab has no ring, its fill is the mark. */
   --tab-border-color-accent: none;
   --tab-border-color-selected: transparent;
   /* Inside the pill: Koi's inset, 8px from favicon to label. */
@@ -243,10 +244,11 @@
   margin-inline-end: var(--toolbarbutton-padding-outer);
   height: var(--koi-pill-small);
   padding-inline: var(--koi-space-8) var(--koi-inset);
-  border-radius: var(--koi-radius-pill);
+  border-radius: var(--koi-radius-small);
   background-color: var(--koi-private);
   color: var(--koi-fg);
   font-size: var(--koi-text-12);
+  font-weight: 500;
 }
 
 .private-browsing-indicator-icon {
@@ -299,8 +301,8 @@
  * and Koi's buttons need nothing extra. The box is Firefox's own: a 16px
  * glyph in 32px, and in the tab row a tab's height, 36px
  * (toolbarbuttons.css). The toolbar swaps the films for the solid's (The
- * toolbar, above). Disabled buttons dim whole,
- * Firefox's way (--toolbarbutton-opacity-disabled). */
+ * toolbar, above). Disabled buttons dim whole, Firefox's way
+ * (--toolbarbutton-opacity-disabled). */
 
 #navigator-toolbox {
   --toolbarbutton-background-color-hover: var(--koi-glass-well);
@@ -473,6 +475,11 @@
    * 1em. */
   --tab-width-transition: min-width var(--koi-arrive), max-width var(--koi-arrive);
   --tab-label-mask-size: var(--koi-space-16);
+  /* The × and the audio button step through the films of the surface the
+   * tab is: the glass's here, the solid's on the selected tab, as the
+   * toolbar's buttons do. */
+  --koi-tab-button-hover: var(--koi-glass-well);
+  --koi-tab-button-active: var(--koi-glass-hover);
 
   /* The content fades in as the slot opens and out as it closes, so a
    * title is never seen squeezed into a half-open tab. Firefox hides the
@@ -538,9 +545,11 @@
     /* 6px off the trailing edge, matching the vertical air (Firefox's -5px
      * pull leaves it uneven). The glyph is close.svg, from the same 16px
      * family as the + and toolbar glyphs, drawn at 14px. A fixed icon box
-     * keeps rounding from pushing the × off-centre. */
+     * keeps rounding from pushing the × off-centre. A PILL-SMALL's radius,
+     * where Firefox derives 5px from the tab's. */
     list-style-image: url("chrome://global/skin/icons/close.svg");
     margin-inline-end: calc(var(--koi-space-6) - var(--tab-inline-padding));
+    border-radius: var(--koi-radius-small);
     color: var(--koi-fg-2);
 
     & .toolbarbutton-icon {
@@ -550,13 +559,13 @@
 
     &:hover {
       color: var(--koi-fg);
-      background-color: var(--koi-glass-well);
+      background-color: var(--koi-tab-button-hover);
     }
 
     /* Pressed sits one rung up, as every Koi control does (close-icon.css
      * uses an off-ladder mix). */
     &:hover:active {
-      background-color: var(--koi-glass-hover);
+      background-color: var(--koi-tab-button-active);
     }
   }
 }
@@ -567,13 +576,16 @@
 .tabbrowser-tab:is([selected], [multiselected]) {
   --tab-background-color-selected: var(--koi-solid);
   --tab-text-color-selected: var(--koi-fg);
+  --koi-tab-button-hover: var(--koi-fill-hover);
+  --koi-tab-button-active: var(--koi-glass-well);
 }
 
 /* The join: the fill runs the row's last 4px down to the toolbar, square at
  * the foot, and a curve on each side, the tab's own radius, turns it into
  * the toolbar's top edge. The curves sit outside the tab, past its 2px clip
- * margin, over the gap and the neighbour's edge (The strip's ends, below). Not while a tab
- * is dragged: Firefox lifts it out of the row, so it is a pill until it lands. */
+ * margin, over the gap and the neighbour's edge (The strip's ends, below).
+ * Not while a tab is dragged: Firefox lifts it out of the row, so it is a
+ * pill until it lands. */
 #tabbrowser-tabs[orient="horizontal"]:not([movingtab]) .tabbrowser-tab[visuallyselected] {
   overflow-clip-margin: var(--tab-border-radius);
 
@@ -624,10 +636,10 @@
  * different element.) */
 .tab-audio-button {
   --icon-size: var(--koi-icon-12);
-  --button-border-radius: var(--koi-radius-favicon);
+  --button-border-radius: var(--koi-radius-small);
   /* A ghost moz-button paints hover and pressed from these (moz-button.css). */
-  --button-background-color-ghost-hover: var(--koi-glass-well);
-  --button-background-color-ghost-active: var(--koi-glass-hover);
+  --button-background-color-ghost-hover: var(--koi-tab-button-hover);
+  --button-background-color-ghost-active: var(--koi-tab-button-active);
 
   &::part(button) {
     fill: var(--koi-fg-2);

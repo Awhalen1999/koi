@@ -25,9 +25,9 @@
   justify-content: center;
 }
 
+/* The mark at a ROW's height; its width follows the drawing. */
 .koi-empty-mark {
-  width: 31.5px;
-  height: 36px;
+  height: var(--koi-row);
 }
 
 .koi-empty-line {
