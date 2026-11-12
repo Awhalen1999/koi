@@ -181,7 +181,7 @@
    *   WELL   — any glyph's hover (focus is the caret's job)
    *   HOVER  — a hovered pill, a pressed glyph
    *   RAISED — the active surface (a selected row, the board's focused card) */
-  --koi-glass-shell: rgba(72, 74, 80, 0.5);
+  --koi-glass-shell: rgba(20, 20, 20, 0.75);
   --koi-glass-rest: rgba(255, 255, 255, 0.1);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
   --koi-glass-hover: rgba(255, 255, 255, 0.22);
