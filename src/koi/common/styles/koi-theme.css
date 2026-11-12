@@ -194,8 +194,8 @@
    * bookmark menus, board cards). Opaque because nothing behind it can be
    * blurred and page text ghosts through anything less: a panel takes it at
    * 98%, which only softens it over a bright page (95% lets the text read
-   * through). macOS's dark secondary background, edged by --koi-hair so a
-   * surface over a dark page still reads. Light pages get --koi-solid-light.
+   * through). A neutral near-black, edged by --koi-hair so a surface over a
+   * dark page still reads. Light pages get --koi-solid-light.
    *
    * On the solid, films step from LIFT: a hovered row and a control at rest
    * (a lighter fill, and for a row a small shadow); HOVER, a hovered control
@@ -208,10 +208,10 @@
   --koi-solid-lift: color-mix(in srgb, #fff 9%, var(--koi-solid));
   --koi-solid-panel: color-mix(in srgb, var(--koi-solid) 98%, transparent);
   /* BAR: the solid where the blurred wallpaper is behind it (the toolbar,
-   * its notification bars and the selected tab), thinned so a little of the
-   * glass comes through and the window reads as one piece. Only there:
-   * over a page nothing is blurred. Its pieces must never overlap, or the
-   * overlap shows twice as dark. */
+   * its notification bars, the selected tab and the empty tab's card),
+   * thinned so a little of the glass comes through and the window reads as
+   * one piece. Only there: over a page nothing is blurred. Its pieces must
+   * never overlap, nor sit on another film, or the join shows. */
   --koi-solid-bar: color-mix(in srgb, var(--koi-solid) 85%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);
@@ -228,12 +228,10 @@
   /* The scrim under the board, a full takeover. Dim only (see Glass). */
   --koi-scrim-board: rgba(8, 10, 14, 0.52);
 
-  /* Shadows: LOW for small things at rest, HIGH for anything lifted or large
-   * (the page card, board cards, a hovered pin). A ring is composed at the
-   * use site:
+  /* Shadows: HIGH for anything lifted or large (the page card, board cards);
+   * LIFT, above, is a hovered row's. A ring is composed at the use site:
    *   box-shadow: var(--koi-shadow-high), 0 0 0 0.5px var(--koi-hair);
    * The window's own shadow is the window server's; no CSS reaches it. */
-  --koi-shadow-low: 0 2px 8px rgba(0, 0, 0, 0.18);
   --koi-shadow-high: 0 8px 28px rgba(0, 0, 0, 0.24);
 
   /* Motion: felt, not watched. Nothing springs, bounces or slides across

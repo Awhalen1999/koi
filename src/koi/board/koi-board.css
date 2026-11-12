@@ -105,11 +105,15 @@
   font-size: var(--koi-text-13);
 }
 
+/* The globe is drawn in the chrome's ink; a site's favicon has its own
+ * colours. */
 .koi-card-icon {
   width: var(--koi-icon-16);
   height: var(--koi-icon-16);
   flex: none;
   border-radius: var(--koi-radius-favicon);
+  -moz-context-properties: fill;
+  fill: var(--koi-fg-2);
 }
 
 .koi-card-label {

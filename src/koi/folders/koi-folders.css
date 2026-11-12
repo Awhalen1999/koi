@@ -88,6 +88,13 @@ tab-group > .tab-group-label-container,
 
 #tabbrowser-tabs[orient="horizontal"]:not([movingtab]) tab-group > .tabbrowser-tab[visuallyselected] {
   --koi-folder-foot: calc(-1 * var(--tab-margin-block));
+
+  /* The selected tab's fill is see-through (koi-theme.css, BAR): a tint
+   * behind it would colour the tab and show where it joins the toolbar. Its
+   * piece keeps the hairlines that join it to the tray. */
+  & > .tab-stack {
+    background-color: transparent;
+  }
 }
 
 /* The last piece rounds the tray's end: the last tab open; closed, the

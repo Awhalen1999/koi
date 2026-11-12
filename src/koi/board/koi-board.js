@@ -38,7 +38,18 @@
         return node;
       };
 
+      // A card's icon is the strip's: the mark for the empty tab (Firefox
+      // gives it the branding raster, koi-chrome.css), Firefox's globe for a
+      // page with no favicon.
       const MARK = "chrome://browser/content/koi-common/koi-mark.svg";
+      const DEFAULT_FAVICON = "chrome://global/skin/icons/defaultFavicon.svg";
+      const NEWTAB_FAVICON = "chrome://branding/content/icon32.png";
+      const favicon = tab => {
+        if (!tab.image) {
+          return DEFAULT_FAVICON;
+        }
+        return tab.image == NEWTAB_FAVICON ? MARK : tab.image;
+      };
 
       const surface = el("div");
       surface.id = "koi-board";
@@ -125,7 +136,7 @@
         // Redrawn when the tab's title, favicon or audio state changes
         // (onTabAttrModified).
         const redraw = () => {
-          const image = tab.image || MARK;
+          const image = favicon(tab);
           if (icon.src !== image) {
             icon.src = image; // Re-setting a data: src would re-decode it.
           }

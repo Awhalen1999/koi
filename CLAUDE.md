@@ -227,8 +227,11 @@ rules in koi-chrome.css and koi-panels.css carry one.
   on this Mac, and Koi launches there. `cua do screenshot`, `cua do click`
   and `cua do shell` drive it without touching the real screen. The Space
   must be running (`cua spaces start koi`). A packaged build reads
-  omni.ja, so the sandbox pref and the startup-cache clearing above do not
-  apply to it. The guest has python3, so the Marionette harness runs inside
+  omni.ja, so the sandbox pref above does not apply to it. The startup cache
+  does: `build:ui` then `npm run vm` keeps the build ID, so a profile that
+  ran the previous package runs its old chrome JS against the new CSS
+  (a board fix did not show, 2026-11-11). Delete the profile's
+  `startupCache` (in the profile dir for a `--profile` one) before judging. The guest has python3, so the Marionette harness runs inside
   it (launch with `--marionette --remote-allow-system-access --profile`,
   `marionette.port` in the profile's user.js). Its display hands a recorder
   only the frames that changed, a few a second during motion, so motion is
@@ -574,7 +577,7 @@ then `npm run import`.
 Some Firefox brand glyphs live in Mozilla's theme dirs, out of branding's
 reach. Surfer's `copyManual` handles them: any non-`.patch` file under
 `src/<mozilla path>` replaces Mozilla's file with a symlink to Koi's and is
-listed in `engine/.gitignore`. Zero patches. Koi replaces eleven:
+listed in `engine/.gitignore`. Zero patches. Koi replaces thirteen:
 
 - `src/browser/themes/shared/sidebar/firefox.svg` — the monochrome "this
   browser" glyph (About Koi nav item, Settings headers). Bare mark,
@@ -594,6 +597,11 @@ listed in `engine/.gitignore`. Zero patches. Koi replaces eleven:
   card's text height), which rules out the tile: the bare mark at 40% on a
   transparent square, centred, `context-fill` (40%, not 50%, because a
   one-line card crops the top ~30%). Seen on the default-browser card only.
+- `src/toolkit/themes/shared/illustrations/{no-connection,security-error}.svg`
+  — the fox on the error pages (a page that would not load, a connection
+  that is not secure), found in the audit of 2026-11-11 with the VM offline.
+  The mark in flat `#889098`, since the page draws one image for light and
+  dark.
 - `src/toolkit/mozapps/update/updater/release_{primary,secondary}.der` —
   the public half of Koi's update signing key, in both of the release
   channel's slots: the updater applies only updates signed
@@ -657,7 +665,7 @@ the sandbox pref (Workflow).
 
 Right after `surfer download`: exactly ` M browser/extensions/moz.build`.
 
-After `npm run import`, `git -C engine status --short` shows 37 rows, all
+After `npm run import`, `git -C engine status --short` shows 39 rows, all
 attributable. Check the list, not the number:
 
 | Rows | Source |
@@ -669,7 +677,7 @@ attributable. Check the list, not the number:
 | `browser/installer/windows/nsis/shared.nsh` | surfer branding, Publisher |
 | `build/application.ini.in` | surfer `setUpdateURLs` |
 | `.stylelintrc.js`, `build/moz.build`, `build/moz.configure/update-programs.configure`, `browser/base/content/browser.xhtml`, `browser/base/jar.mn`, `browser/base/moz.build`, `browser/components/about/AboutRedirector.cpp`, `browser/components/preferences/preferences.{js,xhtml}`, `browser/moz.configure`, `toolkit/moz.configure`, `toolkit/modules/LightweightThemeConsumer.sys.mjs`, `toolkit/mozapps/extensions/content/aboutaddons.css`, `modules/libpref/moz.build`, `modules/libpref/init/StaticPrefList.yaml`, `remote/shared/webdriver/Capabilities.sys.mjs`, `widget/cocoa/nsCocoaWindow.{h,mm}` | the 18 patches |
-| ` T ` × 11 | the replaced assets above |
+| ` T ` × 13 | the replaced assets above |
 | `?? browser/branding/release/` | generated branding |
 
 ---
@@ -963,7 +971,7 @@ named.
   TINT-STRONG (30%) as a colour's film; GLASS (the shell's grey film, then
   rest, well, hover, raised: white films on it); one SOLID for everything on or over the page,
   with its own steps (rule, lift, hover, then the glass well); one scrim and
-  three shadows. No size, colour or shadow is written anywhere else, except
+  two shadows. No size, colour or shadow is written anywhere else, except
   where the use site says why (about:rights' light ink, a page's reading
   measure). A new surface picks a family; a new
   value goes into koi-theme.css first. Verified 2026-10-29 by capturing every

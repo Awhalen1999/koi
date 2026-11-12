@@ -5,10 +5,11 @@
 /* The two-row chrome, in Firefox's own order. The tab row is the window's,
  * on the glass: traffic lights, the board button, tabs, +, then Agent
  * Connect, downloads and the menu. The toolbar is the page's and the top of
- * its card (koi-shell.css), in the solid: back, forward, reload, the centred
- * address field, then what acts on the page (Developer tools, extensions).
- * The selected tab is the solid too and runs down into the toolbar, so the
- * join is Koi's own surface on both sides and no page can break it.
+ * its card (koi-shell.css), in the solid's BAR: back, forward, reload, the
+ * centred address field, then what acts on the page (Developer tools,
+ * extensions). The selected tab is the BAR too and runs down into the
+ * toolbar, so the join is Koi's own surface on both sides and no page can
+ * break it.
  *
  * Style through Firefox's variables (--tab-*, --urlbar-*, --toolbarbutton-*),
  * not its DOM structure, which changes between releases. The tab and urlbar
