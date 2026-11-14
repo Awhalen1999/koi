@@ -27,9 +27,16 @@
 
 :root {
   /* Firefox's own tab height, and its 6px block margin brought to 4px. */
-  --tab-min-height: var(--koi-row);
-  --tab-margin-block: var(--koi-space-4);
-  --urlbar-height: var(--koi-tile-small);
+  --tab-min-height: var(--koi-tile-small);
+  --tab-margin-block: var(--koi-space-6);
+  --urlbar-height: var(--koi-pill-height);
+  /* The gap between neighbours is two halves, a tab's clip margin and a
+   * button's outer padding (Firefox: 2px each). The toolbar's buttons are
+   * the address field's height; the tab row's follow the tabs
+   * (toolbarbuttons.css). */
+  --tab-overflow-clip-margin: calc(var(--koi-space-6) / 2);
+  --toolbarbutton-padding-outer: calc(var(--koi-space-6) / 2);
+  --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - var(--koi-icon-16)) / 2);
   /* The pill is the urlbar's background, with no padding around it. */
   --urlbar-padding-block: 0px;
   /* Zeroed so the input fills its container and the open dropdown lines up
@@ -103,7 +110,7 @@
   min-height: var(--koi-toolbar-height);
   align-items: center;
   /* A button's box, not its 2px outer padding, sits 4px inside the card. */
-  padding-inline: calc(var(--koi-space-4) - var(--toolbarbutton-padding-outer));
+  padding-inline: calc(var(--koi-space-6) - var(--toolbarbutton-padding-outer));
   background-color: var(--koi-solid-bar);
   /* Firefox's chrome/content separator (browser-shared.css). */
   border-top-style: none;
@@ -190,14 +197,14 @@
   min-height: 0;
   background-color: transparent;
   /* The toolbar's inset, measured from the window: the card's gutter more. */
-  padding-inline: calc(var(--koi-gutter) + var(--koi-space-4) - var(--toolbarbutton-padding-outer));
+  padding-inline: calc(var(--koi-gutter) + var(--koi-space-6) - var(--toolbarbutton-padding-outer));
 
   /* The lights start over the back arrow's glyph: inset as a glyph is in a
    * toolbar button, 8px and the button's outer padding. After them
    * (osx/browser.css gives no space), 8px to the board button's hover box,
    * the lights' own spacing, less that padding. */
   & .titlebar-buttonbox {
-    margin-inline: calc(var(--koi-space-8) + var(--toolbarbutton-padding-outer)) calc(var(--koi-space-8) - var(--toolbarbutton-padding-outer));
+    margin-inline: calc(var(--koi-space-6) + var(--toolbarbutton-padding-outer)) calc(var(--koi-space-8) - var(--toolbarbutton-padding-outer));
   }
 
   /* Firefox's 40px titlebar spacers; the margin above is the inset here. */
@@ -276,7 +283,7 @@
    * brings its own. */
   --info-bar-margin-inline: var(--koi-gutter);
   --info-bar-margin-block-start: 0;
-  --info-bar-margin-block-end: var(--koi-space-4);
+  --info-bar-margin-block-end: var(--koi-space-6);
 
   & notification-message.infobar {
     --info-bar-background-color: var(--koi-solid-lift);
@@ -290,7 +297,7 @@
     }
 
     & + notification-message.infobar {
-      margin-block-start: var(--koi-space-4);
+      margin-block-start: var(--koi-space-6);
     }
   }
 }
@@ -679,11 +686,11 @@
  * unpadded, so a selected first pin has no leading curve. Pad it too if pins
  * come into use. */
 #tabbrowser-arrowscrollbox[orient="horizontal"] {
-  margin-inline: calc(-1 * var(--koi-space-4));
+  margin-inline: calc(-1 * var(--koi-space-6));
 
   &::part(scrollbox) {
-    padding-inline: var(--koi-space-4);
-    scroll-padding-inline: var(--koi-space-4);
+    padding-inline: var(--koi-space-6);
+    scroll-padding-inline: var(--koi-space-6);
   }
 }
 

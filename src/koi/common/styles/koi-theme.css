@@ -65,9 +65,9 @@
    * the page has no gutter above. The gutter is the card's inset from the
    * window's sides and foot. In both rows a control's box sits 4px inside
    * the card's edges, so the rows' ends line up. */
-  --koi-tabs-height: calc(var(--koi-row) + 2 * var(--koi-space-4));
-  --koi-toolbar-height: calc(var(--koi-tile-small) + 2 * var(--koi-space-4));
-  --koi-gutter: var(--koi-space-4);
+  --koi-tabs-height: calc(var(--koi-tile-small) + 2 * var(--koi-space-6));
+  --koi-toolbar-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-6));
+  --koi-gutter: var(--koi-space-6);
 
   /* The address field's ceiling: 60% of the window, held to 640–1200px, so
    * it stays the row's centrepiece. In a narrow window the field shrinks
@@ -84,10 +84,10 @@
    * window radius: AppKit draws the window's corners. */
   --koi-radius-favicon: 4px;
   --koi-radius-small: 6px;
-  --koi-radius-pill: 8px;
-  --koi-radius-tile: 10px;
-  --koi-radius-page: 12px;
-  --koi-radius-panel: 16px;
+  --koi-radius-pill: 10px;
+  --koi-radius-tile: 12px;
+  --koi-radius-page: 14px;
+  --koi-radius-panel: 18px;
   /* The page, and what floats over it at its size: square above, where the
    * toolbar is the card's top (koi-shell.css). */
   --koi-radius-card: 0 0 var(--koi-radius-page) var(--koi-radius-page);
@@ -181,7 +181,7 @@
    *   WELL   — any glyph's hover (focus is the caret's job)
    *   HOVER  — a hovered pill, a pressed glyph
    *   RAISED — the active surface (a selected row, the board's focused card) */
-  --koi-glass-shell: rgba(20, 20, 20, 0.75);
+  --koi-glass-shell: rgba(18, 18, 18, 0.75);
   --koi-glass-rest: rgba(255, 255, 255, 0.1);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
   --koi-glass-hover: rgba(255, 255, 255, 0.22);
@@ -212,7 +212,7 @@
    * thinned so a little of the glass comes through and the window reads as
    * one piece. Only there: over a page nothing is blurred. Its pieces must
    * never overlap, nor sit on another film, or the join shows. */
-  --koi-solid-bar: color-mix(in srgb, var(--koi-solid) 85%, transparent);
+  --koi-solid-bar: color-mix(in srgb, var(--koi-solid) 90%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);
   --koi-fill-hover: rgba(255, 255, 255, 0.14);
