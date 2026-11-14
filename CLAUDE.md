@@ -515,8 +515,8 @@ package`'s intermediate DMG uses (scripts/release.sh gives the volume
 `firefox.icns`).
 
 **The DMG window is `background.png` (1520 × 800 at 144 dpi, a 760 × 400
-pt picture) and `dsstore`** (2026-11-11): a light ground with a neutral
-silver wash at the top and a light blue one at the foot, "Drag Koi to Applications", three chevrons, and 144px icons centred
+pt picture) and `dsstore`** (2026-11-11): a light grey ground with neutral
+silver washes at the top and the foot (no blue, 2026-11-14), "Drag Koi to Applications", three chevrons, and 144px icons centred
 at 214,212 and 546,212 pt in a 760 × 412 window (32 of it the titlebar on
 macOS 26). The picture is `scripts/dmg-background.html` rendered by
 headless Chrome (`--headless=new --hide-scrollbars
@@ -567,7 +567,7 @@ deleting `com.apple.iconservices*` and `com.apple.dock.iconcache` under
 54% (`koi-mark.svg`, `content/about-logo.svg`, the icon's two layers). The
 Settings header is flat `#889098` because that slot is one image for both
 schemes. The brand's one colour is a light blue, `#c3dbe2`, the website's
-ground and the install window's wash; the chrome itself still has none.
+ground; the chrome and the install window have none.
 
 After a design change: replace the rasters in `configs/branding/release/`,
 then `npm run import`.
@@ -718,22 +718,30 @@ named.
   growing right side (dev mode, pinned extensions) shrinks it symmetrically.
   `#notifications-toolbar` (since 157 it holds every tab's notification
   bars) follows the toolbar, inside the card. One spacing rule runs through
-  both rows (koi-chrome.css's header): the tab row is 44 with 36 controls
-  and the toolbar 40 with 32, Firefox's own sizes; 4 between neighbours, 8 after the traffic lights, and a control's box 4
-  inside the card's edges, so the rows' ends and glyphs line up. There is no bookmarks row: it
+  both rows (koi-chrome.css's header, 2026-11-14): the tab row is 44 with
+  32 tabs and the toolbar 40 with a 28 field, and every button in both rows
+  is 28; 6 above and below a control, 6 between neighbours, 8 after the
+  traffic lights, 6 from the card to the window and a control's box 6
+  inside the card's edges, so the rows' ends and glyphs line up. The find
+  bar is measured the same way (koi-panels.css), and so are the address
+  field's insides: glyph boxes 6 from its ends, and the lock, the typed
+  text, a result's icon and its title in two shared columns. There is no bookmarks row: it
   is hidden and its pref locked to never (bookmarks are the empty tab's
   pins).
 - **The toolbar is the top of the card, and the selected tab is the
   toolbar's** (2026-11-09; koi-shell.css, The card; koi-chrome.css, The
-  selected tab). The glass is the window and is always dark: a grey film at
-  half strength on the blur, white ink, resting tab names at the second ink. The toolbar and the selected tab are the solid's BAR, at 85% so a little of the glass comes through (2026-11-11; the two never overlap, which would show), and so is the empty tab's card, under which the blank page paints nothing (koi-newtab.css); the address field is the solid's LIFT, mixed opaque for its
-  dropdown. Tabs are Firefox's own height, with no fill at rest and a pill under the
+  selected tab). The glass is the window and is always dark: the solid's own
+  colour at 75% on the blur (2026-11-14; a lighter grey film was tried and
+  read as a tint), white ink, resting tab names at the second ink. The toolbar and the selected tab are the solid's BAR, at 90% so a little of the glass comes through (the two never overlap, which would show), and so is the empty tab's card, under which the blank page paints nothing (koi-newtab.css); the address field is the solid's LIFT, mixed opaque for its
+  dropdown. Tabs have no fill at rest and a pill under the
   pointer (2026-11-11; a resting fill was taken out); the selected
   one runs down into the toolbar with a curve at each foot, so the join is
   Koi's surface on both sides. A tab that wore the page's colour and joined
   the page itself was built and taken out the same day: a flat colour shows
-  against a photo or a gradient, and a scroll leaves it stale. It has no
-  ring. A folder's tray is the tabs' own height, so the selected tab is the
+  against a photo or a gradient, and a scroll leaves it stale. Its one
+  edge is a hairline over the top and sides that fades out down the tab
+  (2026-11-14), so it still reads where a dark wallpaper brings the glass
+  down to the BAR's own colour. A folder's tray is the tabs' own height, so the selected tab is the
   only thing taller. Tabs, trays and the selected tab's top corners and feet
   all share the tab's one radius. A dragged tab is a pill until it lands:
   Firefox lifts it out of the row. Firefox paints a tab's label from
@@ -899,7 +907,7 @@ named.
   pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
   panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
   Panels; koi-panels.css): the solid at 98% (`--koi-solid-panel`; 95% let
-  page text read through), a hairline, 16px corners, no arrow,
+  page text read through), a hairline, 18px corners, no arrow,
   6px below its anchor, 30px menu rows and white main actions, the accent
   kept for focus, selection and switches. Firefox's panels take it through
   the tokens they paint from, so their structure is untouched. Native
@@ -961,14 +969,14 @@ named.
   removed on popuphidden.
 - **One design system** (koi-theme.css), loaded by the chrome and the
   about: pages, and every Koi sheet is written in it: space (multiples of 4,
-  plus INSET, the 10px text sits in from a pill's edge, and 6, a small
-  pill's glyph gap); one ladder of heights (BOX 20, PILL-SMALL 24, PILL 28,
+  plus INSET, the 10px text sits in from a pill's edge, and 6, the
+  chrome's gap and a small pill's glyph gap); one ladder of heights (BOX 20, PILL-SMALL 24, PILL 28,
   TILE-SMALL 32, ROW 36, TILE 40, 48); icons 10–24; radii by the box's
-  height (4 to a BOX, 6, 8 for a PILL or ROW, 10, 12, 16 for a panel); type
+  height (4 to a BOX, 6, 10 for a PILL or ROW, 12, 14, 18 for a panel); type
   (11, 12, 13, 15, 24, with leading for the three UI sizes; the system font
   throughout, with no mono: tabs and the address are 13); INK (three whites); the accent, private, agent and
   danger colours and the nine folder colours, with TINT (18%) and
-  TINT-STRONG (30%) as a colour's film; GLASS (the shell's grey film, then
+  TINT-STRONG (30%) as a colour's film; GLASS (the shell's film, then
   rest, well, hover, raised: white films on it); one SOLID for everything on or over the page,
   with its own steps (rule, lift, hover, then the glass well); one scrim and
   two shadows. No size, colour or shadow is written anywhere else, except

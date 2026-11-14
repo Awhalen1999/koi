@@ -18,10 +18,10 @@
 
 :root {
   /* Space ------------------------------------------------------------------
-   * Multiples of 4, named for the value. Two exceptions, both about text in
-   * a pill: INSET is how far text sits in from a pill's or row's edge, and
-   * the gap between a row's icon and its text; 6 is the glyph gap in a
-   * small pill (24px and under), where 8 reads as air. */
+   * Multiples of 4, named for the value. Two exceptions: INSET is how far
+   * text sits in from a pill's or row's edge; 6 is the chrome's gap (above,
+   * below and between its controls, and the card's gutter) and the glyph
+   * gap in a small pill (24px and under), where 8 reads as air. */
   --koi-space-4: 4px;
   --koi-space-6: 6px;
   --koi-space-8: 8px;
@@ -58,13 +58,13 @@
   --koi-icon-20: 20px;
   --koi-icon-24: 24px;
 
-  /* Chrome: two rows, each its control plus 4px above and below, in
-   * Firefox's own sizes. The top row is the tabs, a ROW; the selected tab
-   * runs the last 4 down into the toolbar (koi-chrome.css). The toolbar
-   * holds the address field, a TILE-SMALL, and is the top of the card, so
-   * the page has no gutter above. The gutter is the card's inset from the
-   * window's sides and foot. In both rows a control's box sits 4px inside
-   * the card's edges, so the rows' ends line up. */
+  /* Chrome: two rows, each its control plus 6px above and below. The top
+   * row is the tabs, a TILE-SMALL; the selected tab runs the last 6 down
+   * into the toolbar (koi-chrome.css). The toolbar holds the address field,
+   * a PILL, and is the top of the card, so the page has no gutter above.
+   * The gutter is the card's inset from the window's sides and foot. In
+   * both rows a control's box sits 6px inside the card's edges, so the
+   * rows' ends line up. */
   --koi-tabs-height: calc(var(--koi-tile-small) + 2 * var(--koi-space-6));
   --koi-toolbar-height: calc(var(--koi-pill-height) + 2 * var(--koi-space-6));
   --koi-gutter: var(--koi-space-6);
@@ -74,13 +74,13 @@
    * below it. Tabs share one width, narrowing from --koi-tab-max
    * to browser.tabs.tabMinWidth (chrome-ui.yaml; Firefox's own layout reads
    * it) before the strip scrolls. */
-  --koi-field-max: clamp(640px, 60vw, 1200px);
+  --koi-field-max: clamp(640px, round(down, 60vw, 2px), 1200px);
   --koi-tab-max: 178px;
 
   /* Radii, by the height of the box: 4 up to a BOX (and every favicon), 6
-   * for a PILL-SMALL, 8 from a PILL to a ROW (TILE-SMALL included), 10 for
-   * a TILE, 12 for the page card and a TILE-LARGE, 16 for a panel.
-   * Concentric: a row's 8 inside a panel's 8px padding meets its 16. No
+   * for a PILL-SMALL, 10 from a PILL to a ROW (TILE-SMALL included), 12 for
+   * a TILE, 14 for the page card and a TILE-LARGE, 18 for a panel.
+   * Concentric: a row's 10 inside a panel's 8px padding meets its 18. No
    * window radius: AppKit draws the window's corners. */
   --koi-radius-favicon: 4px;
   --koi-radius-small: 6px;
@@ -171,12 +171,11 @@
    * patch), and page content renders out of process; backdrop-filter has
    * nothing to sample in either place. These films carry the chrome band.
    *
-   * SHELL is the window's own film: a grey at half strength, so the
-   * wallpaper tints the window but never decides it. The grey is lighter
-   * than the solid, which keeps the glass above the card on a dark
-   * wallpaper (a thin dark coat let it fall to the card's own black, and the
-   * toolbar and selected tab vanished), and it holds a bright wallpaper
-   * down for the white ink. On it, a ladder of white films:
+   * SHELL is the window's own film: the solid's colour at 75%, so the
+   * wallpaper tints the window but never decides it, and a bright one is
+   * held down for the white ink. Over a dark wallpaper it falls to the
+   * card's own black, so the selected tab carries an edge (koi-chrome.css).
+   * On it, a ladder of white films:
    *   REST   — the base of a folder's tray
    *   WELL   — any glyph's hover (focus is the caret's job)
    *   HOVER  — a hovered pill, a pressed glyph

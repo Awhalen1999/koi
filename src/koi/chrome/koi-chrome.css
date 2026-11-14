@@ -17,23 +17,23 @@
  * of specificity.
  *
  * Spacing: each row has a declared height so content cannot inflate it
- * (koi-theme.css, Chrome), and a control has 4px above and below: 36px in
- * the tab row, 32px in the toolbar, Firefox's own sizes. Along a row: 4px
- * between neighbours (tabs, buttons, and the buttons either side of the
- * tabs), 8px after the traffic lights, and a control's box 4px inside the
- * card's edges at each end of both rows. */
+ * (koi-theme.css, Chrome), and a control has 6px above and below: tabs are
+ * 32px, the address field and every button, in both rows, 28px. Along a
+ * row: 6px between neighbours (tabs, buttons, and the buttons either side
+ * of the tabs), 8px after the traffic lights, and a control's box 6px
+ * inside the card's edges at each end of both rows, so the two rows' end
+ * glyphs share a column. */
 
 /* The rows ------------------------------------------------------------------ */
 
 :root {
-  /* Firefox's own tab height, and its 6px block margin brought to 4px. */
+  /* A tab is a TILE-SMALL (Firefox: 36px) with the row's 6px above and below. */
   --tab-min-height: var(--koi-tile-small);
   --tab-margin-block: var(--koi-space-6);
   --urlbar-height: var(--koi-pill-height);
   /* The gap between neighbours is two halves, a tab's clip margin and a
-   * button's outer padding (Firefox: 2px each). The toolbar's buttons are
-   * the address field's height; the tab row's follow the tabs
-   * (toolbarbuttons.css). */
+   * button's outer padding (Firefox: 2px each). Every button is the address
+   * field's height, in both rows. */
   --tab-overflow-clip-margin: calc(var(--koi-space-6) / 2);
   --toolbarbutton-padding-outer: calc(var(--koi-space-6) / 2);
   --toolbarbutton-padding-inner: calc((var(--koi-pill-height) - var(--koi-icon-16)) / 2);
@@ -46,6 +46,17 @@
    * derives the view's outsets from this at :root (urlbar.css), so it is
    * zeroed here, not on #urlbar, for both halves to agree. */
   --urlbar-background-overhang-open: 0px;
+  /* Inside the field and its dropdown, one set of columns: a glyph's box
+   * 6px in from each end, so the glyph is at Koi's inset, and a row's
+   * highlight 6px in, so its icon is under the lock and its title under the
+   * address. Firefox's 7px, with the outsets it derives from it at :root
+   * (urlbar.css, view-proton.css). The lock and star boxes are a
+   * PILL-SMALL, so they take its radius. */
+  --urlbarView-results-padding: var(--koi-space-6);
+  --urlbarView-margin-inline: var(--koi-space-6);
+  --urlbarView-joint-background-outset-inline: var(--koi-space-6);
+  --urlbar-inner-border-radius: var(--koi-radius-small);
+  --urlbar-input-gap: var(--koi-space-4);
 
   /* Tab pills (tab.tokens.css): no fill at rest (Firefox's default), HOVER
    * under the pointer, with the name at the second ink until then, so the
@@ -63,7 +74,7 @@
   /* Inside the pill: Koi's inset, 8px from favicon to label. */
   --tab-inline-padding: var(--koi-inset);
   --tab-icon-end-margin: var(--koi-space-8);
-  /* The × and the audio button share one box (tabs.css): 24px, with 6px of
+  /* The × and the audio button share one box (tabs.css): 24px, with 4px of
    * air in the tab, around a 14px glyph. Since 157 Firefox reads these two;
    * --tab-close-button-padding only feeds them at :root, so setting it on
    * the button does nothing. */
@@ -109,7 +120,7 @@
   height: var(--koi-toolbar-height);
   min-height: var(--koi-toolbar-height);
   align-items: center;
-  /* A button's box, not its 2px outer padding, sits 4px inside the card. */
+  /* A button's box, not its outer padding, sits 6px inside the card. */
   padding-inline: calc(var(--koi-space-6) - var(--toolbarbutton-padding-outer));
   background-color: var(--koi-solid-bar);
   /* Firefox's chrome/content separator (browser-shared.css). */
@@ -125,7 +136,7 @@
   align-items: center;
 
   /* Firefox pads the first button 8px from the row's start
-   * (browser-shared.css, repeated here to tie it); its box starts 4px
+   * (browser-shared.css, repeated here to tie it); its box starts 6px
    * inside the card like the last one's, its glyph under the traffic
    * lights' leading edge. */
   & > :is(toolbarbutton, toolbaritem):first-child {
@@ -194,6 +205,10 @@
 #navigator-toolbox > #TabsToolbar {
   /* A declared height, as on nav-bar, so content cannot inflate the row. */
   height: var(--koi-tabs-height);
+  /* Firefox sizes this row's buttons to the tabs in windows over 900px
+   * (toolbarbuttons.css); here they are the toolbar's at every width, so
+   * the two rows' glyphs line up at each end. */
+  --toolbarbutton-padding-inner: inherit;
   min-height: 0;
   background-color: transparent;
   /* The toolbar's inset, measured from the window: the card's gutter more. */
@@ -215,7 +230,7 @@
 
 /* Firefox puts a separator before the strip when a button precedes it
  * (tabs.css ::before). --tabstrip-inner-border takes its line; its box, 4px
- * wide, goes here, so the board button is 4px from the first tab, like
+ * wide, goes here, so the board button is 6px from the first tab, like
  * every gap in the row. Three ids, to outrank Firefox's selector:
  * nested, it takes its list's highest specificity, two ids. */
 #navigator-toolbox #TabsToolbar #tabbrowser-tabs[orient="horizontal"]::before {
@@ -249,7 +264,8 @@
 .private-browsing-indicator-with-label {
   align-self: center;
   gap: var(--koi-space-6);
-  margin-inline-end: var(--toolbarbutton-padding-outer);
+  /* A button's outer padding each side, so it is spaced like one. */
+  margin-inline: var(--toolbarbutton-padding-outer);
   height: var(--koi-pill-small);
   padding-inline: var(--koi-space-8) var(--koi-inset);
   border-radius: var(--koi-radius-small);
@@ -306,9 +322,8 @@
  * White glyphs: the WELL appears on hover; pressed, open and checked sit
  * one rung up. Firefox's own state rules paint all of it
  * from these tokens (toolbarbuttons.css), so an open menu's button stays lit
- * and Koi's buttons need nothing extra. The box is Firefox's own: a 16px
- * glyph in 32px, and in the tab row a tab's height, 36px
- * (toolbarbuttons.css). The toolbar swaps the films for the solid's (The
+ * and Koi's buttons need nothing extra. The box is a PILL in both rows: a
+ * 16px glyph with 6px around it (The rows, above). The toolbar swaps the films for the solid's (The
  * toolbar, above). Disabled buttons dim whole, Firefox's way
  * (--toolbarbutton-opacity-disabled). */
 
@@ -326,7 +341,7 @@
 }
 
 /* A pinned extension is a toolbaritem around its button, which Firefox
- * insets 2px more on each side (toolbarbuttons.css,
+ * insets by its outer padding again on each side (toolbarbuttons.css,
  * .toolbaritem-combined-buttons). Here it spaces like any button. */
 #navigator-toolbox .unified-extensions-item {
   margin-inline: 0;
@@ -390,6 +405,19 @@
     }
   }
 
+  /* The boxes sit 6px inside the field's ends (Firefox: its 1px border and
+   * 1px of padding). */
+  & > .urlbar-input-container {
+    padding-inline: calc(var(--koi-space-6) - var(--urlbar-input-container-border-width));
+  }
+
+  /* One lock box on every page: Firefox widens it to 8px of padding on
+   * pages it labels (not secure, chrome, extension), whose label is hidden
+   * here (identity-block.css). */
+  & #identity-box > .identity-box-button {
+    padding-inline: var(--urlbar-icon-padding);
+  }
+
   & .urlbar-input {
     color: var(--koi-fg);
 
@@ -444,6 +472,12 @@
     --urlbarview-row-min-height: calc(var(--koi-row) - 2 * var(--urlbarView-row-gutter));
   }
 
+  /* A row's highlight is a tab's size, so it takes the tab's radius; the
+   * row's box is the gutter larger (view-proton.css). */
+  & .urlbarView-row {
+    border-radius: calc(var(--urlbarView-row-gutter) + var(--koi-radius-pill));
+  }
+
   & .urlbarView-url {
     font-size: var(--koi-text-12);
   }
@@ -468,8 +502,8 @@
 
 /* The tab strip ---------------------------------------------------------------
  * All tabs share one width, from --koi-tab-max down to
- * browser.tabs.tabMinWidth, then the strip scrolls. The 4px between pills is
- * Firefox's 2px clip margin on each tab (--tab-overflow-clip-margin). */
+ * browser.tabs.tabMinWidth, then the strip scrolls. The 6px between pills is
+ * the clip margin on each tab (--tab-overflow-clip-margin; The rows). */
 
 #tabbrowser-tabs[orient="horizontal"] {
   --tab-max-width: var(--koi-tab-max);
@@ -550,13 +584,13 @@
   }
 
   & .tab-close-button {
-    /* 6px off the trailing edge, matching the vertical air (Firefox's -5px
+    /* 4px off the trailing edge, matching the vertical air (Firefox's -5px
      * pull leaves it uneven). The glyph is close.svg, from the same 16px
      * family as the + and toolbar glyphs, drawn at 14px. A fixed icon box
      * keeps rounding from pushing the × off-centre. A PILL-SMALL's radius,
      * where Firefox derives 5px from the tab's. */
     list-style-image: url("chrome://global/skin/icons/close.svg");
-    margin-inline-end: calc(var(--koi-space-6) - var(--tab-inline-padding));
+    margin-inline-end: calc(var(--koi-space-4) - var(--tab-inline-padding));
     border-radius: var(--koi-radius-small);
     color: var(--koi-fg-2);
 
@@ -606,9 +640,9 @@
   }
 }
 
-/* The join: the fill runs the row's last 4px down to the toolbar, square at
+/* The join: the fill runs the row's last 6px down to the toolbar, square at
  * the foot, and a curve on each side, the tab's own radius, turns it into
- * the toolbar's top edge. The curves sit outside the tab, past its 2px clip
+ * the toolbar's top edge. The curves sit outside the tab, past its clip
  * margin, over the gap and the neighbour's edge (The strip's ends, below);
  * one box draws both, since ::after is the edge.
  * Not while a tab is dragged: Firefox lifts it out of the row, so it is a
@@ -666,14 +700,14 @@
 }
 
 /* The strip's ends -----------------------------------------------------------
- * The board button before the tabs and the + after them are 4px away, like
- * a tab's neighbour: a tab's 2px clip margin and a button's 2px outer
+ * The board button before the tabs and the + after them are 6px away, like
+ * a tab's neighbour: a tab's clip margin and a button's outer
  * padding, with nothing added. An end tab's curve is wider than that and,
  * as between two tabs, runs under its neighbour, but the scroll area clips
  * at its padding edge, where the first and last tab sit. So the area is
- * 4px larger at each end and nothing moves: padding inside it, cancelled by
+ * 6px larger at each end and nothing moves: padding inside it, cancelled by
  * the same margin on the scroll box, which carries the fade mask and would
- * clip there too. (The curve's outer 2px fall past the padding; there it is
+ * clip there too. (The curve's outer 1px falls past the padding; there it is
  * a quarter of a pixel tall.) The scroll padding keeps that room when a
  * full strip scrolls a tab into view (arrowscrollbox.js, scrollIntoView),
  * which otherwise stops at the tab's own edge.
@@ -762,7 +796,7 @@
 }
 
 /* Firefox pads the menu button 8px from the row's end (toolbarbuttons.css);
- * here its box ends 4px inside the card's edge like any button's. */
+ * here its box ends 6px inside the card's edge like any button's. */
 #PanelUI-menu-button {
   padding-inline-end: var(--toolbarbutton-padding-outer);
 }

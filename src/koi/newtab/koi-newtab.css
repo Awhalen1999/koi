@@ -70,8 +70,8 @@
   color: var(--koi-fg);
 }
 
-/* The pins: each a chip in a tab's shape and measures (a ROW, the tab's
- * inset, icon gap and widest), wrapping in centred rows no wider than four
+/* The pins: each a chip in a tab's shape and measures (its height, inset,
+ * icon gap, widest and the gap between two), wrapping in centred rows no wider than four
  * of the widest. With more than the card can hold, the pins scroll; the mark
  * and the line stay. */
 .koi-empty-pins {
@@ -79,8 +79,8 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--koi-space-8);
-  max-width: calc(4 * var(--koi-tab-max) + 3 * var(--koi-space-8));
+  gap: var(--koi-space-6);
+  max-width: calc(4 * var(--koi-tab-max) + 3 * var(--koi-space-6));
   min-height: 0;
   margin-top: var(--koi-space-32);
   overflow-y: auto;
@@ -99,7 +99,7 @@
   display: flex;
   align-items: center;
   gap: var(--koi-space-8);
-  height: var(--koi-row);
+  height: var(--koi-tile-small);
   max-width: var(--koi-tab-max);
   padding-inline: var(--koi-inset);
   border: none;

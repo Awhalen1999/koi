@@ -16,7 +16,7 @@
  * tab-group is display: contents (tabs.css), so the strip's flexbox sizes
  * grouped and loose tabs alike and the tray has no box of its own: each
  * piece paints its share of the tint, square-edged so they abut, and the
- * end pieces round the corners. A tab's piece is its .tab-stack, 2px short
+ * end pieces round the corners. A tab's piece is its .tab-stack, 3px short
  * of the tab's edge on each side (the clip margin), so two hairline shadows
  * reach the edge where the next piece begins. Firefox's own decorations
  * (the underline, the chip's fill and outline, the hover halo) are zeroed
@@ -120,7 +120,7 @@ tab-group > .tab-group-label-container,
   }
 }
 
-/* A tab keeps the next pill 4px off with its own 2px clip margin; "+N" and
+/* A tab keeps the next pill 6px off with its own clip margin; "+N" and
  * the chip have none, so they take it as a margin. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-overflow-count-container,
 #tabbrowser-tabs[orient="horizontal"] tab-group[collapsed]:not([hasactivetab]) > .tab-group-label-container {
@@ -142,8 +142,8 @@ tab-group > .tab-group-label-container,
   }
 }
 
-/* The chip's slot opens the tray, 4px from the pill before it (that pill's
- * 2px clip margin plus this margin). Firefox pads it 3px either side for
+/* The chip's slot opens the tray, 6px from the pill before it (that pill's
+ * clip margin plus this margin). Firefox pads it 3px either side for
  * its underline; here none. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-label-container {
   /* The chip never shrinks: a full strip narrows the tabs, not the names. */
@@ -346,7 +346,7 @@ tab-group > .tab-group-label-container,
   color: var(--koi-fg-3);
 }
 
-/* The "+N" piece, 8px from the selected pill (its 2px clip margin plus 6)
+/* The "+N" piece, 8px from the selected pill (its clip margin plus the rest)
  * and 8px to the tray's end. */
 #tabbrowser-tabs[orient="horizontal"] tab-group > .tab-group-overflow-count-container {
   flex: none;
