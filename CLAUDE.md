@@ -355,7 +355,7 @@ MOZ_APP_DISPLAYNAME = Koi           MOZ_MACBUNDLE_ID = surf.koi.browser
 MOZ_APP_NAME = koi                  MOZ_CHILD_PROCESS_BUNDLEID = surf.koi.plugincontainer
 MOZ_APP_VENDOR = Koi                MOZ_MACBUNDLE_NAME = Koi.app
 MOZ_APP_UA_NAME = Firefox           MOZ_UPDATE_CHANNEL = release
-MOZ_APP_VERSION = 0.2.0             MOZ_APP_ID = {ec8030f7-...} (Firefox's)
+MOZ_APP_VERSION = 0.3.0             MOZ_APP_ID = {ec8030f7-...} (Firefox's)
 ```
 
 `MOZ_TELEMETRY_REPORTING`, `MOZ_DATA_REPORTING`, `MOZ_SERVICES_HEALTHREPORT`,
@@ -367,7 +367,7 @@ The objdir is `obj-aarch64-apple-darwin` because `configs/macos` passes
 
 - `MOZ_APP_UA_NAME=Firefox` is **load-bearing**: `nsHttpHandler` emits the
   `Firefox/157.0` UA token only when the app name is literally `Firefox`.
-  Without it the UA is `… koi/0.2.0`, which breaks sites; it also keeps the
+  Without it the UA is `… koi/0.3.0`, which breaks sites; it also keeps the
   Koi version out of the UA.
 - `MOZ_APP_BASENAME=Koi` is application.ini's `Name` and the macOS profile
   dir. (`MOZ_USER_DIR` is not a mozconfig env var; it stays `Mozilla`.)
