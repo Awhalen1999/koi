@@ -128,7 +128,10 @@ function readActions(actions = []) {
         return { kind: "Type", point: {} };
       }
       const keys = [...new Set(values.map(v => KEYS[v]).filter(Boolean))];
-      return keys.length ? { kind: "Press", keys } : null;
+      // Modifiers alone belong to the source that follows (a ⇧-click).
+      if (keys.length) {
+        return { kind: "Press", keys };
+      }
     }
     if (source.type == "wheel") {
       return { kind: "Scroll" };

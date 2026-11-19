@@ -241,7 +241,7 @@ tab-group > .tab-group-label-container,
   align-items: center;
   height: var(--tab-min-height);
   padding: 0;
-  border-radius: var(--koi-radius-pill);
+  border-radius: var(--tab-border-radius);
   background-color: transparent;
   box-shadow: none;
   transition: opacity var(--koi-fade);
@@ -277,7 +277,7 @@ tab-group > .tab-group-label-container,
   color: var(--koi-fg-2);
   background-color: transparent;
   outline: none;
-  border-radius: var(--koi-radius-pill);
+  border-radius: var(--tab-border-radius);
 
   /* The folder's icon, in its colour, before the name: the plain folder
    * until one is picked (--koi-folder-glyph, koi-folders.js). */
@@ -354,7 +354,8 @@ tab-group > .tab-group-label-container,
   align-items: center;
   height: var(--tab-min-height);
   margin-block: var(--tab-margin-block);
-  padding: 0 var(--koi-space-8) 0 calc(var(--koi-space-8) - var(--tab-overflow-clip-margin));
+  padding-block: 0;
+  padding-inline: calc(var(--koi-space-8) - var(--tab-overflow-clip-margin)) var(--koi-space-8);
   background-color: var(--koi-folder-tint);
   transition: background-color var(--koi-fade);
 
@@ -411,23 +412,23 @@ tab-group > .tab-group-label-container,
  * Ungroup); koi-folders.js marks them iconic. Delete Folder says what it
  * closes in the shortcut slot Firefox draws after a row's label. */
 #tabGroupEditor_addNewTabInGroup {
-  list-style-image: url(chrome://global/skin/icons/plus.svg);
+  list-style-image: url("chrome://global/skin/icons/plus.svg");
 }
 
 #tabGroupEditor_moveGroupToNewWindow {
-  list-style-image: url(chrome://browser/skin/window.svg);
+  list-style-image: url("chrome://browser/skin/window.svg");
 }
 
 #tabGroupEditor_copyAllLinks {
-  list-style-image: url(chrome://global/skin/icons/link.svg);
+  list-style-image: url("chrome://global/skin/icons/link.svg");
 }
 
 #tabGroupEditor_ungroupTabs {
-  list-style-image: url(chrome://global/skin/icons/folder.svg);
+  list-style-image: url("chrome://global/skin/icons/folder.svg");
 }
 
 #tabGroupEditor_deleteGroup {
-  list-style-image: url(chrome://global/skin/icons/delete.svg);
+  list-style-image: url("chrome://global/skin/icons/delete.svg");
 
   &::after {
     color: var(--koi-fg-3);

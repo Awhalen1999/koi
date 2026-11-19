@@ -66,14 +66,15 @@ way (below). If it conflicts on a Firefox update, delete both files.
 
 ### Decided, not built yet
 
-- **Shared JS** will be an `.mjs` under `src/koi/common/modules/`, shipped by
-  the common `jar.inc.mn` and loaded with
-  `ChromeUtils.importESModule("chrome://browser/content/koi-common/….mjs")`:
-  no moz.build, no patch. Until then every script is an IIFE.
-  `el()` and the XHTML constant are in koi-newtab.js and koi-board.js, with
-  a variant that also sets text in koi-agents.js: three six-line copies
-  still cost less than the indirection. The trigger is a helper worth
-  sharing that is more than a few lines.
+- **Shared JS**: modules are `.sys.mjs` in their feature dir, shipped by
+  its `jar.inc.mn` and loaded with
+  `ChromeUtils.importESModule("chrome://browser/content/koi-….sys.mjs")`:
+  no moz.build, no patch. A shared helper would go in `src/koi/common/`
+  the same way; none exists yet. Window scripts are IIFEs. `el()` is in
+  koi-newtab.js and koi-board.js, with a variant that also sets text in
+  koi-agents.js: three six-line copies still cost less than the
+  indirection. The trigger is a helper worth sharing that is more than a
+  few lines.
 - **`src/koi/about/` is the content-page dir**, with rules no chrome dir has:
   its own `default-src chrome:` CSP, chrome:// assets (koi-theme.css
   included) reachable only because `content browser` is
@@ -124,8 +125,8 @@ Never `%include` Koi CSS into Firefox's `browser/themes/*/browser.css`
   `[breakout]` with a native popover (`[popover-open]`,
   `--urlbar-background-overhang-open`) and the root's `chromehidden` with
   `popup-window` / `chromeless-window`. A rule that misses inside the tab
-  strip is usually its internal DOM: kill the thing at its variable
-  (`--tabstrip-inner-border`).
+  strip is usually its internal DOM: look for the variable that draws the
+  thing before writing a longer selector.
 - **Set the token Firefox reads, where it reads it.** A token derived at
   `:root` from another is computed there and inherited, so overriding the
   source on a descendant does nothing (157's tab buttons read
@@ -323,7 +324,7 @@ and adding a `buildOptions` key, both harmless). Clear
    apply. gen-prefs then refuses any pref the new tree no longer reads;
    delete it from its yaml.
 2. A full build; the first after a bump mostly misses sccache (~25 minutes
-   on the M5 Pro).
+   on an M-series Pro).
 3. Look at everything: the chrome, the empty state, the board, Settings, a
    private window. The dry run below cannot see rendering.
 4. `npm run release` once and install it in the VM: the release options
@@ -354,7 +355,7 @@ MOZ_APP_DISPLAYNAME = Koi           MOZ_MACBUNDLE_ID = surf.koi.browser
 MOZ_APP_NAME = koi                  MOZ_CHILD_PROCESS_BUNDLEID = surf.koi.plugincontainer
 MOZ_APP_VENDOR = Koi                MOZ_MACBUNDLE_NAME = Koi.app
 MOZ_APP_UA_NAME = Firefox           MOZ_UPDATE_CHANNEL = release
-MOZ_APP_VERSION = 0.1.0             MOZ_APP_ID = {ec8030f7-...} (Firefox's)
+MOZ_APP_VERSION = 0.2.0             MOZ_APP_ID = {ec8030f7-...} (Firefox's)
 ```
 
 `MOZ_TELEMETRY_REPORTING`, `MOZ_DATA_REPORTING`, `MOZ_SERVICES_HEALTHREPORT`,
@@ -366,7 +367,7 @@ The objdir is `obj-aarch64-apple-darwin` because `configs/macos` passes
 
 - `MOZ_APP_UA_NAME=Firefox` is **load-bearing**: `nsHttpHandler` emits the
   `Firefox/157.0` UA token only when the app name is literally `Firefox`.
-  Without it the UA is `… koi/0.1.0`, which breaks sites; it also keeps the
+  Without it the UA is `… koi/0.2.0`, which breaks sites; it also keeps the
   Koi version out of the UA.
 - `MOZ_APP_BASENAME=Koi` is application.ini's `Name` and the macOS profile
   dir. (`MOZ_USER_DIR` is not a mozconfig env var; it stays `Mozilla`.)
@@ -519,7 +520,7 @@ pt picture) and `dsstore`** (2026-11-11): a light grey ground with neutral
 silver washes at the top and the foot (no blue, 2026-11-14), "Drag Koi to Applications", three chevrons, and 144px icons centred
 at 214,212 and 546,212 pt in a 760 × 412 window (32 of it the titlebar on
 macOS 26). The picture is `scripts/dmg-background.html` rendered by
-headless Chrome (`--headless=new --hide-scrollbars
+a headless Chromium (`--headless=new --hide-scrollbars
 --force-device-scale-factor=2 --window-size=760,400 --screenshot=…`), then
 `sips -s dpiWidth 144 -s dpiHeight 144`. It draws the name under the
 Applications link, which Mozilla names with a space so Finder shows none;
@@ -607,8 +608,7 @@ listed in `engine/.gitignore`. Zero patches. Koi replaces thirteen:
   channel's slots: the updater applies only updates signed
   with it. The private half is `~/.koi-keys/mar/private_key.pem`, the only
   file a release needs (scripts/release.sh wraps it in a throwaway
-  certificate for signmar), never the repo, backed up in Alex's password
-  manager; losing it means no installed Koi can update again. A build embeds it in the generated
+  certificate for signmar), never the repo, backed up offline; losing it means no installed Koi can update again. A build embeds it in the generated
   `primaryCert.h`/`secondaryCert.h`, which `mach build <dir>` does not
   regenerate; a full incremental build does.
 
@@ -805,7 +805,7 @@ named.
   pinned to a tested release (KoiAgents.sys.mjs, SERVER; bump after testing)
   and given its console and network tools without the developer preset's
   rarely used ones, and
-  Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's 0.1.0
+  Capabilities-sys-mjs.patch so it sees Gecko's 157 rather than Koi's own version
   (it disables version-gated tools). **The agent works in a folder of its
   own** (KoiAgentTabs.sys.mjs): a tab group marked
   `koi-agent`, one per window, made at the end of the strip and moved like
@@ -904,7 +904,7 @@ named.
   easiest thing to overdo: the board opening from the page (the current
   tab's card shrinking from the page card into its tile); if it comes, it is a FLIP of the card Koi already draws.
 - **Menus are native; panels are Koi's** (decided 2026-10-12 in the design
-  pass, the Koi Designs canvas). Menupopups stay native menus. Every arrow
+  pass). Menupopups stay native menus. Every arrow
   panel, Firefox's and Koi's, is drawn from the panel kit (koi-theme.css,
   Panels; koi-panels.css): the solid at 98% (`--koi-solid-panel`; 95% let
   page text read through), a hairline, 18px corners, no arrow,
@@ -914,7 +914,7 @@ named.
   popovers (`widget.macos.native-popovers`) are off, as upstream: macOS
   owned their shape and motion. Everything else over the page is the solid too:
   the address dropdown's results and "…" menu, the findbar, the status
-  label, the board's cards and the bookmark menus. UI text never joins
+  label, tooltips (2026-11-18, where macOS drew a square box), the board's cards and the bookmark menus. UI text never joins
   fragments with "·"; it says a phrase ("Working in 1 tab for 4 min").
 - **In-content pages keep Firefox's accent** (Settings, Add-ons). The lever,
   `browser.theme.native-theme`, would also paint a native titlebar material
@@ -952,7 +952,7 @@ named.
   the drag rings and fills) is zeroed at its tokens or outranked by
   selector; nothing is ringed while a drag is on, the tint says it, and a
   drop target shows the tray the drop would make or join. Decided
-  (2026-10-10, the Koi Tab Row canvas): drag-to-merge makes an unnamed
+  (2026-10-10): drag-to-merge makes an unnamed
   folder with no panel; right-click opens Firefox's editor with Koi's icon
   row (a double-click rename was built and taken out: too easy to start by
   accident; the pick lives in `koi.folders.icons`, a JSON pref by group id,
@@ -983,7 +983,7 @@ named.
   where the use site says why (about:rights' light ink, a page's reading
   measure). A new surface picks a family; a new
   value goes into koi-theme.css first. Verified 2026-10-29 by capturing every
-  surface before and after (scratchpad/ds). Two traps found: a Firefox
+  surface before and after. Two traps found: a Firefox
   rule that paints a glyph's fill through context-stroke (the app menu's
   zoom discs) drops the colour's alpha, so a film must be mixed opaque; and
   the address dropdown colours its URLs through `--link-color`, sized 0.85em
@@ -1011,7 +1011,7 @@ named.
   with Remove and Done, site information is headed by the host alone, and
   the folder editor's actions carry glyphs and Delete Folder says what it
   closes. The polish pass of 2026-10-30 (a pilot of the packaged build in a
-  VM, scratchpad/cua/pilot2): panel titles start at the left; closing a
+  VM): panel titles start at the left; closing a
   folder around the selected tab selects the nearest tab outside it
   (Firefox keeps the selected one on show, so nothing seemed to happen);
   the address field reverts to the page's address when a load becomes a

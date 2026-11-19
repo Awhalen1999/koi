@@ -93,8 +93,8 @@
 }
 
 .koi-card-header {
-  /* The header is a tab: its height, its inset and icon gap, and its
-   * buttons 6px inside the trailing edge, as above and below them. */
+  /* A ROW with a tab's inset and icon gap, and its buttons 6px inside the
+   * trailing edge, as above and below them. */
   height: var(--koi-row);
   flex: none;
   display: flex;

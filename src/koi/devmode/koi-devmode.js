@@ -155,7 +155,7 @@
           label: "Responsive Design Mode",
           key: "key_responsiveDesignMode",
         },
-        () => document.getElementById("key_responsiveDesignMode")?.doCommand()
+        () => document.getElementById("key_responsiveDesignMode").doCommand()
       ),
       element("menuitem", {
         label: "View Source",

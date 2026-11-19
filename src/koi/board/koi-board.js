@@ -20,14 +20,11 @@
     "DOMContentLoaded",
     () => {
       // Popups and other chromeless windows have no board.
-      if (!window.toolbar.visible || !window.gBrowser) {
+      if (!window.toolbar.visible) {
         return;
       }
 
       const tabbox = document.getElementById("tabbrowser-tabbox");
-      if (!tabbox) {
-        return;
-      }
 
       const XHTML = "http://www.w3.org/1999/xhtml";
       const el = (tag, className) => {
@@ -65,7 +62,7 @@
       let open = false;
 
       // Thumbnails --------------------------------------------------------
-      // Sized as Firefox's hover preview is (tab-hover-preview.mjs).
+      // 16:10, the card's thumb (koi-board.css).
       const THUMB_W = 320;
       const THUMB_H = 200;
 
@@ -91,7 +88,8 @@
           capturesRunning++;
           PageThumbs.captureTabPreviewThumbnail(browser, canvas)
             .then(
-              () => thumb.isConnected && thumb.append(canvas),
+              // False when the browser went away before drawing.
+              drawn => drawn && thumb.isConnected && thumb.append(canvas),
               // The glass fallback stays; log why.
               error =>
                 console.warn("koi-board: thumbnail capture failed", error)
@@ -263,14 +261,16 @@
         for (const [type, listener] of tabListeners) {
           gBrowser.tabContainer.removeEventListener(type, listener);
         }
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          grid.replaceChildren();
+        }
         if (restoreFocus) {
           gBrowser.selectedBrowser?.focus();
         }
       };
 
-      // The leave has faded the cards: they go, with their thumbnails. With
-      // reduced motion there is no transition, and the next open replaces
-      // them.
+      // The leave has faded the cards: they go, with their thumbnails.
+      // Reduced motion has no transition to wait for (closeSurface).
       surface.addEventListener("transitionend", event => {
         if (
           !open &&

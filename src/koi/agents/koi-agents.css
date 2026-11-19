@@ -174,8 +174,8 @@
   /* The dot overlaps the corner by a third, ringed in the solid. */
   &::after {
     position: absolute;
-    right: -3px;
-    bottom: -3px;
+    inset-inline-end: -3px;
+    inset-block-end: -3px;
     width: var(--koi-icon-10);
     height: var(--koi-icon-10);
     border-radius: 50%;
@@ -205,14 +205,14 @@
   }
 }
 
-/* The main actions share the panel's width, 2px inside the rows' edges:
- * an INSET from the rim, as the footers below. */
+/* The main actions share the panel's width, an INSET from the rim, as a
+ * row's button and the footers below are. */
 .koi-agents-actions {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
   gap: var(--koi-space-8);
-  padding: 0 2px var(--koi-space-8);
+  padding: 0 calc(var(--koi-inset) - var(--koi-panel-padding)) var(--koi-space-8);
 }
 
 /* [state] is off, ready, connected, port or error (koi-agents.js render). */
@@ -239,13 +239,12 @@
   line-height: var(--koi-line-12);
 }
 
-/* A row ends 6px in, so a button in it sits 8px from the rim, as rows do. */
 .koi-agents-row {
   display: flex;
   align-items: center;
   gap: var(--koi-inset);
   min-height: var(--koi-row);
-  padding-inline: var(--koi-inset) var(--koi-space-6);
+  padding-inline: var(--koi-inset) calc(var(--koi-inset) - var(--koi-panel-padding));
 }
 
 .koi-agents-double {
@@ -471,7 +470,7 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--koi-space-8);
-  padding: var(--koi-space-8) 2px 2px;
+  padding: var(--koi-space-8) calc(var(--koi-inset) - var(--koi-panel-padding)) calc(var(--koi-inset) - var(--koi-panel-padding));
 }
 
 /* Quiet: it changes the list, not the agent. */
@@ -573,7 +572,7 @@
 
   & .koi-agents-actions {
     align-self: stretch;
-    padding: var(--koi-space-16) 2px 2px;
+    padding: var(--koi-space-16) calc(var(--koi-inset) - var(--koi-panel-padding)) calc(var(--koi-inset) - var(--koi-panel-padding));
   }
 }
 

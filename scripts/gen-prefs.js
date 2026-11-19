@@ -58,7 +58,7 @@ if (!existsSync(PROFILE_DIR)) {
 }
 
 const files = readdirSync(PREFS_DIR, { recursive: true })
-  .filter(entry => /\.ya?ml$/.test(entry))
+  .filter(entry => /\.yaml$/.test(entry))
   .sort()
   .map(entry => join(PREFS_DIR, entry))
 if (files.length === 0) die(`no YAML files found under ${PREFS_DIR}/`)

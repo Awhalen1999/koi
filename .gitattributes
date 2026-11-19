@@ -4,5 +4,3 @@
 
 # Patches are diffs against Firefox source, not a language of their own.
 *.patch linguist-language=C++
-
-*.d.ts linguist-language=TypeScript

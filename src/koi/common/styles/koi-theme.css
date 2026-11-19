@@ -34,11 +34,12 @@
   /* Sizes ------------------------------------------------------------------
    * One ladder of heights. BOX is a glyph's own box: a keycap, a label.
    * PILL-SMALL is a button inside a row, a tab's × and audio button, and a
-   * small label (Private, the link preview). PILL is a panel's button and
-   * chip. TILE-SMALL is a toolbar button, the address field and an icon's
-   * tile in a row. ROW is a panel row (48 with a second line), a tab and a
-   * board card's header. TILE carries an icon on a fill in a panel's head,
-   * TILE-LARGE on the empty tab. */
+   * small label (Private, the link preview). PILL is every control in the
+   * chrome's rows and bars, the address field and a chip. TILE-SMALL is a
+   * tab, a pin, a panel's button and text field, and an icon's tile in a
+   * row. ROW is a panel row (48 with a second line), an address result and
+   * a board card's header. TILE carries an icon on a fill in a panel's
+   * head; TILE-LARGE is Koi's icon in the agents panel. */
   --koi-box: 20px;
   --koi-pill-small: 24px;
   --koi-pill-height: 28px;
@@ -79,7 +80,7 @@
 
   /* Radii, by the height of the box: 4 up to a BOX (and every favicon), 6
    * for a PILL-SMALL, 10 from a PILL to a ROW (TILE-SMALL included), 12 for
-   * a TILE, 14 for the page card and a TILE-LARGE, 18 for a panel.
+   * a TILE, 14 for the page card and a board card, 18 for a panel.
    * Concentric: a row's 10 inside a panel's 8px padding meets its 18. No
    * window radius: AppKit draws the window's corners. */
   --koi-radius-favicon: 4px;
@@ -179,7 +180,7 @@
    *   REST   — the base of a folder's tray
    *   WELL   — any glyph's hover (focus is the caret's job)
    *   HOVER  — a hovered pill, a pressed glyph
-   *   RAISED — the active surface (a selected row, the board's focused card) */
+   *   RAISED — the active surface (a selected row, the board's current card) */
   --koi-glass-shell: rgba(18, 18, 18, 0.75);
   --koi-glass-rest: rgba(255, 255, 255, 0.1);
   --koi-glass-well: rgba(255, 255, 255, 0.17);
@@ -215,11 +216,10 @@
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);
   --koi-fill-hover: rgba(255, 255, 255, 0.14);
-  --koi-shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+  --koi-shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 0 0 0.5px var(--koi-rule);
 
-  /* Panels: 8px of padding inside the rim, so a row's 8px corners sit
-   * concentric with the panel's 16; two widths, for a list and for a list
-   * with words in it (the agent's steps). */
+  /* Panels: 8px of padding inside the rim (Radii, above); two widths, for a
+   * list and for a list with words in it (the agent's steps). */
   --koi-panel-padding: var(--koi-space-8);
   --koi-panel-width: 304px;
   --koi-panel-width-wide: 352px;

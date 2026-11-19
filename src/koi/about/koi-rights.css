@@ -24,8 +24,7 @@ body {
   font: var(--koi-text-15) / 1.65 var(--koi-font-sans);
 }
 
-/* A 32rem measure keeps lines near 65 characters. The top space is
- * intentional. */
+/* A 32rem measure keeps lines near 65 characters. */
 main {
   max-width: 32rem;
   margin: 0 auto;

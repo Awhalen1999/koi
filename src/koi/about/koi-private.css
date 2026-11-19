@@ -6,7 +6,7 @@
  * Deliberately unlike the normal empty state, so a private window is never
  * mistaken for one: the page is the solid under a violet glow instead of the
  * wallpaper, and the ghost leads. The ⌘L line is the empty state's
- * (koi-newtab.css), so the two pages share one keycap. */
+ * (koi-newtab.css), keycap included: keep the two in step. */
 
 :root {
   color-scheme: dark;

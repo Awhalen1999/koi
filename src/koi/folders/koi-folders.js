@@ -243,7 +243,7 @@
       const outside = gBrowser.visibleTabs.filter(t => t.group != group);
       if (outside.length) {
         gBrowser.selectedTab =
-          outside.find(t => t._tPos > tab._tPos) ?? outside.at(-1);
+          outside.find(t => t.index > tab.index) ?? outside.at(-1);
       }
     });
     for (const type of ["TabGroupCollapse", "TabGroupExpand"]) {

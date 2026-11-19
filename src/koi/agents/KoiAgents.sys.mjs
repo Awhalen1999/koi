@@ -28,7 +28,7 @@
  *     one session and refuses a second before asking (WebDriverBiDi.sys.mjs
  *     createSession), so agents take turns. After Don't Allow, Koi refuses
  *     without asking for DENY_MS: an agent may retry at once. A prompt that
- *     ends unanswered (its window closed) refuses only that connection.
+ *     ends unanswered (40 seconds, or its window closed) refuses only that connection.
  *   - Connected is any session on the servers. It ends when the agent quits,
  *     the connector drops it (30 idle minutes) or the user disconnects.
  *   - Steps: what the agent does, in words, and the moment it acts
@@ -344,10 +344,16 @@ export const KoiAgents = {
       });
       return (await proc.wait()).exitCode;
     };
-    // `mcp add` refuses a name it has, so an older Koi's entry goes first.
-    await claude(["remove", "--scope", "user", "koi"]);
-    return (
-      (await claude(["add", "--scope", "user", "koi", "--", ...SERVER])) === 0
-    );
+    try {
+      // `mcp add` refuses a name it has, so an older Koi's entry goes first.
+      await claude(["remove", "--scope", "user", "koi"]);
+      return (
+        (await claude(["add", "--scope", "user", "koi", "--", ...SERVER])) === 0
+      );
+    } catch (error) {
+      // A claude that exists but will not run.
+      console.error(error);
+      return false;
+    }
   },
 };

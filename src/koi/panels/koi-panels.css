@@ -6,7 +6,7 @@
  *
  * Menupopups stay native menus (popup.css). Every arrow panel (app menu,
  * extensions, downloads, site information, bookmark editor, doorhangers,
- * Koi's own) is drawn by Firefox: the solid, the hairline, 16px corners, no
+ * Koi's own) is drawn by Firefox: the solid, the hairline, 18px corners, no
  * arrow, the window server's shadow (popup.css). Native popovers are off,
  * as upstream: macOS would own their shape and motion. Rows and buttons
  * take the kit through the tokens Firefox paints them from
@@ -45,9 +45,25 @@ panel[type="arrow"]:not(#feature-callout) {
   --button-background-color-primary-active: color-mix(in srgb, var(--koi-fg) 80%, transparent);
   --button-text-color-primary: var(--koi-solid);
   --button-border-radius: var(--koi-radius-pill);
+  /* Firefox's smallest corner (a 16px box's hover) is a BOX's. */
+  --border-radius-xsmall: var(--koi-radius-favicon);
 
+  /* Firefox's error ink (the folder editor's Delete Folder). */
+  --text-color-error: var(--koi-danger);
+
+  /* Buttons and text fields (the bookmark and folder editors' names) are
+   * one height, a TILE-SMALL, on a pill's corner. */
   & .footer-button {
-    min-height: var(--koi-pill-height);
+    min-height: var(--koi-tile-small);
+    padding-block: 0;
+  }
+
+  & input:not([type="checkbox"], [type="radio"]) {
+    box-sizing: border-box;
+    height: var(--koi-tile-small);
+    padding-block: 0;
+    border-radius: var(--koi-radius-pill);
+    color: var(--koi-fg);
   }
 
   /* Switches in macOS's shape: a 32 by 20 track, a film off and the accent
@@ -100,8 +116,8 @@ panel[type="arrow"] .panel-header {
 }
 
 /* The tab preview (tab-hover-preview.css): the title in the row weight, the
- * host in the address field's type, the thumbnail on an 8px corner with the
- * hairline. */
+ * host as a result's address is (third ink, 12), the thumbnail on a pill's
+ * corner with the hairline. */
 #tab-preview-panel {
   & .tab-preview-title {
     font-weight: 500;
@@ -127,7 +143,7 @@ panel[type="arrow"] .panel-header {
  * later sheet wins. */
 .toolbar-menupopup {
   &,
-  menupopup {
+  & menupopup {
     --panel-background-color: var(--koi-solid-panel);
     --panel-border-color: var(--koi-hair);
     color-scheme: dark;
@@ -145,6 +161,7 @@ panel[type="arrow"] .panel-header {
   background-color: var(--koi-solid);
   color: var(--koi-fg);
   color-scheme: dark;
+  font-size: var(--koi-text-12);
 
   & :is(.findbar-closebutton, .findbar-find-previous, .findbar-find-next) {
     box-sizing: border-box;
@@ -195,9 +212,9 @@ panel[type="arrow"] .panel-header {
 
 /* The link-hover status label, over the page card's bottom corner: a solid
  * PILL-SMALL (a line of secondary text and 4px), inset from the card's
- * edge. Firefox
- * styles each side by id, mirror and text direction (content-area.css); the
- * second rule ties that specificity and wins by order. */
+ * edge. Firefox styles each side by id, mirror and text direction
+ * (content-area.css); the last rule ties that specificity and wins by
+ * order. Tooltips take the same surface, in place of macOS's square box. */
 #statuspanel:not([hidden]) {
   padding-inline: var(--koi-space-8);
   padding-block-end: var(--koi-space-8);
@@ -205,9 +222,13 @@ panel[type="arrow"] .panel-header {
 
 #statuspanel-label {
   border-width: 0;
+  color-scheme: dark;
+}
+
+#statuspanel-label,
+tooltip {
   background-color: var(--koi-solid);
   color: var(--koi-fg);
-  color-scheme: dark;
   box-shadow: inset 0 0 0 0.5px var(--koi-hair);
   font-size: var(--koi-text-12);
   line-height: var(--koi-line-12);
@@ -215,6 +236,12 @@ panel[type="arrow"] .panel-header {
 
 #statuspanel:not([hidden]) > #statuspanel-label:-moz-locale-dir(ltr),
 #statuspanel:not([hidden]) > #statuspanel-label:-moz-locale-dir(rtl) {
+  padding: var(--koi-space-4) var(--koi-space-8);
+  border-radius: var(--koi-radius-small);
+}
+
+tooltip {
+  appearance: none;
   padding: var(--koi-space-4) var(--koi-space-8);
   border-radius: var(--koi-radius-small);
 }
@@ -236,7 +263,7 @@ panel[type="arrow"] .panel-header {
 /* Firefox branding in the account area: the app menu's gradient "zap"
  * separator (panelUI-shared.css) becomes a plain rule, and the account
  * panel's sign-in promo loses its fox (kit-signed-out.svg) and its violet
- * card for the SHELL film. */
+ * card for LIFT. */
 toolbarseparator.proton-zap {
   --panel-separator-zap-gradient: none;
 }
@@ -299,12 +326,12 @@ toolbarseparator.proton-zap {
       }
 
       &::before {
-        content: url(chrome://browser/skin/fxa/avatar-empty.svg);
+        content: url("chrome://browser/skin/fxa/avatar-empty.svg");
         margin-inline-end: var(--koi-inset);
       }
 
       &::after {
-        content: url(chrome://global/skin/icons/arrow-right.svg);
+        content: url("chrome://global/skin/icons/arrow-right.svg");
         margin-inline-start: auto;
         fill-opacity: 0.6;
       }
@@ -331,7 +358,18 @@ toolbarseparator.proton-zap {
 
 /* The bookmark editor: Done is the white main action, last as macOS puts it
  * (moz-button-group); Remove is danger ink on no fill, at the start. Its
- * title says what just happened (koi.ftl). */
+ * title says what just happened (koi.ftl). Its fields, divider and buttons
+ * share the title's edge, an INSET (editBookmarkPanel.css writes 16px for
+ * the first two). */
+#editBookmarkPanelContent {
+  padding-inline: var(--koi-inset);
+}
+
+#editBookmarkPanel > #editBookmarkHeaderSeparator,
+#editBookmarkPanel .panel-footer {
+  margin-inline: var(--koi-inset);
+}
+
 #editBookmarkPanelRemoveButton {
   margin-inline-end: auto;
   background-color: transparent;

@@ -35,8 +35,8 @@ body {
   background-color: transparent;
 }
 
-/* Firefox's chrome/content separator (content-area.css) paints a hard grey
- * line across the gutter; the gutter is Koi's boundary. */
+/* Firefox's chrome/content separator (content-area.css) would rule a line
+ * between the toolbar and the page, which are one card. */
 #navigator-toolbox {
   border-bottom-style: none;
 }

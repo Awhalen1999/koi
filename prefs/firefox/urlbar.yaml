@@ -20,7 +20,7 @@
   value: false
   locked: true
 
-- name: browser.urlbar.suggest.quicksuggest.nonsponsored
+- name: browser.urlbar.suggest.quicksuggest.all
   value: false
   locked: true
 

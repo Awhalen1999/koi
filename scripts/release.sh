@@ -23,6 +23,9 @@ export KOI_RELEASE=1
 for f in ~/.koi-keys/safebrowsing.dat "$KEY"; do
   [ -f "$f" ] || { echo "Missing $f" >&2; exit 1; }
 done
+command -v xz > /dev/null || { echo "Missing xz" >&2; exit 1; }
+security find-identity -v -p codesigning | grep -qF "$IDENTITY" ||
+  { echo "Missing the signing certificate: $IDENTITY" >&2; exit 1; }
 npm run build
 cd engine
 VERSION=$(cat browser/config/version.txt)

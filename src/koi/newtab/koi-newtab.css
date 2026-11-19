@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   gap: var(--koi-space-8);
-  margin-top: var(--koi-space-32);
+  margin-block-start: var(--koi-space-32);
   font-size: var(--koi-text-13);
   color: var(--koi-fg-2);
 }
@@ -71,8 +71,8 @@
 }
 
 /* The pins: each a chip in a tab's shape and measures (its height, inset,
- * icon gap, widest and the gap between two), wrapping in centred rows no wider than four
- * of the widest. With more than the card can hold, the pins scroll; the mark
+ * icon gap, widest and the gap between two), wrapping in centred rows no
+ * wider than four of the widest. With more than the card can hold, the pins scroll; the mark
  * and the line stay. */
 .koi-empty-pins {
   pointer-events: auto;
@@ -82,7 +82,7 @@
   gap: var(--koi-space-6);
   max-width: calc(4 * var(--koi-tab-max) + 3 * var(--koi-space-6));
   min-height: 0;
-  margin-top: var(--koi-space-32);
+  margin-block-start: var(--koi-space-32);
   overflow-y: auto;
 
   /* No bookmarks: no rows and no margin. */

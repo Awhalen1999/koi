@@ -21,15 +21,12 @@
       // about:privatebrowsing, Koi's private page (src/koi/about/).
       if (
         !window.toolbar.visible ||
-        window.PrivateBrowsingUtils?.isWindowPrivate(window)
+        PrivateBrowsingUtils.isWindowPrivate(window)
       ) {
         return;
       }
 
       const tabbox = document.getElementById("tabbrowser-tabbox");
-      if (!tabbox || !window.gBrowser) {
-        return;
-      }
 
       const { PlacesUtils } = ChromeUtils.importESModule(
         "resource://gre/modules/PlacesUtils.sys.mjs"

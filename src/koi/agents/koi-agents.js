@@ -206,7 +206,7 @@
     menuToggle.setAttribute("label", "Agent Connect");
     menuToggle.setAttribute("inputlayout", "inline-end");
     menuToggle.addEventListener("toggle", () =>
-      KoiAgents.setShown(menuToggle.pressed).catch(console.error)
+      KoiAgents.setShown(menuToggle.pressed)
     );
     PanelMultiView.getViewNode(document, "koi-appmenu-devmode").after(
       menuToggle
@@ -253,7 +253,7 @@
     });
 
     toggle.addEventListener("toggle", () =>
-      KoiAgents.setEnabled(toggle.pressed).catch(console.error)
+      KoiAgents.setEnabled(toggle.pressed)
     );
     panel
       .querySelector(".koi-agents-retry")
@@ -326,7 +326,6 @@
     // the folder comes first, in the agent's blue.
     const tabMenu = document.getElementById("tabContextMenu");
     const shareItem = document.createXULElement("menuitem");
-    shareItem.id = "koi-agents-share-item";
     shareItem.addEventListener("command", () => {
       const tabs = TabContextMenu.contextTabs;
       const on = !tabs.every(KoiAgentTabs.is, KoiAgentTabs);
@@ -534,7 +533,8 @@
           width: `${rect.width * zoom}px`,
           height: `${rect.height * zoom}px`,
         });
-        // Below the element when there is no room above it.
+        // Below the element when there is no room above it for the tag, its
+        // gap and the ring (koi-agents.css).
         touchBox.toggleAttribute("below", rect.top * zoom < 36);
         touchTag.textContent = touchOf.kind;
         browser.closest(".browserStack")?.append(touch);

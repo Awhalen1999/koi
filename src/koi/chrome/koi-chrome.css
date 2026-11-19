@@ -80,10 +80,6 @@
    * the button does nothing. */
   --tab-content-button-size: var(--koi-pill-small);
   --tab-content-button-padding: calc((var(--koi-pill-small) - var(--koi-icon-14)) / 2);
-  /* Firefox draws a separator before the strip when a toolbarbutton precedes
-   * it (tabs.css ::before), as back/forward/reload do. Every drawing reads
-   * this variable; element-scoped rules cannot reach the strip's DOM. */
-  --tabstrip-inner-border: none;
 
   /* The system accent (koi-theme.css) replaces Firefox's macOS blue
    * (tokens-platform.css) in doorhanger buttons, toggles and focus rings;
@@ -215,7 +211,7 @@
   padding-inline: calc(var(--koi-gutter) + var(--koi-space-6) - var(--toolbarbutton-padding-outer));
 
   /* The lights start over the back arrow's glyph: inset as a glyph is in a
-   * toolbar button, 8px and the button's outer padding. After them
+   * toolbar button, 6px and the button's outer padding. After them
    * (osx/browser.css gives no space), 8px to the board button's hover box,
    * the lights' own spacing, less that padding. */
   & .titlebar-buttonbox {
@@ -229,10 +225,10 @@
 }
 
 /* Firefox puts a separator before the strip when a button precedes it
- * (tabs.css ::before). --tabstrip-inner-border takes its line; its box, 4px
- * wide, goes here, so the board button is 6px from the first tab, like
- * every gap in the row. Three ids, to outrank Firefox's selector:
- * nested, it takes its list's highest specificity, two ids. */
+ * (tabs.css ::before): a line in a 4px box. Hidden, so the board button is
+ * 6px from the first tab, like every gap in the row. Three ids, to outrank
+ * Firefox's selector: nested, it takes its list's highest specificity, two
+ * ids. */
 #navigator-toolbox #TabsToolbar #tabbrowser-tabs[orient="horizontal"]::before {
   display: none;
 }
@@ -242,8 +238,10 @@
   order: -1;
 }
 
-/* The board replaces the all-tabs menu; ⌘L covers switching to a tab. */
-#alltabs-button {
+/* The board replaces the all-tabs menu and Firefox View; ⌘L covers
+ * switching to a tab. */
+#alltabs-button,
+#firefox-view-button {
   display: none;
 }
 
@@ -251,10 +249,6 @@
  * titlebar drag area (CustomizableUI.sys.mjs, AREA_TABSTRIP). With the strip
  * taking the row it only holds the + 28px short of the edge. */
 #TabsToolbar toolbarspring {
-  display: none;
-}
-
-#firefox-view-button {
   display: none;
 }
 
@@ -297,7 +291,7 @@
   color-scheme: dark;
   /* Inset like the toolbar's buttons, with air only below: the toolbar
    * brings its own. */
-  --info-bar-margin-inline: var(--koi-gutter);
+  --info-bar-margin-inline: var(--koi-space-6);
   --info-bar-margin-block-start: 0;
   --info-bar-margin-block-end: var(--koi-space-6);
 
@@ -307,6 +301,17 @@
     --info-bar-box-shadow: inset 0 0 0 0.5px var(--koi-hair);
     --message-bar-border-color: transparent;
     --message-bar-border-radius: var(--koi-radius-pill);
+    font-size: var(--koi-text-12);
+    /* Its × is a PILL-SMALL; its buttons are pills. */
+    --button-border-radius: var(--koi-radius-small);
+
+    & .notification-button {
+      --button-border-radius: var(--koi-radius-pill);
+      min-height: var(--koi-pill-height);
+      padding-block: 0;
+      font-size: inherit;
+      color: var(--koi-fg);
+    }
 
     &::before {
       display: none;
@@ -320,11 +325,11 @@
 
 /* Toolbar buttons ------------------------------------------------------------
  * White glyphs: the WELL appears on hover; pressed, open and checked sit
- * one rung up. Firefox's own state rules paint all of it
- * from these tokens (toolbarbuttons.css), so an open menu's button stays lit
- * and Koi's buttons need nothing extra. The box is a PILL in both rows: a
- * 16px glyph with 6px around it (The rows, above). The toolbar swaps the films for the solid's (The
- * toolbar, above). Disabled buttons dim whole, Firefox's way
+ * one rung up. Firefox's own state rules paint all of it from these tokens
+ * (toolbarbuttons.css), so an open menu's button stays lit and Koi's
+ * buttons need nothing extra. The box is a PILL in both rows: a 16px glyph
+ * with 6px around it (The rows, above). The toolbar swaps the films for the
+ * solid's (The toolbar, above). Disabled buttons dim whole, Firefox's way
  * (--toolbarbutton-opacity-disabled). */
 
 #navigator-toolbox {
@@ -373,7 +378,6 @@
   --urlbar-box-background-color-focus: transparent;
   --urlbar-box-background-color-hover: var(--koi-fill-hover);
   --urlbar-box-background-color-active: var(--koi-glass-well);
-  margin-inline: 0;
   color: var(--koi-fg);
   /* One size for what is typed and the results under it, which inherit it
    * (Firefox's 1.25em of the chrome's 11px root comes to 13.75). */
@@ -393,7 +397,7 @@
     color-scheme: dark;
     --urlbar-background-border-open: 0.5px solid var(--koi-hair);
     --urlbar-background-box-shadow-open: none;
-    /* Rows take the tabs' films, HOVER under the pointer and RAISED selected,
+    /* Rows take the glass's films, HOVER under the pointer and RAISED selected,
      * in place of Firefox's own selection (urlbarview.tokens.css). */
     --urlbarview-background-color-hover: var(--koi-glass-hover);
     --urlbarview-background-color-selected: var(--koi-glass-raised);
@@ -555,7 +559,6 @@
     font-weight: 500;
   }
 
-  /* Firefox's 16px favicon on a 4px-radius tile. */
   & .tab-icon-image {
     border-radius: var(--koi-radius-favicon);
   }
@@ -613,8 +616,8 @@
 }
 
 /* The selected tab --------------------------------------------------------
- * It is the toolbar's: the solid's BAR, like the toolbar it runs into. Never the
- * page's colour, which a photo, a gradient or a scroll would break. */
+ * It is the toolbar's: the solid's BAR, like the toolbar it runs into. Never
+ * the page's colour, which a photo, a gradient or a scroll would break. */
 .tabbrowser-tab:is([selected], [multiselected]) {
   --tab-background-color-selected: var(--koi-solid-bar);
   --tab-text-color-selected: var(--koi-fg);
@@ -707,18 +710,17 @@
  * at its padding edge, where the first and last tab sit. So the area is
  * 6px larger at each end and nothing moves: padding inside it, cancelled by
  * the same margin on the scroll box, which carries the fade mask and would
- * clip there too. (The curve's outer 1px falls past the padding; there it is
- * a quarter of a pixel tall.) The scroll padding keeps that room when a
- * full strip scrolls a tab into view (arrowscrollbox.js, scrollIntoView),
- * which otherwise stops at the tab's own edge.
+ * clip there too. The scroll padding keeps that room when a full strip
+ * scrolls a tab into view (arrowscrollbox.js, scrollIntoView), which
+ * otherwise stops at the tab's own edge.
  *
  * The + is #tabs-newtab-button inside the strip until it overflows, then
  * #new-tab-button beside it. Both are dressed as toolbar buttons and take
  * this spacing with no rule of their own.
  *
- * ponytail: pinned tabs scroll in their own area (#pinned-tabs-container),
- * unpadded, so a selected first pin has no leading curve. Pad it too if pins
- * come into use. */
+ * Pinned tabs scroll in their own area (#pinned-tabs-container), unpadded,
+ * so a selected first pin has no leading curve; pad it too if pins come
+ * into use. */
 #tabbrowser-arrowscrollbox[orient="horizontal"] {
   margin-inline: calc(-1 * var(--koi-space-6));
 
@@ -760,8 +762,6 @@
  * that does not overflow carries both (arrowscrollbox.js), so the mask is a
  * no-op. */
 #tabbrowser-arrowscrollbox[orient="horizontal"] {
-  --koi-strip-fade-start: 0px;
-  --koi-strip-fade-end: 0px;
   mask-image: linear-gradient(to right, transparent, black var(--koi-strip-fade-start), black calc(100% - var(--koi-strip-fade-end)), transparent);
   transition:
     --koi-strip-fade-start var(--koi-fade),

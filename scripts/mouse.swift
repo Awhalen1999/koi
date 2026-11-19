@@ -34,7 +34,7 @@ func stepTo(_ to: CGPoint, _ type: CGEventType, steps: Int) {
     usleep(16_000)
   }
 }
-switch a[1] {
+switch a.count > 1 ? a[1] : "" {
 case "trusted":
   print(AXIsProcessTrusted())
 case "activate":
@@ -65,5 +65,5 @@ case "click":
   usleep(60_000)
   post(.leftMouseUp, p)
 default:
-  print("mouse trusted | move X Y | down X Y | drag X Y [steps] | up | click X Y")
+  print("mouse trusted | activate PID | front PID | pos | move X Y | down X Y | drag X Y [steps] | up | click X Y")
 }
