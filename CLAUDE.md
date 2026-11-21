@@ -732,7 +732,7 @@ named.
   toolbar's** (2026-11-09; koi-shell.css, The card; koi-chrome.css, The
   selected tab). The glass is the window and is always dark: the solid's own
   colour at 75% on the blur (2026-11-14; a lighter grey film was tried and
-  read as a tint), white ink, resting tab names at the second ink. The toolbar and the selected tab are the solid's BAR, at 90% so a little of the glass comes through (the two never overlap, which would show), and so is the empty tab's card, under which the blank page paints nothing (koi-newtab.css); the address field is the solid's LIFT, mixed opaque for its
+  read as a tint), white ink, resting tab names at the second ink. The toolbar and the selected tab are the solid's BAR, at 85% so a little of the glass comes through (the two never overlap, which would show), and so is the empty tab's card, under which the blank page paints nothing (koi-newtab.css); the address field is the solid's LIFT, mixed opaque for its
   dropdown. Tabs have no fill at rest and a pill under the
   pointer (2026-11-11; a resting fill was taken out); the selected
   one runs down into the toolbar with a curve at each foot, so the join is

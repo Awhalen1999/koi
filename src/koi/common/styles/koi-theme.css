@@ -212,7 +212,7 @@
    * thinned so a little of the glass comes through and the window reads as
    * one piece. Only there: over a page nothing is blurred. Its pieces must
    * never overlap, nor sit on another film, or the join shows. */
-  --koi-solid-bar: color-mix(in srgb, var(--koi-solid) 90%, transparent);
+  --koi-solid-bar: color-mix(in srgb, var(--koi-solid) 85%, transparent);
   --koi-rule: rgba(255, 255, 255, 0.06);
   --koi-fill-lift: rgba(255, 255, 255, 0.09);
   --koi-fill-hover: rgba(255, 255, 255, 0.14);
